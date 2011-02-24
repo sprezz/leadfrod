@@ -28,3 +28,5 @@ def get_offers():
 
 def get_advertisers():
     pass
+
+#something else
