@@ -1,6 +1,11 @@
 from django.db import models
 import datetime
 from django.db.models import Sum
+from locking import models as locking
+from django.contrib.auth.models import User
+from rotator.rules import check_offer_advertiser_capacity,\
+    check_account_capacity, NoCapacityException
+from django.db.models import F    
 
 #VERSION 2
 
@@ -26,10 +31,8 @@ class IPSolution(models.Model):
         verbose_name='IP Solution'
         verbose_name_plural='IP Solutions'
 
-class Worker(models.Model):
-    name = models.CharField(max_length=255)
-    username = models.CharField(max_length=30)
-    password = models.CharField(max_length=30)
+class WorkerProfile(models.Model):
+    user = models.ForeignKey(User, unique=True)
     odesk_id = models.CharField(max_length=30)
     ip_solution = models.ForeignKey(IPSolution)
     now_online = models.BooleanField(default=False, editable=False)
@@ -37,17 +40,19 @@ class Worker(models.Model):
     description = models.CharField(max_length = 255, null = True, blank=True)
     
     class Meta:
-        verbose_name='Worker'
-        verbose_name_plural='Workers'
+        verbose_name='Worker profile'
+        verbose_name_plural='Workers profiles'
         
     def __unicode__ (self):
-        return u'%s @ odesk as %s' % (self.name, self.odesk_id) 
+        return u'%s %s @ odesk as %s' % (self.user.first_name, self.user.last_name, self.odesk_id) 
 
-
+class NoWorkException(Exception):
+    pass
+class WorkInterceptedException(Exception):
+    pass
 class WorkManager(models.Model):
     "Manages work of workers through work strategy"
-    workers_online = models.ManyToManyField(Worker, null=True, blank=True)
-    work_strategy = WorkStrategy()
+    workers_online = models.ManyToManyField(User, null=True, blank=True)
     
     class WorkItem(object):
         def __init__ (self, workLead=None, workOffers=None):
@@ -58,12 +63,18 @@ class WorkManager(models.Model):
                 self.offers = workOffers
                 
         def addOffer(self, anOffer):
-            self.offers.append(anOffer)    
+            self.offers.append(anOffer) 
+               
     class WorkStrategy(object):
         def __init__ (self):
             pass
-        def nextLead(self, csvFiles):
-            pass
+        def nextLead(self, csvFile):
+            try:
+                csvLeads = Lead.unlocked.filter(csv=csvFile).order_by('?')
+                return csvLeads[0]
+            except Lead.DoesNotExist:
+                return None    
+            
         def getOffersForLead(self, lead):
             """
                 abudarevsky: how I understood (mayy be wrong) - each Lead goes to advertiser sooner or later but untill it is accepted by an Advertiser it can proposed for different Offers. So once we give the Lead to Advertiser we have to lock Lead not to show for others Offers
@@ -84,25 +95,43 @@ class WorkManager(models.Model):
                 Algo:
                     1. Lead.getNiche
                     2. Get Offers per Niche
-                    3. Filter out by DailyCap and Status
+                    3.1 Filter out by DailyCap and Status
+                    3.2 Filter out by unique assigned advertisers and no advertiser 
                     4. Get 5 random from the rest
                     5. Return the list 
                     
             """
-            pass
+            leadNiche = lead.getNiche()
+            suggestions = []
+            offers = Offer.objects.filter(niche=leadNiche, status='active', daily_cap__gt=F('payout'))
+            for offer in offers:
+                try:
+                    if offer.hasAdvertiser():
+                        check_offer_advertiser_capacity(offer)
+                    check_account_capacity(offer.advertiser)
+                    check_account_capacity(offer.advertiser)
+                except NoCapacityException:
+                    continue    
+            
+        
+    work_strategy = WorkStrategy()    
     def signIn(self, worker):
         worker.now_online = True
         worker.save()
         self.workers_online.add(worker)
         self.save()
-        
-    def hasWorkForMe(self, worker):
-        availLeads = Lead.objects.filter(csv__in=CSVFile.objects.filter(workers=worker)).count()
-        return availLeads>0 # !!!! Ugly
     
     def nextWorkItem(self, worker):
-        worker_files = CSVFile.objects.filter(workers=worker)
-        lead = self.work_strategy.nextLead(worker_files)
+        csv_file = CSVFile.objects.filter(workers=worker).order_by('?')[0]
+        lead = self.work_strategy.nextLead(csv_file)
+        if not lead:
+            raise NoWorkException
+        if not lead.is_locked():
+            lead.lock_for(worker)
+            lead.worker = worker
+            lead.save()
+        else:
+            raise WorkInterceptedException    
         offers = self.work_strategy.getOffersForLead(lead)
         return WorkManager.WorkItem(lead, offers) 
        
@@ -122,7 +151,7 @@ class WorkManager(models.Model):
 class LeadSource(models.Model):
     name = models.CharField(max_length = 255)
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
-    description = models.CharField(max_length = 255, null=True)
+    description = models.CharField(max_length = 255, null=True, blank=True)
     
     class Meta:
         verbose_name='Lead Source'
@@ -136,7 +165,7 @@ class Niche(models.Model):
     min_epc = models.FloatField()
     max_epc = models.FloatField()
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
-    description = models.CharField(max_length = 30, null=True)
+    description = models.CharField(max_length = 30, null=True, blank=True)
     
     class Meta:
         verbose_name='Niche'
@@ -154,7 +183,7 @@ class CSVFile(models.Model):
     cost = models.FloatField(default = 0)
 #    revenue = models.FloatField(default = 0) to be calculated
 #    percent_completed = models.FloatField(default = 0) to be calculated
-    workers = models.ManyToManyField(Worker, null = True, blank=True, related_name='assignments')
+    workers = models.ManyToManyField(User, null = True, blank=True, related_name='assignments')
     max_offers = models.FloatField(default = 5)
     csv_headers = models.TextField(null = False, blank=True)
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
@@ -172,12 +201,24 @@ class CSVFile(models.Model):
         return self.leads.offers_completed.count()/self.leads.count()*100   
      
     def __unicode__ (self):
-        return u'%s' % (self.name) 
+        return u'%s' % (self.filename) 
+
+class Advertiser(models.Model):
+    name = models.CharField(max_length=30)
+    daily_cap = models.FloatField(default = 25)
+    status = models.CharField(max_length = 30, choices = STATUS_LIST)
+    description = models.CharField(max_length = 255)
     
-class Lead(models.Model):
+    class Meta:
+        verbose_name='Advertiser'
+        verbose_name_plural='Advertisers'
+        
+    def __unicode__ (self):
+        return u'%s' % (self.name)
+        
+class Lead(locking.LockableModel):
     csv = models.ForeignKey(CSVFile, related_name='leads')
-    deal = models.ForeignKey('Deal', related_name='leads', null=True, blank=True)
-    worker = models.ForeignKey(Worker, null=True, blank=True, related_name='leads_in_work')
+    worker = models.ForeignKey(User, null=True, blank=True, related_name='leads_in_work')
     
     started_on = models.DateTimeField(null = True, blank=True)
     ended_on = models.DateTimeField(null = True, blank=True)
@@ -194,22 +235,23 @@ class Lead(models.Model):
     status= models.CharField(max_length = 30, choices = STATUS_LIST, null = True, blank=True)
     description = models.CharField(max_length = 30, null = True, blank=True)
 
-    def isLocked(self):
-        return self.worker is not None
+#    def isLocked(self):
+#        return self.worker is not None
     
     class Meta:
-        verbose_name='Offer'
-        verbose_name_plural='Offers'
+        verbose_name='Lead'
+        verbose_name_plural='Leads'
     
     def getNiche(self):
         return self.csv.niche
     
-    def __unicode__ (self):
-        str = '%s %s'(self.description,self.csv)
-        if self.isLocked():
-            str+=' in work %s' % self.worker
-        return str
-        
+#    def __unicode__ (self):
+#        str = '%s %s'(self.description,self.csv)
+#        if self.isLocked():
+#            str+=' in work %s' % self.worker
+#        return str
+    
+
 #Should I have a WorkerCSV table? Will that be able to show checkboxes on both
 #a worker's page and a csv's page?
 #How do I make object names in django admin plural form?
@@ -217,6 +259,9 @@ class Lead(models.Model):
 
 class Offer(models.Model):
     account = models.ForeignKey('Account', related_name='offers')
+    niche = models.ForeignKey(Niche, related_name='offers')
+    # Each offer may have an advertiser associated with it.
+    advertiser = models.ForeignKey(Advertiser, related_name='offers', null=True, blank=True)
     offer_num = models.CharField(max_length=10)
     daily_cap = models.FloatField(default = 10)
     url = models.URLField(max_length=2000)
@@ -228,32 +273,18 @@ class Offer(models.Model):
     
     def hasAdvertiser(self):
         "Checks if this offer already has an advertiser"
-        return self.advertisers.count()>0
+        return self.advertiser is not None
     
     def getAdvertiser(self):
         if not self.hasAdvertiser(): return None
-        return self.advertisers.all()[0]        
+        return self.advertiser        
     
     class Meta:
         verbose_name='Offer'
         verbose_name_plural='Offers'
         
     def __unicode__ (self):
-        return u'Offer #%s at %s' % (self.offer_num, self.url) 
-    
-class Advertiser(models.Model):
-    offers = models.ManyToManyField(Offer, related_name='advertiser')
-    name = models.CharField(max_length=30)
-    daily_cap = models.FloatField(default = 25)
-    status = models.CharField(max_length = 30, choices = STATUS_LIST)
-    description = models.CharField(max_length = 255)
-    
-    class Meta:
-        verbose_name='Advertiser'
-        verbose_name_plural='Advertisers'
-        
-    def __unicode__ (self):
-        return u'%s' % (self.name) 
+        return u'Offer #%s at %s' % (self.offer_num, self.url)  
     
 class Owner(models.Model):
     name = models.CharField(max_length=30)
@@ -323,25 +354,14 @@ class Account(models.Model):
 class Network(models.Model):
     name = models.CharField(max_length = 30)
     url = models.CharField(max_length = 100)
-    description = models.CharField(max_length = 30)
+    description = models.CharField(max_length = 30, null=True, blank=True)
     class Meta:
-        verbose_name='Company'
-        verbose_name_plural='Companies'
+        verbose_name='Network'
+        verbose_name_plural='Networks'
         
     def __unicode__ (self):
         return u'%s' % (self.name)
     
-class Deal(models.Model):
-    "Deal is a combination of advertiser and certain offer proposed to this advertiser"
-    advertiser = models.ForeignKey(Advertiser)
-    offer = models.ForeignKey(Offer)
-    class Meta:
-        verbose_name='Deal'
-        verbose_name_plural='Deals'
-        
-    def __unicode__ (self):
-        return u'%s %s' % (self.advertiser, self.offer.payout)
-     
 class LeadSourceOfferExclusion(models.Model):
     leadsource = models.ForeignKey(LeadSource)
     advertiser = models.ForeignKey(Advertiser)

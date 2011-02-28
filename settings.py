@@ -78,6 +78,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'leadfrod.urls'
+AUTH_PROFILE_MODULE = "rotator.WorkerProfile"
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -85,7 +86,21 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+import logging
+from sentry.client.handlers import SentryHandler
+
+logger = logging.getLogger()
+# ensure we havent already registered the handler
+if SentryHandler not in map(lambda x: x.__class__, logger.handlers):
+    logger.addHandler(SentryHandler())
+
+    # Add StreamHandler to sentry's default so you can catch missed exceptions
+    logger = logging.getLogger('sentry.errors')
+    logger.propagate = False
+    logger.addHandler(logging.StreamHandler())
+
 INSTALLED_APPS = (
+    "staticfiles",
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -95,7 +110,14 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
-    'rotator'
+    'locking',
+    'rotator',
+    'indexer',
+    'paging',
+    'sentry',
+    'sentry.client',
+    # always in the end
+    'south',
 )
 
 try:
