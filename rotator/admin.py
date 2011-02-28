@@ -3,7 +3,7 @@ from models import *
 
 admin.site.register(LeadSource)
 admin.site.register(Niche)
-admin.site.register(CSV)
+admin.site.register(CSVFile)
 admin.site.register(Owner)
 admin.site.register(Company)
 admin.site.register(Network)
