@@ -3,8 +3,6 @@ import datetime
 from django.db.models import Sum
 from locking import models as locking
 from django.contrib.auth.models import User
-from rotator.rules import check_offer_advertiser_capacity,\
-    check_account_capacity, NoCapacityException
 from django.db.models import F    
 
 #VERSION 2
@@ -50,6 +48,58 @@ class NoWorkException(Exception):
     pass
 class WorkInterceptedException(Exception):
     pass
+
+class Capacity(models.Model):
+    "Capacity of remaining daily cap values of corresponding objects. "
+    date = models.DateField()
+    offer = models.ForeignKey('Offer', related_name='dailycap_capacity')
+    advertiser = models.ForeignKey('Advertiser', related_name='capacity', null=True, blank=True)
+    account = models.ForeignKey('Account', related_name='capacity')
+    owner = models.ForeignKey('Owner', related_name='capacity')
+    company = models.ForeignKey('Company', related_name='capacity')
+    
+    def checkOfferCapacity(self, payout):
+        if not self.offer.is_active():return False
+        return payout<self.offer.capacity
+    def checkAdvertiserCapacity(self, payout):
+        if not self.advertiser: return True
+        if not self.advertiser.is_active():return False
+        sum = self.advertiser.accounts.aggregate(Sum('accounts_capacity__capacity'))['accounts_capacity__capacity__sum']
+        return payout < sum
+    def checkAccountCapacity(self, payout):
+        if not self.account.is_active():return False
+        return payout<self.account.capacity
+    def checkCompanyCapacity(self, payout):
+        if not self.company.is_active():return False
+        return payout<self.company.capacity
+    def checkOwnerCapacity(self, payout):
+        if not self.owner.is_active():return False
+        return payout<self.owner.capacity
+    
+    def updateOfferCapacity(self, payout):
+        pass
+    def updateAdvertiserCapacity(self, payout):
+        pass
+    def updateAccountCapacity(self, payout):
+        pass
+    def updateCompanyCapacity(self, payout):
+        pass
+    def updateOwnerCapacity(self, payout):
+        pass
+    
+    class Meta:
+        verbose_name='Capacity'
+        verbose_name_plural='Capacity instances'
+        
+    def __unicode__ (self):
+        return u'%s %s %s %s %s %s %s' % (self.date, 
+                                         self.offer, 
+                                         self.offer.capacity,
+                                         self.advertiser.capacity,
+                                         self.account.capacity,
+                                         self.owner.capacity,
+                                         self.company.capacity) 
+
 class WorkManager(models.Model):
     "Manages work of workers through work strategy"
     workers_online = models.ManyToManyField(User, null=True, blank=True)
@@ -105,14 +155,8 @@ class WorkManager(models.Model):
             suggestions = []
             offers = Offer.objects.filter(niche=leadNiche, status='active', daily_cap__gt=F('payout'))
             for offer in offers:
-                try:
-                    if offer.hasAdvertiser():
-                        check_offer_advertiser_capacity(offer)
-                    check_account_capacity(offer.advertiser)
-                    check_account_capacity(offer.advertiser)
-                except NoCapacityException:
-                    continue    
-            
+                if offer.checkCapacity():
+                    suggestions.append(offer)
         
     work_strategy = WorkStrategy()    
     def signIn(self, worker):
@@ -202,16 +246,27 @@ class CSVFile(models.Model):
      
     def __unicode__ (self):
         return u'%s' % (self.filename) 
-
 class Advertiser(models.Model):
     name = models.CharField(max_length=30)
-    daily_cap = models.FloatField(default = 25)
+    daily_cap = models.FloatField(default=25)
     status = models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 255)
     
     class Meta:
         verbose_name='Advertiser'
         verbose_name_plural='Advertisers'
+        
+    def __unicode__ (self):
+        return u'%s' % (self.name)
+    
+class AdvertiserAccountCapacity(models.Model):
+    advertiser = models.ForeignKey(Advertiser, related_name='accounts_capacity')
+    account = models.ManyToManyField('Account', related_name='advertiser_capacity', null=True, blank=True)
+    capacity = models.FloatField(default=25)
+    
+    class Meta:
+        verbose_name="Advertiser's Account Capacity"
+        verbose_name_plural="Advertiser's Account Capacity instances"
         
     def __unicode__ (self):
         return u'%s' % (self.name)
@@ -258,12 +313,14 @@ class Lead(locking.LockableModel):
 #What does null=True really mean if I still have to add something to the admin field?
 
 class Offer(models.Model):
+    network = models.ForeignKey('Network', related_name='offers')
     account = models.ForeignKey('Account', related_name='offers')
     niche = models.ForeignKey(Niche, related_name='offers')
     # Each offer may have an advertiser associated with it.
     advertiser = models.ForeignKey(Advertiser, related_name='offers', null=True, blank=True)
     offer_num = models.CharField(max_length=10)
     daily_cap = models.FloatField(default = 10)
+    capacity = models.FloatField(default = 10, editable=False)
     url = models.URLField(max_length=2000)
     payout = models.FloatField()
     min_epc = models.FloatField()
@@ -271,14 +328,48 @@ class Offer(models.Model):
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 255, null = True, blank=True)
     
+    def is_active(self):
+        return self.status=='active'
+    
     def hasAdvertiser(self):
         "Checks if this offer already has an advertiser"
         return self.advertiser is not None
     
     def getAdvertiser(self):
         if not self.hasAdvertiser(): return None
-        return self.advertiser        
+        return self.advertiser
+    def initCapacity(self):
+        today = datetime.datetime.today()
+        if Capacity.objects.filter(date = today, offer=self).count()>0:
+            return
+        capacity = Capacity(date = today, offer = self)
+        capacity.account = self.account
+        if self.hasAdvertiser():
+            capacity.advertiser = self.advertiser
+        capacity.company = self.account.company    
+        capacity.owner = self.account.company.owner    
+        capacity.save()    
+        
+    def checkCapacity(self):
+        if not self.capacity: self.initCapacity()
+        
+        if not self.capacity.checkOfferCapacity(self.payout): return False
+        if self.hasAdvertiser():
+            if not self.capacity.checkAdvertiserCapacity(self.payout): return False
+        if not self.capacity.checkAccountCapacity(self.payout): return False    
+        if not self.capacity.checkCompanyCapacity(self.payout): return False
+        if not self.capacity.checkOwnerCapacity(self.payout): return False
+        
+        return True  
     
+    def updateCapacity(self):  
+        self.capacity.updateOfferCapacity(self.payout)
+        if self.hasAdvertiser():
+            self.capacity.updateAdvertiserCapacity(self.payout)
+        self.capacity.updateAccountCapacity(self.payout)    
+        self.capacity.updateCompanyCapacity(self.payout)
+        self.capacity.updateOwnerCapacity(self.payout)
+        self.capacity.save()
     class Meta:
         verbose_name='Offer'
         verbose_name_plural='Offers'
@@ -291,7 +382,8 @@ class Owner(models.Model):
     daily_cap = models.FloatField(default = 0)
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 30, null=True, blank=True)
-    
+    def is_active(self):
+        return self.status=='active'
     class Meta:
         verbose_name='Owner'
         verbose_name_plural='Owners'
@@ -300,7 +392,7 @@ class Owner(models.Model):
         return u'%s' % (self.name)
     
 class Company(models.Model):
-    owner = models.ForeignKey(Owner)
+    owner = models.ForeignKey(Owner, related_name='companies')
     name_list = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
@@ -314,10 +406,12 @@ class Company(models.Model):
     email_list = models.CharField(max_length=100)
     phone_list = models.CharField(max_length=100)
     daily_cap = models.FloatField(default = 0)
+    capacity = models.FloatField(default = 0)
     websites = models.CharField(max_length=100)
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 255)
-    
+    def is_active(self):
+        return self.status=='active'
     class Meta:
         verbose_name='Company'
         verbose_name_plural='Companies'
@@ -326,7 +420,9 @@ class Company(models.Model):
         return u'%s' % (self.name_list)
     
 class Account(models.Model):
-    network = models.ForeignKey('Network')
+    network = models.ForeignKey('Network', related_name='accounts')
+    company = models.ForeignKey(Company, related_name='accounts')
+    
     username = models.CharField(max_length = 30)
     password = models.CharField(max_length = 30, null=True)
     user_id = models.CharField(max_length = 30, null=True)
@@ -341,8 +437,14 @@ class Account(models.Model):
     last_payment_date = models.DateTimeField(null=True)
     payment_frequency = models.CharField(max_length = 30, null=True)
     daily_cap = models.FloatField(default = 100)
+    capacity = models.FloatField(default = 100)
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 255, null=True)
+    
+    primary = models.BooleanField(default=True)
+    
+    def is_active(self):
+        return self.status=='active'
     
     class Meta:
         verbose_name='Account'
@@ -354,7 +456,12 @@ class Account(models.Model):
 class Network(models.Model):
     name = models.CharField(max_length = 30)
     url = models.CharField(max_length = 100)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 30, null=True, blank=True)
+    
+    def is_active(self):
+        return self.status=='active'
+    
     class Meta:
         verbose_name='Network'
         verbose_name_plural='Networks'
