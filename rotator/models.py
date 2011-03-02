@@ -120,12 +120,13 @@ class WorkManager(models.Model):
             pass
         def nextLead(self, csvFile):
             try:
-                csvLeads = Lead.unlocked.filter(csv=csvFile).order_by('?')
+                csvLeads = Lead.unlocked.filter(csv=csvFile, status='active', worker__isnull=True).order_by('?')
+                if csvLeads.count()==0: return None
                 return csvLeads[0]
             except Lead.DoesNotExist:
                 return None    
             
-        def getOffersForLead(self, lead):
+        def getOffersForLead(self, wi):
             """
                 abudarevsky: how I understood (mayy be wrong) - each Lead goes to advertiser sooner or later but untill it is accepted by an Advertiser it can proposed for different Offers. So once we give the Lead to Advertiser we have to lock Lead not to show for others Offers
                 [3:28:48 MSD] rovin.v: so an offer may have an advertiser, at most 1 advertiser
@@ -151,12 +152,11 @@ class WorkManager(models.Model):
                     5. Return the list 
                     
             """
-            leadNiche = lead.getNiche()
-            suggestions = []
-            offers = Offer.objects.filter(niche=leadNiche, status='active', daily_cap__gt=F('payout'))
+            leadNiche = wi.lead.getNiche()
+            offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gt=F('payout'))
             for offer in offers:
                 if offer.checkCapacity():
-                    suggestions.append(offer)
+                    wi.addOffer(offer)
         
     work_strategy = WorkStrategy()    
     def signIn(self, worker):
@@ -166,18 +166,27 @@ class WorkManager(models.Model):
         self.save()
     
     def nextWorkItem(self, worker):
-        csv_file = CSVFile.objects.filter(workers=worker).order_by('?')[0]
-        lead = self.work_strategy.nextLead(csv_file)
+        for csv_file in CSVFile.objects.filter(workers=worker).order_by('?'):
+            lead = self.work_strategy.nextLead(csv_file)
+            if lead: break
         if not lead:
-            raise NoWorkException
+            raise NoWorkException()
         if not lead.is_locked():
             lead.lock_for(worker)
             lead.worker = worker
             lead.save()
         else:
-            raise WorkInterceptedException    
-        offers = self.work_strategy.getOffersForLead(lead)
-        return WorkManager.WorkItem(lead, offers) 
+            raise WorkInterceptedException()
+        
+        wi = WorkManager.WorkItem(lead)    
+        self.work_strategy.getOffersForLead( wi )
+        
+        if len(wi.offers)==0:
+            lead.unlock_for(worker)
+            lead.worker = None
+            lead.save()
+            raise NoWorkException()
+        return wi 
        
     def signOut(self, worker):
         worker.now_online = False
