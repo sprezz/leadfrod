@@ -117,7 +117,7 @@ INSTALLED_APPS = (
     'sentry',
     'sentry.client',
     # always in the end
-    'south',
+    # 'south',
 )
 
 try:
