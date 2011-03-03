@@ -1,9 +1,86 @@
-# Create your views here.
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.shortcuts import render_to_response, get_object_or_404
 
+
+from django.views.decorators.csrf import csrf_protect
+from django.template import RequestContext
+
+import logging
+
+from models import *
+
+@login_required
+def index(request):
+    return HttpResponseRedirect('/next')
+
+@login_required
+def submit_workitem(request):
+    print 'submit_workitem'
+    if request.method=='POST':
+        wm = WorkManager.instance()
+        print request.POST['user_action']
+        wi = request.session['workitem']
+        del request.session['workitem']
+        if request.POST['user_action']=='Next':
+            try:
+                wm.completeCurrentWorkItem(request.user)
+            except WorkInterceptedException, msg:
+                logging.warning(msg)
+            return HttpResponseRedirect('/next') 
+        else:
+            print 'Cancel job!'
+            logging.info('User %s has canceled work item %s' % (request.user, wi))
+            request.session['msg']='Work item %s was canceled by %s'% (wi, request.user)
+            wm.releaseCurrentWorkItem(request.user)
+            
+            return HttpResponseRedirect('/next')
+        
+
+@login_required
+def next_workitem(request):
+    "Responds with lead and appropriate offers"
+    wm = WorkManager.instance()
+    print 'wm instance', wm
+    wm.checkOrCreateUserProfile(request.user)
+    if not request.user.get_profile().now_online:
+        print 'setting ',request.user,' online'
+        wm.signIn(request.user)
+    wi = None    
+    for attempt in range(1,3):    
+        try:    
+            print 'Getting work item'
+            if 'workitem' not in request.session: 
+                wi = wm.nextWorkItem(request.user)
+                request.session['workitem']=wi
+            else:
+                wi = request.session['workitem']
+            msg = None    
+            if 'msg' in request.session:
+                msg = request.session['msg']
+                del request.session['msg']   
+            return render_to_response('worker/showlead.html', 
+                                      {'user':request.user,'wi':wi, 'message':msg},
+                                      context_instance=RequestContext(request))
+        except NoWorkException:
+            return render_to_response('worker/worker_goodbye.html', {'user':request.user})
+        except WorkInterceptedException:
+            logging.warning('User %s got intercepted work exception' % request.user)
+            continue
+        except WorkerProfileDoesNotExistException:
+            logging.error('User %s got unrecoverable error in getting next work item' % request.user)
+            raise Http404
+    
+
+def click_logout(request):
+    wm = WorkManager.instance()
+    wm.releaseCurrentWorkItem(request.user)
+    wm.signOut(request.user)
+    logout( request )
+    return HttpResponseRedirect('/')
 
 def show_login():
-    pass
-def click_logout():
     pass
 
 def dashboard():

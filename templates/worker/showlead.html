@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title%} {{user.username}}'s backlog {% endblock %}
+{% block content %}
+<div>{%if message %}<p style="color:red"><strong>{{message}}</strong></p>{%endif%}</div>
+<div style="display: block; float:left; width:49%;">
+<h2>Lead</h2>
+<table>
+	{% for f,v in wi.get_fields %}
+		<tr><td>{{f}}</td><td>{{v}}</td></tr>
+	{% endfor %}
+</table>
+</div>
+
+<div style="display: block; float:left;width:50%;">
+<h2>Offers</h2>
+{% for offer in wi.offers %}
+	<h3>Offer {{offer.offer_num}}</h3>
+	<table border="1">
+		<tr><td>Url</td><td>{{offer.url}}</td></tr>
+		<tr><td>Network</td><td>{{offer.network.name}}</td></tr>
+		<tr><td>Account</td><td>{{offer.account.username}}</td></tr>
+	</table>
+{% endfor %}
+</div> 
+</br>
+<div style="clear:both; display:block; height:1px; width:100%; overflow:hidden;"></div>
+<div>
+	<form method="post" action="/submit">
+		{% csrf_token %}
+	<div style="background:#ccc; display:block; padding:10px; margin-top:20px; height:20px; width:80%">
+		<input style="float:left;" type="submit" name="user_action" value="Cancel"/>
+		<input style="float:right;" type="submit" name="user_action" value="Next"/>
+	</div>
+	</form>
+</div>
+{% endblock %}

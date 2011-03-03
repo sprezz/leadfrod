@@ -8,14 +8,20 @@ import settings
 urlpatterns = patterns('',
     # Example:
     # (r'^leap/', include('leap.foo.urls')),
-
+    (r'^$', 'rotator.views.index'),
+    (r'^(static|media)/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
     # Uncomment the admin/doc line below to enable admin documentation:
      (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-     # (r'^sentry/', include('sentry.urls')),
-     (r'^(static|media)/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
+     (r'^accounts/login/$', 'django.contrib.auth.views.login'),
+     (r'^next/?$', 'rotator.views.next_workitem'),
+     (r'^submit/?$', 'rotator.views.submit_workitem'),
+     (r'^logout/?$', 'rotator.views.click_logout'),
+     (r'^sentry/', include('sentry.urls')),
+     
     # Uncomment the next line to enable the admin:
      (r'^admin/', include(admin.site.urls)),
      (r'^ajax/admin/', include('locking.urls')),
+     
      (r'^csv/','view_csvs'),
      (r'^account/','view_csvs'),
      (r'^offer/','view_csvs'),

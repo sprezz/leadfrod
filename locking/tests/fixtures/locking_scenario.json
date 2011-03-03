@@ -1,0 +1,90 @@
+[
+    {
+        "pk": 1, 
+        "model": "tests.story", 
+        "fields": {
+            "content": "This is a little lockable story.", 
+            "_locked_at": "2010-05-28 11:10:05", 
+            "_locked_by": 2
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "tests.story", 
+        "fields": {
+            "content": "This is another article ready for locking and unlocking.", 
+            "_locked_at": null, 
+            "_locked_by": null
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "tests.unlockable", 
+        "fields": {
+            "content": "This is an object that doesn't have LockableModel as a base class."
+        }
+    }, 
+    {
+        "pk": 22, 
+        "model": "auth.permission", 
+        "fields": {
+            "codename": "add_story", 
+            "name": "Can add story", 
+            "content_type": 8
+        }
+    }, 
+    {
+        "pk": 23, 
+        "model": "auth.permission", 
+        "fields": {
+            "codename": "change_story", 
+            "name": "Can change story", 
+            "content_type": 8
+        }
+    }, 
+    {
+        "pk": 24, 
+        "model": "auth.permission", 
+        "fields": {
+            "codename": "delete_story", 
+            "name": "Can delete story", 
+            "content_type": 8
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "Stan", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": true, 
+            "is_staff": true, 
+            "last_login": "2010-05-28 07:03:47", 
+            "groups": [], 
+            "user_permissions": [], 
+            "password": "sha1$8aacc$d4ddcce2942a31430eb29a00c1d8a314e5577f8b",
+            "email": "", 
+            "date_joined": "2010-05-28 04:54:28"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "auth.user", 
+        "fields": {
+            "username": "Fred", 
+            "first_name": "", 
+            "last_name": "", 
+            "is_active": true, 
+            "is_superuser": false, 
+            "is_staff": false, 
+            "last_login": "2010-05-28 10:22:49", 
+            "groups": [], 
+            "user_permissions": [], 
+            "password": "sha1$802af$9cb1b9b3998fccb7fdd9cb0e493a505d43e033d3", 
+            "email": "", 
+            "date_joined": "2010-05-28 10:22:49"
+        }
+    }
+]

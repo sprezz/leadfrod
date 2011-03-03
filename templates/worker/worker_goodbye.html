@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %} Thank you! {% endblock %}
+
+{% block content %}
+<p>
+Dear {%if user.first_name%} {{ user.first_name }} {%else%} {{ user.username }} {%endif%}, there is no more work   for for today! Take a break.
+</p>
+{% endblock %}

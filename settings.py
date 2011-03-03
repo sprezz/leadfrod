@@ -1,5 +1,6 @@
 # Django settings for leap project.
-
+import os
+SITE_ROOT= os.path.dirname(__file__)
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -7,7 +8,7 @@ ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 
-TEMPLATE_STRING_IF_INVALID = "LOOKUP FAILED!!!!!"
+#TEMPLATE_STRING_IF_INVALID = "LOOKUP FAILED!!!!!"
 
 MANAGERS = ADMINS
 
@@ -81,6 +82,7 @@ ROOT_URLCONF = 'leadfrod.urls'
 AUTH_PROFILE_MODULE = "rotator.WorkerProfile"
 
 TEMPLATE_DIRS = (
+    '%s/templates' % SITE_ROOT
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -100,7 +102,7 @@ if SentryHandler not in map(lambda x: x.__class__, logger.handlers):
     logger.addHandler(logging.StreamHandler())
 
 INSTALLED_APPS = (
-    "staticfiles",
+#    "staticfiles",
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

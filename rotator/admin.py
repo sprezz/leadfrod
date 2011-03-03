@@ -34,12 +34,22 @@ admin.site.register(LeadSourceOfferExclusion)
 admin.site.register(Offer)
 admin.site.register(IPSolution)
 admin.site.register(WorkerProfile)
+admin.site.register(Capacity)
 
 class LeadAdmin(LockableAdmin):
-    list_display = ('lock','csv','status','worker','deleted', )
-    list_display_links = ('csv','status','worker','deleted' )
+    model=Lead
+#    list_display = ('lock','csv','status','worker','deleted', )
+#    list_display_links = ('csv','status','worker','deleted' )
 admin.site.register(Lead, LeadAdmin)
+#admin.site.register(Lead)
 
 admin.site.register(TrafficHolder)
 admin.site.register(OfferClicks)
 admin.site.register(DailyCap)
+
+#class OfferInline(admin.TabularInline):
+#    model = Offer
+#    
+#class CapacityAdmin(admin.ModelAdmin):
+#    inlines = [OfferInline]
+#admin.site.register(Capacity,CapacityAdmin)    

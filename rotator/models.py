@@ -31,8 +31,8 @@ class IPSolution(models.Model):
 
 class WorkerProfile(models.Model):
     user = models.ForeignKey(User, unique=True)
-    odesk_id = models.CharField(max_length=30)
-    ip_solution = models.ForeignKey(IPSolution)
+    odesk_id = models.CharField(max_length=30, null=True, blank=True)
+    ip_solution = models.ForeignKey(IPSolution, null=True, blank=True)
     now_online = models.BooleanField(default=False, editable=False)
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 255, null = True, blank=True)
@@ -42,13 +42,16 @@ class WorkerProfile(models.Model):
         verbose_name_plural='Workers profiles'
         
     def __unicode__ (self):
-        return u'%s %s @ odesk as %s' % (self.user.first_name, self.user.last_name, self.odesk_id) 
+        return u'%s (%s %s) @ odesk as %s' % (self.user.username, self.user.first_name, self.user.last_name, self.odesk_id) 
 
 class NoWorkException(Exception):
     pass
 class WorkInterceptedException(Exception):
     pass
-
+class WorkerNotOnlineException(Exception):
+    pass
+class WorkerProfileDoesNotExistException(Exception):
+    pass
 class Capacity(models.Model):
     "Capacity of remaining daily cap values of corresponding objects. "
     date = models.DateField()
@@ -116,30 +119,58 @@ class Capacity(models.Model):
         verbose_name_plural='Capacity instances'
         
     def __unicode__ (self):
-        return u'%s %s %s %s %s %s %s' % (self.date, 
-                                         self.offer, 
-                                         self.offer.capacity,
-                                         self.advertiser.capacity,
-                                         self.account.capacity,
-                                         self.owner.capacity,
-                                         self.company.capacity) 
+        if self.advertiser:
+            advCapacity = self.advertiser.getAccountCapacity(self.offer.account)
+            return u'%s %s OFR: %s ADV: %s ACC: %s OWN: %s COM: %s' % (self.date, 
+                                             self.offer, 
+                                             self.offer.capacity,
+                                             advCapacity.capacity,
+                                             self.account.capacity,
+                                             self.owner.capacity,
+                                             self.company.capacity) 
+        else:    
+            return u'%s %s OFR: %s ACC: %s OWN: %s COM: %s' % (self.date, 
+                                             self.offer, 
+                                             self.offer.capacity,
+                                             self.account.capacity,
+                                             self.owner.capacity,
+                                             self.company.capacity)
+
+class WorkItem(object):
+    def __init__ (self, workLead=None, workOffers=None):
+        self.lead = workLead
+        if workOffers is None:
+            self.offers = []
+        else:
+            self.offers = workOffers
+    def get_header(self):
+        return self.lead.csv.csv_headers.split(',')        
+    def get_data(self):
+        return self.lead.lead_data.split(',')
+        
+    def get_fields(self):
+        fields = []
+        data = self.get_data()
+        for idx, f in enumerate(self.get_header()):
+            print f,data[idx]
+            fields.append((f,data[idx]))
+        return fields     
+    def addOffer(self, anOffer):
+        self.lead.offers_requested.add(anOffer)
+        self.lead.save()
+        self.offers.append(anOffer) 
+    def __str__ (self):
+        return '%s %s' % (self.lead, self.offers)
 
 class WorkManager(models.Model):
     "Manages work of workers through work strategy"
     workers_online = models.ManyToManyField(User, null=True, blank=True)
     
-    class WorkItem(object):
-        def __init__ (self, workLead=None, workOffers=None):
-            self.lead = workLead
-            if workOffers is None:
-                self.offers = []
-            else:
-                self.offers = workOffers
-                
-        def addOffer(self, anOffer):
-            self.lead.offers_requested.add(anOffer)
-            self.lead.save()
-            self.offers.append(anOffer) 
+    @staticmethod
+    def instance():
+        if WorkManager.objects.count()==0:
+            WorkManager().save()
+        return WorkManager.objects.get(pk=1)
                
     class WorkStrategy(object):
         def __init__ (self):
@@ -150,7 +181,14 @@ class WorkManager(models.Model):
                                                 status='active', 
                                                 worker__isnull=True, 
                                                 deleted=False).order_by('?')
-                if csvLeads.count()==0: return None
+#                csvLeads = Lead.objects.filter(csv=csvFile, 
+#                                                status='active', 
+#                                                worker__isnull=True, 
+#                                                deleted=False).order_by('?')                                
+                if csvLeads.count()==0:
+                    print 'There is no lead available for ', csvFile 
+                    return None
+                print 'got lead', csvLeads[0] 
                 return csvLeads[0]
             except Lead.DoesNotExist:
                 return None    
@@ -182,51 +220,122 @@ class WorkManager(models.Model):
                     
             """
             leadNiche = wi.lead.getNiche()
-            offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gt=F('payout')).order_by('?')
+            print wi
+            print 'get offer per niche', leadNiche
+            offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('?')
             for offer in offers:
+                print 'offer', offer, ' checking capacity...'
                 if offer.checkCapacity():
+                    print 'has capacity!'
+                    print 'hasAdvertiser', offer.hasAdvertiser()
                     if offer.hasAdvertiser() and wi.lead.checkAdvertiser(offer.advertiser):
+                        print wi.lead, 'already was given to ',offer.advertiser, '. Skipping...'
                         continue
-                    wi.lead.add(offer.advertiser)
-                    wi.lead.save()
+                    elif offer.hasAdvertiser():
+                        print 'offer has an advertiser ',offer.advertiser
+                        wi.lead.advertisers.add(offer.advertiser)
+                        wi.lead.save()
                     
                     wi.addOffer(offer)
+                    print 'added offer', offer
                     if len(wi.offers)==5: break
+            return wi       
         
-    work_strategy = WorkStrategy()    
-    def signIn(self, worker):
-        worker.now_online = True
-        worker.save()
-        self.workers_online.add(worker)
-        self.save()
+    work_strategy = WorkStrategy()
+    def completeCurrentWorkItem(self, worker):
+        "Set lead in work completed and adds adds stat information"
+        lead = self.getLeadInWork(worker)
+        if not lead: return;
+        if not (lead.is_locked and lead.locked_by==worker):
+            self.releaseCurrentWorkItem(worker)
+            raise WorkInterceptedException('Lead %s was unlocked or intercepted by another worker due to inactivity' % lead)
+        if lead.is_locked and lead.locked_by==worker:
+            lead.unlock_for(worker)
+            lead.save()
+        lead.status = 'completed'
+        for offer in lead.offers_requested.all():
+            lead.offers_completed.add(offer)
+            lead.offers_requested.remove(offer)
     
+        lead.save()    
+    def releaseCurrentWorkItem(self, worker):
+        "Release lead and deassociate lead and offers"
+        lead = self.getLeadInWork(worker)
+        if not lead: return;
+        if lead.is_locked and lead.locked_by==worker:
+            lead.unlock_for(worker)
+            lead.save()
+        if lead.worker==worker:    
+            lead.status = 'active'
+            lead.worker = None
+            for offer in lead.offers_requested.all():
+                lead.offers_requested.remove(offer)
+            lead.save()    
+        
+    def getLeadInWork(self, worker):
+        "Gets lead which was given as work item"
+        qset = Lead.objects.filter(worker=worker, status='active')
+        if not qset.exists(): return None
+        return qset[0]
+    
+    def checkOrCreateUserProfile(self, user):
+        try:
+            user.get_profile()
+        except WorkerProfile.DoesNotExist:
+            wp = WorkerProfile(user = user, status='active')
+            wp.save()
+    def signIn(self, worker):
+        print 'signing in ', worker
+        wp = worker.get_profile()
+        wp.now_online = True
+        wp.save()
+        self.workers_online.add(worker)
+        self.save()    
     def nextWorkItem(self, worker):
+        if not worker.get_profile().now_online: raise WorkerNotOnlineException()
+        print worker, 'is online'
+        lead = None
         for csv_file in CSVFile.objects.filter(workers=worker).order_by('?'):
+            print 'get csv', csv_file
             lead = self.work_strategy.nextLead(csv_file)
-            if lead is not None: break
+            print 'Lead instance', lead
+            if lead: break
         
         if not lead: raise NoWorkException()
         
-        if not lead.is_locked():
+        if not lead.is_locked:
+            print 'locking the lead'
             lead.lock_for(worker)
             lead.worker = worker
             lead.save()
         else:
-            raise WorkInterceptedException()
+            raise WorkInterceptedException("Locked by %s at %s" % (lead.locked_by, lead.locked_at))
         
-        wi = WorkManager.WorkItem(lead)    
-        self.work_strategy.getOffersForLead( wi )
-        
+        wi = WorkItem(lead)    
+        print 'finding offers'
+        wi = self.work_strategy.getOffersForLead( wi )
+        print 'found ',len(wi.offers),' offers'  
         if len(wi.offers)==0:
+            print 'unlock lead'
             lead.unlock_for(worker)
             lead.worker = None
             lead.save()
             raise NoWorkException()
+        print 'Returning ', wi
         return wi 
        
     def signOut(self, worker):
-        worker.now_online = False
-        worker.save()
+        print 'signing out ', worker
+        if not worker.get_profile().now_online: raise WorkerNotOnlineException()
+        qset = Lead.locked.filter(worker=worker)
+        if qset.exists():
+            for lead in qset.all():
+                lead.unlock_for(worker)
+                lead.save() 
+
+        wp = worker.get_profile()
+        wp.now_online = False
+        wp.save()
         self.workers_online.remove(worker)
         self.save()
         
@@ -369,16 +478,16 @@ class Lead(locking.LockableModel):
         return self.status=='active'
     
     def checkAdvertiser(self, anAdvertiser):
-        return self.advertisers.filter(pk=anAdvertiser.pk).count()>0 
+        return anAdvertiser in self.advertisers.all() 
     
     def getNiche(self):
         return self.csv.niche
     
-#    def __unicode__ (self):
-#        str = '%s %s'(self.description,self.csv)
-#        if self.isLocked():
-#            str+=' in work %s' % self.worker
-#        return str
+    def __unicode__ (self):
+        str = '%s %s' % (self.csv, self.status)
+        if self.worker:
+            str+=' in work %s' % self.worker
+        return str
     
 
 #Should I have a WorkerCSV table? Will that be able to show checkboxes on both
@@ -394,7 +503,7 @@ class Offer(models.Model):
     advertiser = models.ForeignKey(Advertiser, related_name='offers', null=True, blank=True)
     offer_num = models.CharField(max_length=10, null=True, blank=True)
     daily_cap = models.FloatField(default = 10)
-    capacity = models.FloatField(default = 10, editable=False)
+    capacity = models.FloatField(default = 10)
     url = models.URLField(max_length=2000)
     payout = models.FloatField()
     min_epc = models.FloatField( null=True, blank=True)
@@ -428,12 +537,22 @@ class Offer(models.Model):
         today = datetime.datetime.today()
         if not self.dailycap_capacity.filter(date=today).exists(): self.initCapacity()
         daily_capacity = self.dailycap_capacity.get(date=today)
-        if not daily_capacity.checkOfferCapacity(self.payout): return False
+        if not daily_capacity.checkOfferCapacity(self.payout):
+            print 'run out of offer capacity' 
+            return False
         if self.hasAdvertiser():
-            if not daily_capacity.checkAdvertiserCapacity(self.payout): return False
-        if not daily_capacity.checkAccountCapacity(self.payout): return False    
-        if not daily_capacity.checkCompanyCapacity(self.payout): return False
-        if not daily_capacity.checkOwnerCapacity(self.payout): return False
+            if not daily_capacity.checkAdvertiserCapacity(self.payout):
+                print "run out of advertiser's offer capacity with ", self.account 
+                return False
+        if not daily_capacity.checkAccountCapacity(self.payout):
+            print 'run out of account capacity' 
+            return False    
+        if not daily_capacity.checkCompanyCapacity(self.payout):
+            print 'run out of company capacity' 
+            return False
+        if not daily_capacity.checkOwnerCapacity(self.payout):
+            print 'run out of owner capacity' 
+            return False
         
         return True  
     
@@ -464,7 +583,7 @@ class Offer(models.Model):
         verbose_name_plural='Offers'
         
     def __unicode__ (self):
-        return u'Offer #%s at %s' % (self.offer_num, self.url)  
+        return u'Offer #%s at %s payout: %s capacity: %s/%s' % (self.offer_num, self.url, self.payout, self.daily_cap, self.capacity)  
     
 class Owner(models.Model):
     name = models.CharField(max_length=30)
@@ -479,7 +598,7 @@ class Owner(models.Model):
         verbose_name_plural='Owners'
         
     def __unicode__ (self):
-        return u'%s' % (self.name)
+        return u'%s capacity: %s/%s' % (self.name,self.capacity, self.daily_cap)
     
 class Company(models.Model):
     owner = models.ForeignKey(Owner, related_name='companies')
@@ -507,7 +626,7 @@ class Company(models.Model):
         verbose_name_plural='Companies'
         
     def __unicode__ (self):
-        return u'%s' % (self.name_list)
+        return u'%s capacity: %s/%s' % (self.name_list, self.capacity, self.daily_cap)
     
 class Account(models.Model):
     network = models.ForeignKey('Network', related_name='accounts')
@@ -541,7 +660,7 @@ class Account(models.Model):
         verbose_name_plural='Accounts'
         
     def __unicode__ (self):
-        return u'%s' % (self.username)
+        return u'%s capacity: %s/%s' % (self.username, self.capacity, self.daily_cap)
     
 class Network(models.Model):
     name = models.CharField(max_length = 30)
