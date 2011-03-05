@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import render_to_response, get_object_or_404
@@ -36,7 +36,6 @@ def submit_workitem(request):
             wm.releaseCurrentWorkItem(wi)
             
             return HttpResponseRedirect('/next')
-        
 
 @login_required
 def next_workitem(request):
@@ -75,14 +74,32 @@ def next_workitem(request):
 
 def click_logout(request):
     wm = WorkManager.instance()
-    if 'workitem' in request.session['workitem']:
+    if 'workitem' in request.session:
         wi = request.session['workitem']
         del request.session['workitem']
         wm.releaseCurrentWorkItem(wi)
-    wm.signOut(request.user)
+    try:    
+        wm.signOut(request.user)
+    except Exception, msg:
+        logging.error(msg)    
     logout( request )
     return HttpResponseRedirect('/')
 
+@permission_required('rotator.change_offer')
+def manage_dailycap(request):
+    if request.method=='POST':
+        for offer in Offer.objects.all():
+            offer.restoreDailyCapCapacity()
+
+    for offer in Offer.objects.all():
+        offer.checkCapacity()
+        
+    return render_to_response("daily_capacity.html", 
+                              {'capacity':Capacity.objects.filter(date=datetime.date.today()).all()},
+                              context_instance=RequestContext(request))    
+
+
+# Original functions
 def show_login():
     pass
 

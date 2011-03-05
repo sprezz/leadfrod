@@ -16,6 +16,7 @@ urlpatterns = patterns('',
      (r'^next/?$', 'rotator.views.next_workitem'),
      (r'^submit/?$', 'rotator.views.submit_workitem'),
      (r'^logout/?$', 'rotator.views.click_logout'),
+     (r'^dailycap/?$', 'rotator.views.manage_dailycap'),
      (r'^sentry/', include('sentry.urls')),
      
     # Uncomment the next line to enable the admin:

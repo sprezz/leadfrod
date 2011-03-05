@@ -258,7 +258,8 @@ class AppTestCase(TestCase):
         for n in range(1,10):
             lead = models.Lead(csv=test_csv2, status='active', lead_data='x%d,y%d,z%s' % (n,n,n) )
             lead.save()
-            
+        
+        print 'DATA POPULATED'            
         wm = models.WorkManager.instance()
         wm.workers_online.remove(self.w1) # hack: w1 was inherited from initiaL FIXTURE. we don't need it for this test
         wm.save()

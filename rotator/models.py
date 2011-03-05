@@ -340,7 +340,7 @@ class WorkManager(models.Model):
             for lead in qset.all():
                 lead.unlock_for(worker)
                 lead.save() 
-
+                
         wp = worker.get_profile()
         wp.now_online = False
         wp.save()
@@ -446,7 +446,10 @@ class Advertiser(models.Model):
         if  AdvertiserAccountCapacity.objects.filter(advertiser=self, account = adv_account).exists():
             return self.account_capacity.get(account = adv_account)
         return None
-                
+    
+    @property
+    def getAccounts(self):
+        return self.account_capacity.all()            
     class Meta:
         verbose_name='Advertiser'
         verbose_name_plural='Advertisers'
@@ -504,6 +507,7 @@ class Lead(locking.LockableModel):
 #What does null=True really mean if I still have to add something to the admin field?
 
 class Offer(models.Model):
+#    name = models.CharField(max_length = 255, null = True, blank=True)
     network = models.ForeignKey('Network', related_name='offers')
     account = models.ForeignKey('Account', related_name='offers')
     niche = models.ForeignKey(Niche, related_name='offers')

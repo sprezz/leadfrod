@@ -16,6 +16,7 @@
 {% for offer in wi.offers %}
 	<h3>Offer {{offer.offer_num}}</h3>
 	<table border="1">
+		<tr><td>Url</td><td>{{offer.name}}</td></tr>
 		<tr><td>Url</td><td>{{offer.url}}</td></tr>
 		<tr><td>Network</td><td>{{offer.network.name}}</td></tr>
 		<tr><td>Account</td><td>{{offer.account.username}}</td></tr>
