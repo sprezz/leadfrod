@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %} Dailycap reset {% endblock %}
+{% block content %}
+{% if perms.foo %}
+
+
+{% if capacity %}
+	<form action="/dailycap" method="post">
+		{% csrf_token %}
+		<input type="submit" value="Reset capacity"/>
+	</form> 
+	<h2>{{capacity.0.date}}</h2>
+	<table width="90%" border="1">
+		<tr>
+			<th>Niche</th>
+			<th>Offer Num</th>
+			<th>Offer Cap</th>
+			<th>Advertiser Cap</th>
+			<th>Account Cap</th>
+			<th>Company Cap</th>
+			<th>Owner Cap</th>
+		</tr>
+		{% for cap in capacity %}
+			<tr>
+				<td>{{cap.offer.niche}}</td>
+				<td align="center">{{cap.offer.offer_num}}</td>
+				<td align="right">{{cap.offer.capacity}}/{{cap.offer.daily_cap}}</td>
+				<td align="right">
+					{% if cap.advertiser %}
+						{% if cap.advertiser.getAccounts.count > 1 %}
+							<OL>
+								{% for acc in cap.advertiser.getAccounts %}
+									<li>{{acc.account.network.name}}&nbsp;{{acc.account.username}}&nbsp;{{acc.capacity}}/{{cap.advertiser.daily_cap}}</li>
+								{% endfor %}
+							</OL>	
+						{% else %}
+							{{cap.advertiser.getAccounts.0.account.network.name}}&nbsp;{{cap.advertiser.getAccounts.0.account.username}}&nbsp;{{cap.advertiser.getAccounts.0.capacity}}/{{cap.advertiser.daily_cap}}
+						{% endif %}
+					{% else %}
+						<tt>N/A</tt>
+					{% endif%}
+				</td>
+				<td align="right">{{cap.account.capacity}}/{{cap.account.daily_cap}}</td>
+				<td align="right">{{cap.company.capacity}}/{{cap.company.daily_cap}}</td>
+				<td align="right">{{cap.owner.capacity}}/{{cap.owner.daily_cap}}</td>
+			</tr>
+		{% endfor %}
+	</table>
+{% else %}
+	<h2>There is no data to reset</h2> 
+{% endif%}
+{% endblock %}
