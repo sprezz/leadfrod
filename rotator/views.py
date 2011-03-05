@@ -25,7 +25,7 @@ def submit_workitem(request):
         del request.session['workitem']
         if request.POST['user_action']=='Next':
             try:
-                wm.completeCurrentWorkItem(request.user)
+                wm.completeCurrentWorkItem(wi)
             except WorkInterceptedException, msg:
                 logging.warning(msg)
             return HttpResponseRedirect('/next') 
@@ -33,7 +33,7 @@ def submit_workitem(request):
             print 'Cancel job!'
             logging.info('User %s has canceled work item %s' % (request.user, wi))
             request.session['msg']='Work item %s was canceled by %s'% (wi, request.user)
-            wm.releaseCurrentWorkItem(request.user)
+            wm.releaseCurrentWorkItem(wi)
             
             return HttpResponseRedirect('/next')
         
@@ -75,7 +75,10 @@ def next_workitem(request):
 
 def click_logout(request):
     wm = WorkManager.instance()
-    wm.releaseCurrentWorkItem(request.user)
+    if 'workitem' in request.session['workitem']:
+        wi = request.session['workitem']
+        del request.session['workitem']
+        wm.releaseCurrentWorkItem(wi)
     wm.signOut(request.user)
     logout( request )
     return HttpResponseRedirect('/')

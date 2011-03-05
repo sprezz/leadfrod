@@ -81,36 +81,36 @@ class Capacity(models.Model):
         return payout<=self.owner.capacity
     
     def updateOfferCapacity(self, payout):
-        self.offer.capacity -= self.offer.payout
+        self.offer.capacity -= payout
         self.offer.save()
     def updateAdvertiserCapacity(self, payout):
         if not self.offer.hasAdvertiser(): return
         adv_account_cap = self.advertiser.getAccountCapacity(self.offer.account)
-        adv_account_cap.capacity -= self.offer.payout
+        adv_account_cap.capacity -= payout
         adv_account_cap.save()
     def updateAccountCapacity(self, payout):
-        self.account.capacity -= self.offer.payout
+        self.account.capacity -= payout
         self.account.save()
     def updateCompanyCapacity(self, payout):
-        self.company.capacity -= self.offer.payout
+        self.company.capacity -= payout
         self.company.save()
     def updateOwnerCapacity(self, payout):
-        self.owner.capacity -= self.offer.payout
+        self.owner.capacity -= payout
         self.owner.save()
     
-    def clearOfferCapacity(self, payout):
+    def restoreOfferDailyCapCapacity(self):
         self.offer.capacity = self.offer.daily_cap
         self.offer.save()
-    def clearAdvertiserCapacity(self, payout):
+    def restoreAdvertiserDailyCapCapacity(self):
         if not self.offer.hasAdvertiser(): return
         self.advertiser.clearCapacityOfAllAccounts()
-    def clearAccountCapacity(self, payout):
+    def restoreAccountDailyCapCapacity(self):
         self.account.capacity = self.account.daily_cap
         self.account.save()
-    def clearCompanyCapacity(self, payout):
+    def restoreCompanyDailyCapCapacity(self):
         self.company.capacity = self.company.daily_cap
         self.company.save()
-    def clearOwnerCapacity(self, payout):
+    def restoreOwnerDailyCapCapacity(self):
         self.owner.capacity = self.owner.daily_cap
         self.owner.save()
     
@@ -138,6 +138,7 @@ class Capacity(models.Model):
 
 class WorkItem(object):
     def __init__ (self, workLead=None, workOffers=None):
+        self.worker = None
         self.lead = workLead
         if workOffers is None:
             self.offers = []
@@ -156,6 +157,7 @@ class WorkItem(object):
             fields.append((f,data[idx]))
         return fields     
     def addOffer(self, anOffer):
+        anOffer.reduceCapacityOnShow()
         self.lead.offers_requested.add(anOffer)
         self.lead.save()
         self.offers.append(anOffer) 
@@ -225,58 +227,63 @@ class WorkManager(models.Model):
             offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('?')
             for offer in offers:
                 print 'offer', offer, ' checking capacity...'
-                if offer.checkCapacity():
-                    print 'has capacity!'
-                    print 'hasAdvertiser', offer.hasAdvertiser()
-                    if offer.hasAdvertiser() and wi.lead.checkAdvertiser(offer.advertiser):
-                        print wi.lead, 'already was given to ',offer.advertiser, '. Skipping...'
-                        continue
-                    elif offer.hasAdvertiser():
-                        print 'offer has an advertiser ',offer.advertiser
-                        wi.lead.advertisers.add(offer.advertiser)
-                        wi.lead.save()
-                    
-                    wi.addOffer(offer)
-                    print 'added offer', offer
-                    if len(wi.offers)==5: break
+                
+                if not offer.checkCapacity(): continue
+                
+                print 'has capacity!'
+                print 'hasAdvertiser', offer.hasAdvertiser()
+                if offer.hasAdvertiser() and wi.lead.checkAdvertiser(offer.advertiser):
+                    print wi.lead, 'already was given to ',offer.advertiser, '. Skipping...'
+                    continue
+                elif offer.hasAdvertiser():
+                    print 'offer has an advertiser ',offer.advertiser
+                    wi.lead.advertisers.add(offer.advertiser)
+                    wi.lead.save()
+                
+                wi.addOffer(offer)
+                print 'added offer', offer
+                if len(wi.offers)==5: break
             return wi       
         
     work_strategy = WorkStrategy()
-    def completeCurrentWorkItem(self, worker):
-        "Set lead in work completed and adds adds stat information"
-        lead = self.getLeadInWork(worker)
-        if not lead: return;
-        if not (lead.is_locked and lead.locked_by==worker):
-            self.releaseCurrentWorkItem(worker)
-            raise WorkInterceptedException('Lead %s was unlocked or intercepted by another worker due to inactivity' % lead)
-        if lead.is_locked and lead.locked_by==worker:
-            lead.unlock_for(worker)
-            lead.save()
-        lead.status = 'completed'
-        for offer in lead.offers_requested.all():
-            lead.offers_completed.add(offer)
-            lead.offers_requested.remove(offer)
     
-        lead.save()    
-    def releaseCurrentWorkItem(self, worker):
+    @property
+    def getNumberOfOnlineWorkers(self):
+        return self.workers_online.count()
+    
+    def completeCurrentWorkItem(self, workitem):
+        "Set lead in work completed and adds adds stat information"
+#        lead = self.getLeadInWork(worker)
+        if not workitem: return;
+        if not (workitem.lead.is_locked and workitem.lead.is_locked_by(workitem.worker)):
+            self.releaseCurrentWorkItem(workitem)
+            raise WorkInterceptedException('Lead %s was unlocked or intercepted by another worker due to inactivity' % workitem.lead)
+        if workitem.lead.is_locked and workitem.lead.is_locked_by(workitem.worker):
+            workitem.lead.unlock_for(workitem.worker)
+            workitem.lead.save()
+        workitem.lead.status = 'completed'
+        for offer in workitem.lead.offers_requested.all():
+            workitem.lead.offers_completed.add(offer)
+            workitem.lead.offers_requested.remove(offer)
+    
+        workitem.lead.save()    
+    def releaseCurrentWorkItem(self, workitem):
         "Release lead and deassociate lead and offers"
-        lead = self.getLeadInWork(worker)
-        if not lead: return;
-        if lead.is_locked and lead.locked_by==worker:
-            lead.unlock_for(worker)
-            lead.save()
-        if lead.worker==worker:    
-            lead.status = 'active'
-            lead.worker = None
-            for offer in lead.offers_requested.all():
-                lead.offers_requested.remove(offer)
-            lead.save()    
-        
-    def getLeadInWork(self, worker):
-        "Gets lead which was given as work item"
-        qset = Lead.objects.filter(worker=worker, status='active')
-        if not qset.exists(): return None
-        return qset[0]
+#        lead = self.getLeadInWork(worker)
+        print 'Releasing lead', workitem.lead
+        if not workitem.lead:
+            print 'There are no leads in work for ', workitem.worker 
+            return
+        if workitem.lead.is_locked and workitem.lead.is_locked_by(workitem.worker):
+            print 'Unlock for', workitem.worker
+            workitem.lead.unlock_for(workitem.worker)
+            workitem.lead.save()
+        if workitem.lead.worker==workitem.worker:    
+            workitem.lead.status = 'active'
+            workitem.lead.worker = None
+            for offer in workitem.lead.offers_requested.all():
+                workitem.lead.offers_requested.remove(offer)
+            workitem.lead.save()    
     
     def checkOrCreateUserProfile(self, user):
         try:
@@ -311,7 +318,8 @@ class WorkManager(models.Model):
         else:
             raise WorkInterceptedException("Locked by %s at %s" % (lead.locked_by, lead.locked_at))
         
-        wi = WorkItem(lead)    
+        wi = WorkItem(lead)
+        wi.worker = worker    
         print 'finding offers'
         wi = self.work_strategy.getOffersForLead( wi )
         print 'found ',len(wi.offers),' offers'  
@@ -360,8 +368,8 @@ class LeadSource(models.Model):
     
 class Niche(models.Model):
     name = models.CharField(max_length = 30)
-    min_epc = models.FloatField()
-    max_epc = models.FloatField()
+    min_epc = models.FloatField(null=True, blank=True)
+    max_epc = models.FloatField(null=True, blank=True)
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 30, null=True, blank=True)
     
@@ -522,7 +530,8 @@ class Offer(models.Model):
         if not self.hasAdvertiser(): return None
         return self.advertiser
     def initCapacity(self):
-        today = datetime.datetime.today()
+        print 'Create new capacity for ', self
+        today = datetime.date.today()
         if Capacity.objects.filter(date = today, offer=self).count()>0:
             return
         capacity = Capacity(date = today, offer = self)
@@ -533,33 +542,38 @@ class Offer(models.Model):
         capacity.owner = self.account.company.owner    
         capacity.save()    
         
-    def checkCapacity(self):
-        today = datetime.datetime.today()
+    @property    
+    def get_capacity_today(self):
+        "Gets capacity object for today. If one does not exists, creates it"
+        today = datetime.date.today()
         if not self.dailycap_capacity.filter(date=today).exists(): self.initCapacity()
-        daily_capacity = self.dailycap_capacity.get(date=today)
+        return self.dailycap_capacity.get(date=today)
+            
+    def checkCapacity(self):
+        "Checks if offer have enough budget to be selected"
+        daily_capacity = self.get_capacity_today
         if not daily_capacity.checkOfferCapacity(self.payout):
-            print 'run out of offer capacity' 
+            print 'run out of offer capacity', daily_capacity.offer 
             return False
         if self.hasAdvertiser():
             if not daily_capacity.checkAdvertiserCapacity(self.payout):
                 print "run out of advertiser's offer capacity with ", self.account 
                 return False
         if not daily_capacity.checkAccountCapacity(self.payout):
-            print 'run out of account capacity' 
+            print 'run out of account capacity', daily_capacity.account 
             return False    
         if not daily_capacity.checkCompanyCapacity(self.payout):
-            print 'run out of company capacity' 
+            print 'run out of company capacity', daily_capacity.company 
             return False
         if not daily_capacity.checkOwnerCapacity(self.payout):
-            print 'run out of owner capacity' 
+            print 'run out of owner capacity', daily_capacity.owner 
             return False
         
         return True  
     
-    def updateCapacity(self):  
-        today = datetime.datetime.today()
-        if not self.dailycap_capacity.filter(date=today).exists(): self.initCapacity()
-        daily_capacity = self.dailycap_capacity.get(date=today)
+    def reduceCapacityOnShow(self):  
+        "Reduces capacity capacity = capacity - self.payout"
+        daily_capacity = self.get_capacity_today
         daily_capacity.updateOfferCapacity(self.payout)
         if self.hasAdvertiser():
             daily_capacity.updateAdvertiserCapacity(self.payout)
@@ -567,23 +581,22 @@ class Offer(models.Model):
         daily_capacity.updateCompanyCapacity(self.payout)
         daily_capacity.updateOwnerCapacity(self.payout)
         daily_capacity.save()
-    def clearCapacity(self):
-        today = datetime.datetime.today()
-        if not self.dailycap_capacity.filter(date=today).exists(): self.initCapacity()
-        daily_capacity = self.dailycap_capacity.get(date=today)
-        daily_capacity.clearOfferCapacity(self.payout)
+    def restoreDailyCapCapacity(self):
+        "Reset capacity to dailycap value"
+        daily_capacity = self.get_capacity_today
+        daily_capacity.restoreOfferDailyCapCapacity()
         if self.hasAdvertiser():
-            daily_capacity.clearAdvertiserCapacity(self.payout)
-        daily_capacity.clearAccountCapacity(self.payout)    
-        daily_capacity.clearCompanyCapacity(self.payout)
-        daily_capacity.clearOwnerCapacity(self.payout)
+            daily_capacity.restoreAdvertiserDailyCapCapacity()
+        daily_capacity.restoreAccountDailyCapCapacity()    
+        daily_capacity.restoreCompanyDailyCapCapacity()
+        daily_capacity.restoreOwnerDailyCapCapacity()
         daily_capacity.save()    
     class Meta:
         verbose_name='Offer'
         verbose_name_plural='Offers'
         
     def __unicode__ (self):
-        return u'Offer #%s at %s payout: %s capacity: %s/%s' % (self.offer_num, self.url, self.payout, self.daily_cap, self.capacity)  
+        return u'Offer #%s at %s payout: %s capacity: %s/%s' % (self.offer_num, self.url, self.payout, self.capacity, self.daily_cap )  
     
 class Owner(models.Model):
     name = models.CharField(max_length=30)
