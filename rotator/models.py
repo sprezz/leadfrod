@@ -5,6 +5,7 @@ from locking import models as locking
 from django.contrib.auth.models import User
 from django.db.models import F    
 
+import logging
 #VERSION 2
 
 STATUS_LIST = (
@@ -188,9 +189,9 @@ class WorkManager(models.Model):
 #                                                worker__isnull=True, 
 #                                                deleted=False).order_by('?')                                
                 if csvLeads.count()==0:
-                    print 'There is no lead available for ', csvFile 
+                    logging.debug('There is no lead available for %s' % csvFile)
                     return None
-                print 'got lead', csvLeads[0] 
+                logging.debug('Got lead %s' % csvLeads[0])
                 return csvLeads[0]
             except Lead.DoesNotExist:
                 return None    
@@ -222,26 +223,23 @@ class WorkManager(models.Model):
                     
             """
             leadNiche = wi.lead.getNiche()
-            print wi
-            print 'get offer per niche', leadNiche
+            logging.debug('get offer per niche %s' % leadNiche)
             offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('?')
             for offer in offers:
-                print 'offer', offer, ' checking capacity...'
-                
+                logging.debug('offer %s checking capacity...' % offer)
                 if not offer.checkCapacity(): continue
                 
-                print 'has capacity!'
-                print 'hasAdvertiser', offer.hasAdvertiser()
+                logging.debug('offer %s has capacity!' % offer)
+                logging.debug('offer has advertiser = %s' % offer.hasAdvertiser())
                 if offer.hasAdvertiser() and wi.lead.checkAdvertiser(offer.advertiser):
                     print wi.lead, 'already was given to ',offer.advertiser, '. Skipping...'
+                    logging.debug('%s already was given to %s. Skipping...'% (wi.lead, offer.advertiser))
                     continue
                 elif offer.hasAdvertiser():
-                    print 'offer has an advertiser ',offer.advertiser
                     wi.lead.advertisers.add(offer.advertiser)
                     wi.lead.save()
                 
                 wi.addOffer(offer)
-                print 'added offer', offer
                 if len(wi.offers)==5: break
             return wi       
         
@@ -269,7 +267,6 @@ class WorkManager(models.Model):
         workitem.lead.save()    
     def releaseCurrentWorkItem(self, workitem):
         "Release lead and deassociate lead and offers"
-#        lead = self.getLeadInWork(worker)
         print 'Releasing lead', workitem.lead
         if not workitem.lead:
             print 'There are no leads in work for ', workitem.worker 
@@ -283,7 +280,23 @@ class WorkManager(models.Model):
             workitem.lead.worker = None
             for offer in workitem.lead.offers_requested.all():
                 workitem.lead.offers_requested.remove(offer)
-            workitem.lead.save()    
+            workitem.lead.save()
+        else:
+            logging.debug('Lead %s was unlocked due to inactivity or administrator request' % workitem.lead)        
+
+    def unlockLead(self, lead_id, user):
+        "Unlock lead and releases associated with it offers"
+        try:
+            lead = Lead.objects.get(pk=lead_id)
+            if lead.is_locked:
+                lead.unlock()
+                lead.worker=None
+                for offer in lead.offers_requested.all():
+                    lead.offers_requested.remove(offer)
+                lead.save()
+                logging.info('Lead %s was unlocked by %s' % (lead, user))
+        except Lead.DoesNotExist:
+            logging.debug('Lead %s requested for release but does not exist')            
     
     def checkOrCreateUserProfile(self, user):
         try:
@@ -292,26 +305,32 @@ class WorkManager(models.Model):
             wp = WorkerProfile(user = user, status='active')
             wp.save()
     def signIn(self, worker):
-        print 'signing in ', worker
+        logging.debug('%s signing in ' % worker)
         wp = worker.get_profile()
         wp.now_online = True
         wp.save()
         self.workers_online.add(worker)
-        self.save()    
+        self.save()   
+    def validateWorkItem(self, workitem):
+        try:
+            lead = Lead.objects.get(pk=workitem.lead.id)
+            return lead.is_locked and lead.is_locked_by(workitem.worker)     
+        except:
+            return False
     def nextWorkItem(self, worker):
         if not worker.get_profile().now_online: raise WorkerNotOnlineException()
-        print worker, 'is online'
+        logging.debug('%s is online' % worker)
         lead = None
         for csv_file in CSVFile.objects.filter(workers=worker).order_by('?'):
-            print 'get csv', csv_file
+            logging.debug('%s get csv' % csv_file)
             lead = self.work_strategy.nextLead(csv_file)
-            print 'Lead instance', lead
+            logging.debug('Lead instance %s' % lead)
             if lead: break
         
         if not lead: raise NoWorkException()
         
         if not lead.is_locked:
-            print 'locking the lead'
+            logging.debug('locking the lead')
             lead.lock_for(worker)
             lead.worker = worker
             lead.save()
@@ -320,20 +339,19 @@ class WorkManager(models.Model):
         
         wi = WorkItem(lead)
         wi.worker = worker    
-        print 'finding offers'
+        logging.debug('finding offers')
         wi = self.work_strategy.getOffersForLead( wi )
-        print 'found ',len(wi.offers),' offers'  
+        logging.debug('found %s offers' % len(wi.offers))  
         if len(wi.offers)==0:
-            print 'unlock lead'
+            logging.debug('unlock lead')
             lead.unlock_for(worker)
             lead.worker = None
             lead.save()
             raise NoWorkException()
-        print 'Returning ', wi
         return wi 
        
     def signOut(self, worker):
-        print 'signing out ', worker
+        logging.debug('signing out %s' % worker)
         if not worker.get_profile().now_online: raise WorkerNotOnlineException()
         qset = Lead.locked.filter(worker=worker)
         if qset.exists():
@@ -368,8 +386,8 @@ class LeadSource(models.Model):
     
 class Niche(models.Model):
     name = models.CharField(max_length = 30)
-    min_epc = models.FloatField(null=True, blank=True)
-    max_epc = models.FloatField(null=True, blank=True)
+    min_clicks = models.FloatField(null=True, blank=True)
+    max_clicks = models.FloatField(null=True, blank=True)
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 30, null=True, blank=True)
     
@@ -518,8 +536,8 @@ class Offer(models.Model):
     capacity = models.FloatField(default = 10)
     url = models.URLField(max_length=2000)
     payout = models.FloatField()
-    min_epc = models.FloatField( null=True, blank=True)
-    max_epc = models.FloatField( null=True, blank=True)
+    min_clicks = models.FloatField( null=True, blank=True)
+    max_clicks = models.FloatField( null=True, blank=True)
     status= models.CharField(max_length = 30, choices = STATUS_LIST)
     description = models.CharField(max_length = 255, null = True, blank=True)
     
@@ -600,7 +618,10 @@ class Offer(models.Model):
         verbose_name_plural='Offers'
         
     def __unicode__ (self):
-        return u'Offer #%s at %s payout: %s capacity: %s/%s' % (self.offer_num, self.url, self.payout, self.capacity, self.daily_cap )  
+        name = self.offer_num
+        if self.name:
+            name = '%s %s' (self.name, self.offer_num)
+        return u'Offer %s at %s payout: %s capacity: %s/%s' % (name, self.url, self.payout, self.capacity, self.daily_cap )  
     
 class Owner(models.Model):
     name = models.CharField(max_length=30)

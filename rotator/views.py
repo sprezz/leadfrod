@@ -55,6 +55,10 @@ def next_workitem(request):
                 request.session['workitem']=wi
             else:
                 wi = request.session['workitem']
+                if not wm.validateWorkItem(wi):
+                    wi = wm.nextWorkItem(request.user)
+                    request.session['workitem']=wi
+                    request.session['msg']='Your previous work item was cancelled by administrator. Start with next.' 
             msg = None    
             if 'msg' in request.session:
                 msg = request.session['msg']
@@ -86,7 +90,7 @@ def click_logout(request):
     return HttpResponseRedirect('/')
 
 @permission_required('rotator.change_offer')
-def manage_dailycap(request):
+def admin_manage_dailycap(request):
     if request.method=='POST':
         for offer in Offer.objects.all():
             offer.restoreDailyCapCapacity()
@@ -97,6 +101,22 @@ def manage_dailycap(request):
     return render_to_response("daily_capacity.html", 
                               {'capacity':Capacity.objects.filter(date=datetime.date.today()).all()},
                               context_instance=RequestContext(request))    
+
+@permission_required('rotator.change_lead')
+def admin_show_locked_leads(request):
+    return render_to_response("locked_leads.html", 
+                              {'leads':Lead.locked.all().order_by('-_locked_at')},
+                              context_instance=RequestContext(request))    
+
+@permission_required('rotator.change_lead')
+def admin_release_lead(request):
+    if request.method=='POST':
+        lead_id = int(request.POST['lead_id'])
+        wm = WorkManager.instance()
+        wm.unlockLead(lead_id, request.user)
+        return HttpResponseRedirect('/locked_leads')
+    else:
+        logging.warning('GET /release_lead when POST is expected' )    
 
 
 # Original functions
