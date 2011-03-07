@@ -29,7 +29,12 @@ class AdvertiserAdmin(admin.ModelAdmin):
     inlines = [AdvertiserAccountCapacityInline]
 admin.site.register(Advertiser,AdvertiserAdmin)
 
-admin.site.register(Account)
+class AccountAdmin(admin.ModelAdmin):
+    model = Account
+    list_display = ('owner','network', 'username', )
+    list_display_links = ('owner', )
+
+admin.site.register(Account, AccountAdmin)
 admin.site.register(LeadSourceOfferExclusion)
 admin.site.register(Offer)
 admin.site.register(IPSolution)

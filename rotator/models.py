@@ -620,7 +620,7 @@ class Offer(models.Model):
     def __unicode__ (self):
         name = self.offer_num
         if self.name:
-            name = '%s %s' (self.name, self.offer_num)
+            name = '%s %s' % (self.name, self.offer_num)
         return u'Offer %s at %s payout: %s capacity: %s/%s' % (name, self.url, self.payout, self.capacity, self.daily_cap )  
     
 class Owner(models.Model):
@@ -664,7 +664,7 @@ class Company(models.Model):
         verbose_name_plural='Companies'
         
     def __unicode__ (self):
-        return u'%s capacity: %s/%s' % (self.name_list, self.capacity, self.daily_cap)
+        return u'%s (owned by %s) capacity: %s/%s' % (self.name_list, self.owner, self.capacity, self.daily_cap)
     
 class Account(models.Model):
     network = models.ForeignKey('Network', related_name='accounts')
@@ -689,6 +689,10 @@ class Account(models.Model):
     description = models.CharField(max_length = 255, null=True, blank=True)
     
     primary = models.BooleanField(default=True)
+    
+    def owner(self):
+        return self.company.owner
+    owner.short_description="Owner"
     
     def is_active(self):
         return self.status=='active'
