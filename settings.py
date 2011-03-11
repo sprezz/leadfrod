@@ -88,6 +88,8 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+LEAD_FILE_DIR='rotator/csvfiles' 
+
 import logging
 from sentry.client.handlers import SentryHandler
 

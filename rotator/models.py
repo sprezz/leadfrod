@@ -6,6 +6,9 @@ from django.contrib.auth.models import User
 from django.db.models import F    
 
 import logging
+import settings
+import csv
+import os
 #VERSION 2
 
 STATUS_LIST = (
@@ -35,7 +38,7 @@ class WorkerProfile(models.Model):
     odesk_id = models.CharField(max_length=30, null=True, blank=True)
     ip_solution = models.ForeignKey(IPSolution, null=True, blank=True)
     now_online = models.BooleanField(default=False, editable=False)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 255, null = True, blank=True)
     
     class Meta:
@@ -192,7 +195,7 @@ class WorkManager(models.Model):
                     logging.debug('There is no lead available for %s' % csvFile)
                     return None
                 logging.debug('Got lead %s' % csvLeads[0])
-                return csvLeads[0]
+                     
             except Lead.DoesNotExist:
                 return None    
             
@@ -317,11 +320,19 @@ class WorkManager(models.Model):
             return lead.is_locked and lead.is_locked_by(workitem.worker)     
         except:
             return False
+    def _checkCsvFileAndSaveIfLeadsCreated(self, csv_file):
+        nleads = csv_file.leads.count()
+        if not csv_file.hasLeads(): return False
+        if nleads!=csv_file.leads.count():
+            csv_file.save()
+        return True    
+                    
     def nextWorkItem(self, worker):
         if not worker.get_profile().now_online: raise WorkerNotOnlineException()
         logging.debug('%s is online' % worker)
         lead = None
         for csv_file in CSVFile.objects.filter(workers=worker).order_by('?'):
+            if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file): continue
             logging.debug('%s get csv' % csv_file)
             lead = self.work_strategy.nextLead(csv_file)
             logging.debug('Lead instance %s' % lead)
@@ -374,7 +385,7 @@ class WorkManager(models.Model):
 
 class LeadSource(models.Model):
     name = models.CharField(max_length = 255)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 255, null=True, blank=True)
     
     class Meta:
@@ -388,7 +399,7 @@ class Niche(models.Model):
     name = models.CharField(max_length = 30)
     min_clicks = models.FloatField(null=True, blank=True)
     max_clicks = models.FloatField(null=True, blank=True)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 30, null=True, blank=True)
     
     class Meta:
@@ -404,7 +415,7 @@ class Niche(models.Model):
 class CSVFile(models.Model):
     lead_source = models.ForeignKey(LeadSource)
     niche = models.ForeignKey(Niche)
-    filename = models.CharField(max_length=30)
+    filename = models.CharField(max_length=255, null=True, blank=True)
     date_time = models.DateTimeField(default = datetime.datetime.now())
     uploaded_by  = models.CharField(max_length=30)
     cost = models.FloatField(default = 0)
@@ -413,12 +424,38 @@ class CSVFile(models.Model):
     workers = models.ManyToManyField(User, null = True, blank=True, related_name='assignments')
     max_offers = models.FloatField(default = 5)
     csv_headers = models.TextField(null = False, blank=True)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 255, null=True, blank=True)
+    csv_files = models.FileField ( upload_to=settings.LEAD_FILE_DIR, help_text='Make sure your CSV file has Excel format (fields are separated with a <tt>comma</tt>)' )
+    has_header = models.BooleanField(default=True, help_text='Whether uploading file has the first row as a header')
   
     class Meta:
         verbose_name='CSV File'
         verbose_name_plural='CSV Files'
+    
+    def hasLeads(self):
+        "Checks if this file has leads to process. If there is an uploaded file but theere is no leads it process them"
+        if (self.csv_files is None or self.csv_files.name is None)  and self.leads.count()==0: return False
+        if (self.csv_files is None or self.csv_files.name is None)  and self.leads.count()>0: return True
+        if (self.csv_files is not None and self.csv_files.name is not None) and self.leads.count()>0: return True
+
+        self.filename = self.csv_files.name 
+#        self.save()
+        
+        name = self.csv_files.name
+        csv_full_path = os.path.join(settings.MEDIA_ROOT,name) 
+        with open(csv_full_path, 'rb') as csvFile:
+#        rows = csv.reader(csvFile, delimiter=';', quotechar='"')
+            rows = csv.reader(csvFile)
+            for idx, row in enumerate(rows):
+                if not row[0]: continue
+                if idx==0 and self.has_header:
+                    self.csv_headers=','.join(row)
+#                    self.save()
+                    continue
+                Lead.objects.create(csv=self, status='active',lead_data=','.join(row))
+        
+        return self.leads.count()>0
     
     def is_active(self):
         return self.status=='active'
@@ -429,9 +466,15 @@ class CSVFile(models.Model):
     def getPercentOfCompleted(self):
         if self.leads.count()==0: return 0 
         return self.leads.offers_completed.count()/self.leads.count()*100   
-     
+    def save(self, *args, **kwargs):
+        self.hasLeads()
+        super(CSVFile, self).save(*args, **kwargs)
     def __unicode__ (self):
-        return u'%s' % (self.filename)
+        name = self.filename or self.csv_files.name
+#        nleads = 0
+#        if self.hasLeads():
+        nleads = self.leads.count() 
+        return u'%s is %s uploaded by %s contains %s leads' % (name, self.status, self.uploaded_by, nleads)
     
 class AdvertiserAccountCapacity(models.Model):
     advertiser = models.ForeignKey('Advertiser', related_name='account_capacity')
@@ -538,7 +581,7 @@ class Offer(models.Model):
     payout = models.FloatField()
     min_clicks = models.FloatField( null=True, blank=True)
     max_clicks = models.FloatField( null=True, blank=True)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 255, null = True, blank=True)
     
     def is_active(self):
@@ -627,7 +670,7 @@ class Owner(models.Model):
     name = models.CharField(max_length=30)
     daily_cap = models.FloatField(default = 0)
     capacity = models.FloatField(default = 0)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 30, null=True, blank=True)
     def is_active(self):
         return self.status=='active'
@@ -655,7 +698,7 @@ class Company(models.Model):
     daily_cap = models.FloatField(default = 0)
     capacity = models.FloatField(default = 0)
     websites = models.CharField(max_length=100, null=True, blank=True)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 255, null=True, blank=True)
     def is_active(self):
         return self.status=='active'
@@ -685,7 +728,7 @@ class Account(models.Model):
     payment_frequency = models.CharField(max_length = 30, null=True, blank=True)
     daily_cap = models.FloatField(default = 100)
     capacity = models.FloatField(default = 100)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 255, null=True, blank=True)
     
     primary = models.BooleanField(default=True)
@@ -707,7 +750,7 @@ class Account(models.Model):
 class Network(models.Model):
     name = models.CharField(max_length = 30)
     url = models.CharField(max_length = 100)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 30, null=True, blank=True)
     
     def is_active(self):
@@ -723,7 +766,7 @@ class Network(models.Model):
 class LeadSourceOfferExclusion(models.Model):
     leadsource = models.ForeignKey(LeadSource)
     advertiser = models.ForeignKey(Advertiser)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST)
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 30, null=True)
 
            
