@@ -19,6 +19,7 @@ urlpatterns = patterns('',
      (r'^dailycap/?$', 'rotator.views.admin_manage_dailycap'),
      (r'^release/?$', 'rotator.views.admin_release_lead'),
      (r'^locked_leads/?$', 'rotator.views.admin_show_locked_leads'),
+     (r'^th/(?P<owner>.+)/?$', 'rotator.views.trafficholder_callback'),
      (r'^sentry/', include('sentry.urls')),
      
     # Uncomment the next line to enable the admin:

@@ -119,6 +119,15 @@ def admin_release_lead(request):
         logging.warning('GET /release_lead when POST is expected' )    
 
 
+def trafficholder_callback(request, owner):
+    if request.method=='GET':
+        trafficHolder = get_object_or_404(TrafficHolder, owner__name=owner)
+        trafficHolder.clicks_received += 1
+        trafficHolder.save()
+        
+        return HttpResponseRedirect(trafficHolder.internal_redirect)
+
+
 # Original functions
 def show_login():
     pass

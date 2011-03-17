@@ -565,7 +565,7 @@ class Lead(locking.LockableModel):
 #Should I have a WorkerCSV table? Will that be able to show checkboxes on both
 #a worker's page and a csv's page?
 #How do I make object names in django admin plural form?
-#What does null=True really mean if I still have to add something to the admin field?
+#What does null=True really mean if I still have to add something to the admin field?    
 
 class Offer(models.Model):
     name = models.CharField(max_length = 255, null = True, blank=True)
@@ -665,6 +665,7 @@ class Offer(models.Model):
         if self.name:
             name = '%s %s' % (self.name, self.offer_num)
         return u'Offer %s at %s payout: %s capacity: %s/%s' % (name, self.url, self.payout, self.capacity, self.daily_cap )  
+
     
 class Owner(models.Model):
     name = models.CharField(max_length=30)
@@ -672,6 +673,9 @@ class Owner(models.Model):
     capacity = models.FloatField(default = 0)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 30, null=True, blank=True)
+    order_id = models.CharField(max_length = 30)
+    
+    
     def is_active(self):
         return self.status=='active'
     class Meta:
@@ -779,15 +783,27 @@ TRAFFIC_HOLDER_STATUS_LIST = (
                ('depleted','depleted'),
                )
 
-class TrafficHolder(models.Model):
+class TrafficHolderOrder(models.Model):
+    owner = models.ForeignKey(Owner, 'orders')
     order_id = models.CharField(max_length=30)
-    hourly_rate = models.IntegerField(null = True)
-    clicks_received = models.IntegerField(null = True)
-    clicks_total = models.IntegerField(null = True)
-    internal_url = models.CharField(max_length=200)
-    approval_url = models.CharField(max_length=200, null = True)
-    status = models.CharField(max_length = 30, choices = TRAFFIC_HOLDER_STATUS_LIST)
+    hourly_rate = models.IntegerField(blank=True,null = True)
+    clicks_received = models.IntegerField(default=0)
+    clicks_total = models.IntegerField ( default=1000000 )
+    internal_url = models.CharField(max_length=2000)
+    approval_url = models.CharField(max_length=2000, blank=True, null = True)
+    status = models.CharField(max_length = 30, choices = TRAFFIC_HOLDER_STATUS_LIST, default='awaiting approval')
     description = models.CharField(max_length = 30)
+    
+    def __unicode__ (self):
+        return '%s %s %s' % (self.order_id, self.owner.name, self.status)
+    
+class OfferQueue(models.Model):
+    offer = models.ForeignKey(Offer)
+    order = models.ForeignKey(TrafficHolderOrder)
+    size = models.SmallIntegerField()
+    
+    def __unicode__ (self):
+        return '%s %s %s %s' % (self.offer.name, self.offer.network.name, self.account.name, self.size)
     
 class OfferClicks(models.Model):
     offer_id = models.ForeignKey(Offer)
