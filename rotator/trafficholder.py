@@ -66,6 +66,7 @@ class TrafficHolder(object):
             order = offer.company.owner.orders.all()[0]
             if not offer_q.exists():
                 offerQueue = OfferQueue.objects.create(offer = offer, order=order, size=clicks)
+                self.editOrderId(order.order_id, order.total_clicks, offerQueue.size*4)
                 self.start(offerQueue.order.order_id)
             else:
                 offerQueue = OfferQueue.objects.get(offer = offer, order=order)
