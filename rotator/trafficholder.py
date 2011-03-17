@@ -23,9 +23,6 @@ class ResponseHandler(sax.handler.ContentHandler):
         self.mapping[name.lower()] = self.buffer
         self.buffer = ""
 
-class RegistrationClickException(Exception):
-    pass
-
 class TrafficHolder(object):
     url = "http://trafficholder.com/api/api.php"
     def __init__ (self):
@@ -74,20 +71,15 @@ class TrafficHolder(object):
                 offerQueue.save()
                 self.editOrderId(order.order_id, order.total_clicks, offerQueue.size*4)
                 
-    def getQueueUrl(self, owner):
-        try:
-            owner = Owner.objects.get(name=owner)
-            offerQueue_q = OfferQueue.objects.filter(order=owner.orders.all()[0])
-            if offerQueue_q.exists():
-                offerQueue = offerQueue_q.order_by('?')[0]
-                offerQueue.size -= 1
-                offerQueue.save()
-                if offerQueue.size == 0:
-                    self.stop(offerQueue.order.order_id)
-                return offerQueue.offer.url 
-            else:
-                return None
-                
-        except Owner.DoesNotExist, msg:
-            raise RegistrationClickException(msg)                
+    def getQueueUrl(self, owner_name):
+        offerQueue_q = OfferQueue.objects.filter(order__owner__name=owner_name)
+        if offerQueue_q.exists():
+            offerQueue = offerQueue_q.order_by('?')[0]
+            offerQueue.size -= 1
+            offerQueue.save()
+            if offerQueue.size == 0:
+                self.stop(offerQueue.order.order_id)
+            return offerQueue.offer.url 
+        else:
+            return None
     
