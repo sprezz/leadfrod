@@ -25,6 +25,7 @@ class ResponseHandler(sax.handler.ContentHandler):
 
 class TrafficHolder(object):
     url = "http://trafficholder.com/api/api.php"
+    
     def __init__ (self):
         self.data = {}
         self.data['user']='sprezzatura'
@@ -39,7 +40,9 @@ class TrafficHolder(object):
         print send_data
         for attempt in range(0,10):
             try:
-                urllib2.urlopen('%s?%s' % (self.url,send_data)).read()
+                response = urllib2.urlopen('%s?%s' % (self.url,send_data)).read()
+                if response:
+                    logging.error(response) 
                 break
 #                handler = ResponseHandler()
 #                parseString ( response_xml, handler )
@@ -58,28 +61,34 @@ class TrafficHolder(object):
         
     def processOffers(self, offers):
         for offer in offers:
-            clicks = random.randint(offer.min_clicks, offer.max_clicks)
+            logging.debug('processing %s' % offer)
+            random_clicks = random.randint(offer.min_clicks, offer.max_clicks)
+            logging.debug('queue size %d' % random_clicks)
             offer_q = OfferQueue.objects.filter(offer=offer)
-            order = offer.company.owner.orders.all()[0]
+            order = offer.account.company.owner.orders.all()[0]
             if not offer_q.exists():
-                offerQueue = OfferQueue.objects.create(offer = offer, order=order, size=clicks)
-                self.editOrderId(order.order_id, order.total_clicks, offerQueue.size*4)
-                self.start(offerQueue.order.order_id)
+                logging.debug('Created new queue')
+                offerQueue = OfferQueue.objects.create(offer = offer, order=order, size=random_clicks)
+                self.editOrderId(order.order_id, order.clicks_total, offerQueue.size*4)
+                logging.debug('Start traffic holder ')
+                self.start ( offerQueue.order.order_id )
             else:
                 offerQueue = OfferQueue.objects.get(offer = offer, order=order)
-                offerQueue.size += clicks
+                offerQueue.size += random_clicks
+                logging.debug('Updating queue. New size is %d ' % offerQueue.size)
                 offerQueue.save()
-                self.editOrderId(order.order_id, order.total_clicks, offerQueue.size*4)
+                logging.debug('Updating traffic holder clicks %d' % offerQueue.size*4)
+                self.editOrderId(order.order_id, order.clicks_total, offerQueue.size*4)
                 
-    def getQueueUrl(self, owner_name):
-        offerQueue_q = OfferQueue.objects.filter(order__owner__name=owner_name)
+    def popOfferQueueUrl(self, owner_name):
+        logging.debug('Traffic holder request %s' % owner_name)
+        offerQueue_q = OfferQueue.objects.filter(order__owner__name=owner_name, size__gt=0)
         if offerQueue_q.exists():
             offerQueue = offerQueue_q.order_by('?')[0]
-            offerQueue.size -= 1
-            offerQueue.save()
-            if offerQueue.size == 0:
-                self.stop(offerQueue.order.order_id)
-            return offerQueue.offer.url 
+            logging.debug('Redirect to %s' % offerQueue.offer.url)
+            return offerQueue.popUrl()
         else:
+            logging.debug('Queue %s is empty. Stopping traffic holder!' % owner_name)
+            self.stop ( offerQueue.order.order_id )
             return None
     

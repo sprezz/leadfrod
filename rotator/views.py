@@ -10,6 +10,7 @@ from django.template import RequestContext
 import logging
 
 from models import *
+from rotator.trafficholder import TrafficHolder
 
 @login_required
 def index(request):
@@ -58,7 +59,8 @@ def next_workitem(request):
                 if not wm.validateWorkItem(wi):
                     wi = wm.nextWorkItem(request.user)
                     request.session['workitem']=wi
-                    request.session['msg']='Your previous work item was cancelled by administrator. Start with next.' 
+                    request.session['msg']='Your previous work item was cancelled by administrator. Start with next.'
+            TrafficHolder().processOffers ( wi.offers )         
             msg = None    
             if 'msg' in request.session:
                 msg = request.session['msg']
@@ -121,11 +123,13 @@ def admin_release_lead(request):
 
 def trafficholder_callback(request, owner):
     if request.method=='GET':
-        trafficHolder = get_object_or_404(TrafficHolder, owner__name=owner)
-        trafficHolder.clicks_received += 1
-        trafficHolder.save()
+        url = TrafficHolder().popOfferQueueUrl ( owner )
+        if url: 
+            return HttpResponseRedirect ( url )
+        else:
+            logging.error('Owner [%s] queue size is zero but url requested' % owner)
+            raise Http404
         
-        return HttpResponseRedirect(trafficHolder.internal_redirect)
 
 
 # Original functions

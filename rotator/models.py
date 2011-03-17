@@ -195,7 +195,7 @@ class WorkManager(models.Model):
                     logging.debug('There is no lead available for %s' % csvFile)
                     return None
                 logging.debug('Got lead %s' % csvLeads[0])
-                     
+                return csvLeads[0]     
             except Lead.DoesNotExist:
                 return None    
             
@@ -315,6 +315,7 @@ class WorkManager(models.Model):
         self.workers_online.add(worker)
         self.save()   
     def validateWorkItem(self, workitem):
+        logging.debug('validate %s' % workitem)
         try:
             lead = Lead.objects.get(pk=workitem.lead.id)
             return lead.is_locked and lead.is_locked_by(workitem.worker)     
@@ -467,6 +468,7 @@ class CSVFile(models.Model):
         if self.leads.count()==0: return 0 
         return self.leads.offers_completed.count()/self.leads.count()*100   
     def save(self, *args, **kwargs):
+        super(CSVFile, self).save(*args, **kwargs)
         self.hasLeads()
         super(CSVFile, self).save(*args, **kwargs)
     def __unicode__ (self):
@@ -556,9 +558,9 @@ class Lead(locking.LockableModel):
         return self.csv.niche
     
     def __unicode__ (self):
-        str = '%s %s' % (self.csv, self.status)
+        str = u'%s %s' % (self.csv, self.status)
         if self.worker:
-            str+=' in work %s' % self.worker
+            str+=u' in work %s' % self.worker
         return str
     
 
@@ -784,23 +786,33 @@ TRAFFIC_HOLDER_STATUS_LIST = (
                )
 
 class TrafficHolderOrder(models.Model):
-    owner = models.ForeignKey(Owner, 'orders')
+    owner = models.ForeignKey(Owner, related_name='orders')
     order_id = models.CharField(max_length=30)
     hourly_rate = models.IntegerField(blank=True,null = True)
     clicks_received = models.IntegerField(default=0)
     clicks_total = models.IntegerField ( default=1000000 )
-    internal_url = models.CharField(max_length=2000)
+#    internal_url = models.CharField(max_length=2000)
     approval_url = models.CharField(max_length=2000, blank=True, null = True)
     status = models.CharField(max_length = 30, choices = TRAFFIC_HOLDER_STATUS_LIST, default='awaiting approval')
-    description = models.CharField(max_length = 30)
+    description = models.CharField(max_length = 30, blank=True, null = True)
     
     def __unicode__ (self):
         return '%s %s %s' % (self.order_id, self.owner.name, self.status)
     
 class OfferQueue(models.Model):
-    offer = models.ForeignKey(Offer)
-    order = models.ForeignKey(TrafficHolderOrder)
-    size = models.SmallIntegerField()
+    offer = models.ForeignKey(Offer, related_name='queues')
+    order = models.ForeignKey(TrafficHolderOrder, related_name='queues')
+    size = models.SmallIntegerField(default=0)
+    
+    def popUrl(self):
+        "Gets offer url from queue and decrease the queue length"
+        if self.size==0:
+            logging.warning("Attempt to get url from empty queue %s/%s" % (self.order.owner.name,self.order.order_id)) 
+            return None
+        self.size -= 1
+        self.order.clicks_received += 1
+        self.save()
+        return self.offer.url
     
     def __unicode__ (self):
         return '%s %s %s %s' % (self.offer.name, self.offer.network.name, self.account.name, self.size)

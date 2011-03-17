@@ -48,7 +48,8 @@ class LeadAdmin(LockableAdmin):
 admin.site.register(Lead, LeadAdmin)
 #admin.site.register(Lead)
 
-admin.site.register(TrafficHolder)
+admin.site.register(TrafficHolderOrder)
+admin.site.register(OfferQueue)
 admin.site.register(OfferClicks)
 admin.site.register(DailyCap)
 
