@@ -85,6 +85,9 @@ class TrafficHolder(object):
         offerQueue_q = OfferQueue.objects.filter(order__owner__name=owner_name, size__gt=0)
         if offerQueue_q.exists():
             offerQueue = offerQueue_q.order_by('?')[0]
+            if not offerQueue.checkStatusIsActive():
+                logging.debug('Redirect to approval url %s' % offerQueue.getApprovalUrl())
+                return offerQueue.getApprovalUrl()
             logging.debug('Redirect to %s' % offerQueue.offer.url)
             return offerQueue.popUrl()
         else:

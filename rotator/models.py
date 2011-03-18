@@ -804,6 +804,12 @@ class OfferQueue(models.Model):
     order = models.ForeignKey(TrafficHolderOrder, related_name='queues')
     size = models.SmallIntegerField(default=0)
     
+    def checkStatusIsActive(self):
+        return self.order.status == 'active'
+    
+    def getApprovalUrl(self):
+        return self.order.approval_url
+    
     def popUrl(self):
         "Gets offer url from queue and decrease the queue length"
         if self.size==0:
