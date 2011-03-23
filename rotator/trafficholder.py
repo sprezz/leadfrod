@@ -76,7 +76,7 @@ class TrafficHolder(object):
                 self.start ( offerQueue.order.order_id )
             else:
 #                offerQueue = OfferQueue.objects.get(offer = offer, order=order)
-                offer_q = offer_q[0]
+                offerQueue = offer_q[0]
                 offerQueue.size += random_clicks
                 logging.debug('Updating queue. New size is %d ' % offerQueue.size)
                 offerQueue.save()
