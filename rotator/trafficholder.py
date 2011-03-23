@@ -65,8 +65,9 @@ class TrafficHolder(object):
             logging.debug('processing %s' % offer)
             random_clicks = random.randint(offer.min_clicks, offer.max_clicks)
             logging.debug('queue size %d' % random_clicks)
-            offer_q = OfferQueue.objects.filter(offer=offer)
             order = offer.account.company.owner.orders.all()[0]
+            offer_q = OfferQueue.objects.filter(offer=offer, order=order)
+            
             if not offer_q.exists():
                 logging.debug('Created new queue')
                 offerQueue = OfferQueue.objects.create(offer = offer, order=order, size=random_clicks)
@@ -74,7 +75,8 @@ class TrafficHolder(object):
                 logging.debug('Start traffic holder ')
                 self.start ( offerQueue.order.order_id )
             else:
-                offerQueue = OfferQueue.objects.get(offer = offer, order=order)
+#                offerQueue = OfferQueue.objects.get(offer = offer, order=order)
+                offer_q = offer_q[0]
                 offerQueue.size += random_clicks
                 logging.debug('Updating queue. New size is %d ' % offerQueue.size)
                 offerQueue.save()

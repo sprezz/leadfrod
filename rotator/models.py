@@ -581,8 +581,8 @@ class Offer(models.Model):
     capacity = models.FloatField(default = 10)
     url = models.URLField(max_length=2000)
     payout = models.FloatField()
-    min_clicks = models.FloatField( null=True, blank=True)
-    max_clicks = models.FloatField( null=True, blank=True)
+    min_clicks = models.FloatField( null=True, blank=True, default=0.0)
+    max_clicks = models.FloatField( null=True, blank=True, default=0.0)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 255, null = True, blank=True)
     
