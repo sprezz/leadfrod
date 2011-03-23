@@ -675,7 +675,7 @@ class Owner(models.Model):
     capacity = models.FloatField(default = 0)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 30, null=True, blank=True)
-    order_id = models.CharField(max_length = 30)
+#    order_id = models.CharField(max_length = 30)
     
     
     def is_active(self):

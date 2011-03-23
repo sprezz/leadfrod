@@ -91,7 +91,12 @@ class TrafficHolder(object):
             logging.debug('Redirect to %s' % offerQueue.offer.url)
             return offerQueue.popUrl()
         else:
-            logging.debug('Queue %s is empty. Stopping traffic holder!' % owner_name)
-            self.stop ( offerQueue.order.order_id )
-            return None
+            offerQueue_q = OfferQueue.objects.filter(order__owner__name=owner_name)
+            if offerQueue_q.exists():
+                offerQueue = offerQueue_q[0]
+                logging.debug('Queue %s is empty. Stopping traffic holder!' % owner_name)
+                self.stop ( offerQueue.order.order_id )
+            else:
+                logging.debug('There are no queues for %s available.' % owner_name)
+        return None
     
