@@ -127,8 +127,8 @@ def trafficholder_callback(request, owner):
         if url: 
             return HttpResponseRedirect ( url )
         else:
-            logging.error('Owner [%s] queue size is zero but url requested' % owner)
-            raise Http404
+            logging.debug('Owner [%s] queue size is zero but url requested' % owner)
+            return render_to_response('empty_queue.html')
         
 
 
