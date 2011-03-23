@@ -11,6 +11,7 @@ import logging
 
 from models import *
 from rotator.trafficholder import TrafficHolder
+from trafficholder import UnknownOrderException
 
 @login_required
 def index(request):
@@ -123,12 +124,15 @@ def admin_release_lead(request):
 
 def trafficholder_callback(request, owner):
     if request.method=='GET':
-        url = TrafficHolder().popOfferQueueUrl ( owner )
-        if url: 
-            return HttpResponseRedirect ( url )
-        else:
-            logging.debug('Owner [%s] queue size is zero but url requested' % owner)
-            return render_to_response('empty_queue.html')
+        try:
+            url = TrafficHolder().popOfferQueueUrl ( owner )
+            if url: 
+                return HttpResponseRedirect ( url )
+            else:
+                logging.debug('Owner [%s] queue size is zero but url requested' % owner)
+                return render_to_response('empty_queue.html')
+        except UnknownOrderException:
+            raise Http404    
         
 
 

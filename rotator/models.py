@@ -821,7 +821,7 @@ class OfferQueue(models.Model):
         return self.offer.url
     
     def __unicode__ (self):
-        return '%s %s %s %s' % (self.offer.name, self.offer.network.name, self.account.name, self.size)
+        return '%s %s %s %s' % (self.offer.name, self.offer.network.name, self.offer.account.name, self.size)
     
 class OfferClicks(models.Model):
     offer_id = models.ForeignKey(Offer)

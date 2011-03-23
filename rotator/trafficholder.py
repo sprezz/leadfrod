@@ -3,7 +3,7 @@ from xml import sax
 from xml.sax import parseString
 import logging
 import random
-from rotator.models import OfferQueue, Owner
+from rotator.models import OfferQueue, Owner, TrafficHolderOrder
 
 class ResponseHandler(sax.handler.ContentHandler):
     def __init__(self):
@@ -22,7 +22,8 @@ class ResponseHandler(sax.handler.ContentHandler):
             return
         self.mapping[name.lower()] = self.buffer
         self.buffer = ""
-
+class UnknownOrderException(Exception):
+    pass
 class TrafficHolder(object):
     url = "http://trafficholder.com/api/api.php"
     
@@ -82,21 +83,22 @@ class TrafficHolder(object):
                 
     def popOfferQueueUrl(self, owner_name):
         logging.debug('Traffic holder request %s' % owner_name)
-        offerQueue_q = OfferQueue.objects.filter(order__owner__name=owner_name, size__gt=0)
+        try:
+            order = TrafficHolderOrder.objects.get(owner__name=owner_name)
+            if not order.status == 'active':
+                logging.debug('Redirect to approval url %s' % order.approval_url)
+                return order.approval_url
+        except TrafficHolderOrder.DoesNotExist:
+            logging.error('There is no order for owner %s.' % owner_name)
+            raise UnknownOrderException()
+        
+        offerQueue_q = OfferQueue.objects.filter(order=order, size__gt=0)
         if offerQueue_q.exists():
             offerQueue = offerQueue_q.order_by('?')[0]
-            if not offerQueue.checkStatusIsActive():
-                logging.debug('Redirect to approval url %s' % offerQueue.getApprovalUrl())
-                return offerQueue.getApprovalUrl()
             logging.debug('Redirect to %s' % offerQueue.offer.url)
             return offerQueue.popUrl()
         else:
-            offerQueue_q = OfferQueue.objects.filter(order__owner__name=owner_name)
-            if offerQueue_q.exists():
-                offerQueue = offerQueue_q[0]
-                logging.debug('Queue %s is empty. Stopping traffic holder!' % owner_name)
-                self.stop ( offerQueue.order.order_id )
-            else:
-                logging.debug('There are no queues for %s available.' % owner_name)
+            logging.debug('Queue %s is empty. Stopping traffic holder!' % owner_name)
+            self.stop ( order.order_id )
         return None
     
