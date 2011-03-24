@@ -12,6 +12,7 @@ import logging
 from models import *
 from rotator.trafficholder import TrafficHolder
 from trafficholder import UnknownOrderException
+import simplejson
 
 @login_required
 def index(request):
@@ -121,6 +122,33 @@ def admin_release_lead(request):
     else:
         logging.warning('GET /release_lead when POST is expected' )    
 
+@permission_required('rotator.change_lead')
+def admin_show_csvfiles(request):
+    return render_to_response("csvfiles.html", 
+                              {'files':CSVFile.objects.all()},
+                              context_instance=RequestContext(request))    
+
+@permission_required('rotator.change_lead')
+def admin_delete_csvfile(request):
+    print 'delete csv file', request.POST
+    if request.method=='POST':
+        try:
+            csv_id = int(request.POST['csvfile_id'])
+            print 'Delete csv', csv_id
+            CSVFile.objects.only("id")
+            print 'reducing selcetion to id'
+            csv=CSVFile.objects.get(id=csv_id)
+            print 'get csv', csv
+            csv.delete()
+            print 'deleted, remove defer'
+            CSVFile.objects.defer(None)
+            data={'code':'OK'}  
+        except Exception, msg:
+            print 'Exception', msg
+            data={'code':'NOK','message':msg}    
+        return HttpResponse(simplejson.dumps(data),mimetype='application/json')
+    else:
+        logging.warning('GET /delete_file when POST is expected' )
 
 def trafficholder_callback(request, owner):
     if request.method=='GET':
