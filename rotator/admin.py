@@ -5,11 +5,11 @@ from locking.admin import LockableAdmin
 admin.site.register(LeadSource)
 admin.site.register(Niche)
 
-class LeadInline(admin.TabularInline):
-    model = Lead
-class CSVFileAdmin(admin.ModelAdmin):
-    inlines = [LeadInline]
-admin.site.register(CSVFile,CSVFileAdmin)
+#class LeadInline(admin.TabularInline):
+#    model = Lead
+#class CSVFileAdmin(admin.ModelAdmin):
+#    inlines = [LeadInline]
+admin.site.register(CSVFile)
 
 admin.site.register(WorkManager)
 admin.site.register(Owner)
