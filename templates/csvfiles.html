@@ -6,7 +6,6 @@ $(function(){
 	$(".delete_file").bind('click', function(){
 		var csvfile_id= $(this).attr('id').split("_")[1];
 		var token = $("input[name=csrfmiddlewaretoken]").val();
-		alert(csvfile_id+' token '+ token);
 		$.ajax({
             type        : "POST",
             cache   : false,

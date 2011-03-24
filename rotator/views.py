@@ -150,6 +150,33 @@ def admin_delete_csvfile(request):
     else:
         logging.warning('GET /delete_file when POST is expected' )
 
+@permission_required('rotator.change_lead')
+def admin_delete_csvfile_raw(request):
+    print 'delete csv file', request.POST
+    if request.method=='POST':
+        try:
+            csv_id = int(request.POST['csvfile_id'])
+            from django.db import connection, transaction
+            cursor = connection.cursor()
+        
+            # Data modifying operation - commit required
+            cursor.execute("DELETE FROM rotator_lead WHERE csv_id = %s", [csv_id])
+            cursor.execute("DELETE FROM rotator_csvfile_workes WHERE csvfile_id = %s", [csv_id])
+            cursor.execute("DELETE FROM rotator_csvfile WHERE id = %s", [csv_id])
+            transaction.commit_unless_managed()
+            data={'code':'OK'}  
+        except Exception, msg:
+            print 'Exception', msg
+            data={'code':'NOK','message':msg}    
+        return HttpResponse(simplejson.dumps(data),mimetype='application/json')
+    else:
+        logging.warning('GET /delete_file when POST is expected' )
+
+
+ 
+
+
+
 def trafficholder_callback(request, owner):
     if request.method=='GET':
         try:
