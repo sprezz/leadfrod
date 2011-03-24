@@ -161,7 +161,7 @@ def admin_delete_csvfile_raw(request):
         
             # Data modifying operation - commit required
             cursor.execute("DELETE FROM rotator_lead WHERE csv_id = %s", [csv_id])
-            cursor.execute("DELETE FROM rotator_csvfile_workes WHERE csvfile_id = %s", [csv_id])
+            cursor.execute("DELETE FROM rotator_csvfile_workers WHERE csvfile_id = %s", [csv_id])
             cursor.execute("DELETE FROM rotator_csvfile WHERE id = %s", [csv_id])
             transaction.commit_unless_managed()
             data={'code':'OK'}  
