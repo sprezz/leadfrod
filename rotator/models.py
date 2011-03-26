@@ -571,15 +571,16 @@ class Lead(locking.LockableModel):
 
 class Offer(models.Model):
     name = models.CharField(max_length = 255, null = True, blank=True)
+    advertiser = models.ForeignKey(Advertiser, related_name='offers', null=True, blank=True)
     network = models.ForeignKey('Network', related_name='offers')
     account = models.ForeignKey('Account', related_name='offers')
     niche = models.ForeignKey(Niche, related_name='offers')
+    
     # Each offer may have an advertiser associated with it.
-    advertiser = models.ForeignKey(Advertiser, related_name='offers', null=True, blank=True)
     offer_num = models.CharField(max_length=10, null=True, blank=True)
     daily_cap = models.FloatField(default = 10)
     capacity = models.FloatField(default = 10)
-    url = models.URLField(max_length=2000)
+    url = models.URLField(max_length=2000, verify_exists=False)
     payout = models.FloatField()
     min_clicks = models.FloatField( null=True, blank=True, default=0.0)
     max_clicks = models.FloatField( null=True, blank=True, default=0.0)
@@ -593,9 +594,19 @@ class Offer(models.Model):
         "Checks if this offer already has an advertiser"
         return self.advertiser is not None
     
+    def owner_name(self):
+        return self.account.company.owner.name
+    owner_name.short_description='owner'
+    
     def getAdvertiser(self):
         if not self.hasAdvertiser(): return None
+        if not self.advertiser.getAccountCapacity(self.account):
+            AdvertiserAccountCapacity.objects.create(advertiser=self.advertiser, account= self.account, capacity=self.advertiser.daily_cap)
         return self.advertiser
+    def _checkOfferAdvertiserCapacity(self):
+        if not self.hasAdvertiser(): return 
+        if not self.advertiser.getAccountCapacity(self.account):
+            AdvertiserAccountCapacity.objects.create(advertiser=self.advertiser, account= self.account, capacity=self.advertiser.daily_cap)
     def initCapacity(self):
         print 'Create new capacity for ', self
         today = datetime.date.today()
@@ -658,6 +669,11 @@ class Offer(models.Model):
         daily_capacity.restoreCompanyDailyCapCapacity()
         daily_capacity.restoreOwnerDailyCapCapacity()
         daily_capacity.save()    
+        
+    def save(self, *args, **kwargs):
+        super(Offer, self).save(*args, **kwargs)
+        self._checkOfferAdvertiserCapacity()
+        
     class Meta:
         verbose_name='Offer'
         verbose_name_plural='Offers'
@@ -788,6 +804,8 @@ TRAFFIC_HOLDER_STATUS_LIST = (
 class TrafficHolderOrder(models.Model):
     owner = models.ForeignKey(Owner, related_name='orders')
     order_id = models.CharField(max_length=30)
+    username = models.CharField(max_length = 30)
+    password = models.CharField(max_length = 30, null=True, blank=True)
     hourly_rate = models.IntegerField(blank=True,null = True)
     clicks_received = models.IntegerField(default=0)
     clicks_total = models.IntegerField ( default=1000000 )

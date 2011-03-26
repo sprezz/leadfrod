@@ -16,6 +16,8 @@ admin.site.register(Owner)
 admin.site.register(Company)
 admin.site.register(Network)
 
+admin.site.register(AdvertiserAccountCapacity)
+
 class AdvertiserAccountCapacityInline(admin.TabularInline):
     model = AdvertiserAccountCapacity
 class AdvertiserAdmin(admin.ModelAdmin):
@@ -35,8 +37,13 @@ class AccountAdmin(admin.ModelAdmin):
     list_display_links = ('owner', )
 
 admin.site.register(Account, AccountAdmin)
-admin.site.register(LeadSourceOfferExclusion)
-admin.site.register(Offer)
+
+class OfferAdmin(admin.ModelAdmin):
+    model = Offer
+    list_display = ('name','offer_num','network', 'account','owner_name', 'capacity', 'daily_cap')
+    list_display_links = ('name', )
+    search_fields = ['owner','network','account']
+admin.site.register(Offer,OfferAdmin)
 admin.site.register(IPSolution)
 admin.site.register(WorkerProfile)
 admin.site.register(Capacity)
@@ -50,8 +57,6 @@ admin.site.register(Lead, LeadAdmin)
 
 admin.site.register(TrafficHolderOrder)
 admin.site.register(OfferQueue)
-admin.site.register(OfferClicks)
-admin.site.register(DailyCap)
 
 #class OfferInline(admin.TabularInline):
 #    model = Offer

@@ -31,7 +31,10 @@ class TrafficHolder(object):
         self.data = {}
         self.data['user']='sprezzatura'
         self.data['pwd']='6f3136f35dc03884783e048d80e05fa9'
-        
+    def set_user(self, user, password):
+        if user and password: 
+            self.data['user']=user
+            self.data['pwd']=password    
     def _send(self, mdata):
         send_data = {}
         send_data.update(self.data)
@@ -66,6 +69,7 @@ class TrafficHolder(object):
             random_clicks = random.randint(offer.min_clicks, offer.max_clicks)
             logging.debug('queue size %d' % random_clicks)
             order = offer.account.company.owner.orders.all()[0]
+            self.set_user(order.username, order.password)
             offer_q = OfferQueue.objects.filter(offer=offer, order=order)
             
             if not offer_q.exists():
@@ -87,6 +91,7 @@ class TrafficHolder(object):
         logging.debug('Traffic holder request %s' % owner_name)
         try:
             order = TrafficHolderOrder.objects.get(owner__name=owner_name)
+            self.set_user(order.username, order.password)
             if not order.status == 'active':
                 logging.debug('Redirect to approval url %s' % order.approval_url)
                 return order.approval_url
