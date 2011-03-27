@@ -43,6 +43,8 @@ class OfferAdmin(admin.ModelAdmin):
     list_display = ('name','offer_num','network', 'account','owner_name', 'capacity', 'daily_cap')
     list_display_links = ('name', )
     search_fields = ['owner','network','account']
+    list_filter = ('network', 'account',)
+    
 admin.site.register(Offer,OfferAdmin)
 admin.site.register(IPSolution)
 admin.site.register(WorkerProfile)
