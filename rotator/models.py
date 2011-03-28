@@ -71,7 +71,6 @@ class Capacity(models.Model):
     def checkAdvertiserCapacity(self, payout):
         if not self.advertiser: return True
         if not self.advertiser.is_active():return False
-        
         adv_account_cap = self.offer.getAdvertiserCapacity()
         return payout <= adv_account_cap.capacity
     def checkAccountCapacity(self, payout):
