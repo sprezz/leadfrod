@@ -71,8 +71,7 @@ class Capacity(models.Model):
     def checkAdvertiserCapacity(self, payout):
         if not self.advertiser: return True
         if not self.advertiser.is_active():return False
-        
-        adv_account_cap = self.advertiser.getAccountCapacity(self.offer.account)
+        adv_account_cap = self.offer.getAdvertiserCapacity()
         return payout <= adv_account_cap.capacity
     def checkAccountCapacity(self, payout):
         if not self.account.is_active():return False
@@ -89,7 +88,7 @@ class Capacity(models.Model):
         self.offer.save()
     def updateAdvertiserCapacity(self, payout):
         if not self.offer.hasAdvertiser(): return
-        adv_account_cap = self.advertiser.getAccountCapacity(self.offer.account)
+        adv_account_cap = self.offer.getAdvertiserCapacity()
         adv_account_cap.capacity -= payout
         adv_account_cap.save()
     def updateAccountCapacity(self, payout):
@@ -598,6 +597,9 @@ class Offer(models.Model):
         return self.account.company.owner.name
     owner_name.short_description='owner'
     
+    def getAdvertiserCapacity(self):
+        if not self.hasAdvertiser(): return None
+        return self.getAdvertiser().getAccountCapacity(self.account)
     def getAdvertiser(self):
         if not self.hasAdvertiser(): return None
         if not self.advertiser.getAccountCapacity(self.account):
