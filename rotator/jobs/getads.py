@@ -37,16 +37,18 @@ class Job(BaseJob):
         data = []
         for tr in table.findAll('tr'):
             td = tr.findAll('td')
-            #print td
+
             if len(td) == 1 or not td[2].find('img', {'title': 'Daily Breakout'}):
                 continue
-
+    
             if td[4].span:
-                span = td[4].span['onmouseover']
-                campaign = span[5:span.find("'")]
+                span = td[4].span['onmouseover'][5:]
+
+                campaign = span[:span.find("'")]
             else:
                 campaign = td[4].string
-                 
+            
+
             record = {
                 'offer_num': td[3].string,
                 'campaign': campaign,

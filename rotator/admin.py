@@ -60,6 +60,10 @@ admin.site.register(Lead, LeadAdmin)
 admin.site.register(TrafficHolderOrder)
 admin.site.register(OfferQueue)
 
+class EarningsAdmin(admin.ModelAdmin):
+    model=Earnings
+    
+admin.site.register(Earnings, EarningsAdmin)    
 #class OfferInline(admin.TabularInline):
 #    model = Offer
 #    

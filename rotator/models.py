@@ -853,4 +853,21 @@ class DailyCap(models.Model):
     submits = models.IntegerField(default = 0)
     lead_list = models.CharField(max_length = 30)
     worker_list = models.CharField(max_length = 30)
+
+
+class Earnings(models.Model):
+    offer = models.ForeignKey(Offer)
+    date = models.DateField(default=datetime.date.today())
+    campaign = models.CharField(max_length=255)
+    status = models.CharField(max_length=255)
+    revenue = models.DecimalField(max_digits=5, decimal_places=2)
+    impressions_for_affiliates = models.IntegerField()
+    clicks = models.IntegerField()
+    qualified_transactions = models.IntegerField()
+    aproved = models.IntegerField()
+    CTR = models.FloatField()
+    aprovedCTR = models.FloatField()
+    eCPM = models.DecimalField(max_digits=5, decimal_places=2)
+    EPC = models.DecimalField(max_digits=5, decimal_places=2)
+    commision = models.DecimalField(max_digits=5, decimal_places=2)
     
