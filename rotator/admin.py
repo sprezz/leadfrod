@@ -3,7 +3,12 @@ from models import *
 from locking.admin import LockableAdmin
 
 admin.site.register(LeadSource)
-admin.site.register(Niche)
+
+class NicheAdmin(admin.ModelAdmin):
+    model=Niche
+    list_display = ('name', 'status', 'min_clicks', 'max_clicks', 'priority', )
+    
+admin.site.register(Niche, NicheAdmin)
 
 #class LeadInline(admin.TabularInline):
 #    model = Lead
@@ -58,7 +63,12 @@ admin.site.register(Lead, LeadAdmin)
 #admin.site.register(Lead)
 
 admin.site.register(TrafficHolderOrder)
-admin.site.register(OfferQueue)
+
+class OfferQueueAdmin(admin.ModelAdmin): 
+    model=OfferQueue
+    list_display = ('network', 'account', 'offerName', 'offerId', )
+
+admin.site.register(OfferQueue, OfferQueueAdmin)
 
 class EarningsAdmin(admin.ModelAdmin):
     model=Earnings

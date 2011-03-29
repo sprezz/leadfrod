@@ -401,6 +401,7 @@ class Niche(models.Model):
     max_clicks = models.FloatField(null=True, blank=True)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 30, null=True, blank=True)
+    priority = models.IntegerField(default=10)
     
     class Meta:
         verbose_name='Niche'
@@ -839,6 +840,18 @@ class OfferQueue(models.Model):
         self.order.clicks_received += 1
         self.save()
         return self.offer.url
+    
+    def network(self):
+        return self.offer.network.name
+    
+    def account(self):
+        return self.offer.account.username
+    
+    def offerName(self):
+        return self.offer.name
+    
+    def offerId(self):
+        return self.offer.id
     
     def __unicode__ (self):
         return '%s %s %s %s' % (self.offer.name, self.offer.network.name, self.offer.account.username, self.size)
