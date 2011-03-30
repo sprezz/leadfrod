@@ -1,6 +1,10 @@
 # Django settings for leap project.
 import os
+import sys
+
 SITE_ROOT= os.path.dirname(__file__)
+sys.path.insert(0,  os.path.join(SITE_ROOT, '..'))
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -48,17 +52,17 @@ USE_L10N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = os.path.abspath(os.path.join(SITE_ROOT, 'media')) 
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+ADMIN_MEDIA_PREFIX = '/admin-media/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'rp6qx2n=1%u^m_j-@2zqs)(q@j#x+fpnu0hv39yq%45ums6xri'

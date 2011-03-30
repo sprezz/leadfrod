@@ -193,6 +193,7 @@ class WorkManager(models.Model):
                 if csvLeads.count()==0:
                     logging.debug('There is no lead available for %s' % csvFile)
                     return None
+                csvLeads = sorted(csvLeads, key=lambda lead: lead.csv.niche.priority)
                 logging.debug('Got lead %s' % csvLeads[0])
                 return csvLeads[0]     
             except Lead.DoesNotExist:
@@ -582,8 +583,8 @@ class Offer(models.Model):
     capacity = models.FloatField(default = 10)
     url = models.URLField(max_length=2000, verify_exists=False)
     payout = models.FloatField()
-    min_clicks = models.FloatField( null=True, blank=True, default=0.0)
-    max_clicks = models.FloatField( null=True, blank=True, default=0.0)
+    min_clicks = models.FloatField( null=True, blank=True, default=5.0)
+    max_clicks = models.FloatField( null=True, blank=True, default=15.0)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 255, null = True, blank=True)
     
@@ -850,8 +851,8 @@ class OfferQueue(models.Model):
     def offerName(self):
         return self.offer.name
     
-    def offerId(self):
-        return self.offer.id
+    def offerNum(self):
+        return self.offer.offer_num
     
     def __unicode__ (self):
         return '%s %s %s %s' % (self.offer.name, self.offer.network.name, self.offer.account.username, self.size)
@@ -875,7 +876,7 @@ class Earnings(models.Model):
     date = models.DateField(default=datetime.date.today())
     campaign = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
-    revenue = models.DecimalField(max_digits=5, decimal_places=2)
+    payout = models.DecimalField(max_digits=5, decimal_places=2)
     impressions_for_affiliates = models.IntegerField()
     clicks = models.IntegerField()
     qualified_transactions = models.IntegerField()
@@ -884,5 +885,23 @@ class Earnings(models.Model):
     aprovedCTR = models.FloatField()
     eCPM = models.DecimalField(max_digits=5, decimal_places=2)
     EPC = models.DecimalField(max_digits=5, decimal_places=2)
-    commision = models.DecimalField(max_digits=5, decimal_places=2)
+    revenue = models.DecimalField(max_digits=5, decimal_places=2)
+    
+   
+    def network(self):
+        return self.offer.network.name
+    
+    def account(self):
+        return self.offer.account.username
+    
+    def offer_name(self):
+        return self.offer.name
+    
+    def offer_num(self):
+        return self.offer.offer_num
+    
+    def __unicode__ (self):
+        return '%s %s %s %s' % (self.offer.name, self.offer.offer_num, self.offer.account.username, self.offer.network.name)
+    
+    
     

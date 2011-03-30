@@ -45,10 +45,14 @@ admin.site.register(Account, AccountAdmin)
 
 class OfferAdmin(admin.ModelAdmin):
     model = Offer
-    list_display = ('name','offer_num','network', 'account','owner_name', 'capacity', 'daily_cap')
+    class Media:
+        js = ['/media/admin/js/offer.js', ]
+
+    list_display = ('name','offer_num','network', 'account','owner_name',
+                    'capacity', 'daily_cap', 'advertiser', 'status',)
     list_display_links = ('name', )
     search_fields = ['owner','network','account']
-    list_filter = ('network', 'account',)
+    list_filter = ('network', 'account', 'status', )
     
 admin.site.register(Offer,OfferAdmin)
 admin.site.register(IPSolution)
@@ -66,12 +70,20 @@ admin.site.register(TrafficHolderOrder)
 
 class OfferQueueAdmin(admin.ModelAdmin): 
     model=OfferQueue
-    list_display = ('network', 'account', 'offerName', 'offerId', )
+    list_display = ('network', 'account', 'offerName', 'offerNum', 'size',)
 
 admin.site.register(OfferQueue, OfferQueueAdmin)
 
 class EarningsAdmin(admin.ModelAdmin):
     model=Earnings
+    
+    list_display =('network', 'account', 'offer_name', 'offer_num', 'date',
+        'campaign', 'status', 'payout',
+        'clicks', 
+        'aproved', 'CTR', 'aprovedCTR', 'eCPM', 'EPC', 'revenue')
+    list_filter = ('date', 'status', )
+    
+
     
 admin.site.register(Earnings, EarningsAdmin)    
 #class OfferInline(admin.TabularInline):
