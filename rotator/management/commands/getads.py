@@ -19,7 +19,7 @@ class Command(BaseCommand):
         response = br.open(url)        
         br.select_form(name='aspnetForm')
         
-        br['ctl00$ContentPlaceHolder1$lcLogin$txtUserName'] = account.username
+        br['ctl00$ContentPlaceHolder1$lcLogin$txtUserName'] = account.user_id
         br['ctl00$ContentPlaceHolder1$lcLogin$txtPassword'] = account.password
         
         print "login..."
@@ -46,12 +46,12 @@ class Command(BaseCommand):
             
             offers = Offer.objects.filter(offer_num=offer_num, account=account, network=account.network)
             if not offers.count():
-                existUnknown = UnknownOffer.objects.filter(offer_num=record['offer_num'],
+                existUnknown = UnknownOffer.objects.filter(offer_num=offer_num,
                         account=account, network=account.network) 
                 if existUnknown.count():
                     existUnknown.delete()
-                UnknownOffer(offer_num=record['offer_num'], account=account, network=account.network).save()
-                print "WARNING: Please add offer with offer_num=%s" % record['offer_num']
+                UnknownOffer(offer_num=offer_num, account=account, network=account.network).save()
+                print "WARNING: Please add offer with offer_num=%s" % offer_num
                 continue
             
             if td[4].span:
@@ -84,7 +84,7 @@ class Command(BaseCommand):
                         date__year=now.year, date__day=now.day)
             if exist_earnings.count():
                 exist_earnings.delete()
-            print "save %s" % record['offer_num']
+            print "save %s" % offer_num
             Earnings(
                 offer=offer, 
                 network=account.network,
