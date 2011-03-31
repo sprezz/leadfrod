@@ -224,7 +224,7 @@ class WorkManager(models.Model):
                 if csvLeads.count()==0:
                     logging.debug('There is no lead available for %s' % csvFile)
                     return None
-                csvLeads = sorted(csvLeads, key=lambda lead: lead.csv.niche.priority)
+                #csvLeads = sorted(csvLeads, key=lambda lead: lead.csv.niche.priority)
                 logging.debug('Got lead %s' % csvLeads[0])
                 return csvLeads[0]     
             except Lead.DoesNotExist:
@@ -259,7 +259,10 @@ class WorkManager(models.Model):
             leadNiche = wi.lead.getNiche()
             logging.debug('get offer per niche %s' % leadNiche)
             offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('submits_today')
+            offer_names = []
             for offer in offers:
+                if offer.name in offer_names:
+                    continue
                 logging.debug('offer %s checking capacity...' % offer)
                 if not offer.checkCapacity(): continue
                 
@@ -273,8 +276,10 @@ class WorkManager(models.Model):
                     wi.lead.advertisers.add(offer.advertiser)
                     wi.lead.save()
                 
+                
                 wi.addOffer(offer)
                 offer.increase_submits()
+                offer_names.append(offer.name)
                 
                 if len(wi.offers)==5: break
             return wi       
@@ -809,7 +814,7 @@ class Account(models.Model):
     
     username = models.CharField(max_length = 30)
     password = models.CharField(max_length = 30, null=True, blank=True)
-    user_id = models.CharField(max_length = 30, null=True, blank=True)
+    user_id = models.CharField(max_length = 255, null=True, blank=True)
     AM = models.CharField(max_length = 30)
     phone = models.CharField(max_length = 30, null=True, blank=True)
     AM_phone_list = models.CharField(max_length = 30, null=True, blank=True)

@@ -9,6 +9,9 @@ class Command(BaseCommand):
     
     def getads(self, account): 
         account.checked()
+        now = datetime.datetime.now()
+        print now
+        print
         url = 'http://publisher.getads.com/Welcome/LogInAndSignUp.aspx'
         url2 = 'http://publisher.getads.com/RptCampaignPerformance.aspx'
         
@@ -34,8 +37,8 @@ class Command(BaseCommand):
         
         table = soup.find('div', {'id': 'ctl00_ContentPlaceHolder1_divReportData'}).findAll('table')[1]
                                  
-        now = datetime.datetime.now()
         
+         
         for tr in table.findAll('tr'):
             td = tr.findAll('td')
 
@@ -99,11 +102,18 @@ class Command(BaseCommand):
                 aprovedCTR=record['aprovedCTR'],
                 eCPM=record['eCPM'],
                 EPC=record['EPC'],
-                revenue=record['revenue'],
+                revenue=record['revenue']
             ).save()
+    
+    def encoreads(self, account):
+        pass
             
     def handle(self, *args, **options):       
         for account in Account.objects.filter(network=Network.objects.get(url="http://getads.com/")):            
             self.getads(account)
+            
+        for account in Account.object.filter(network=Network.objects.get(url="http://www.ecoretrax.com/")):
+            self.encoreads(account)
+
         print "Finished."    
             
