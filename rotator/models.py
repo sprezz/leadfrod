@@ -279,6 +279,7 @@ class WorkManager(models.Model):
                 
                 wi.addOffer(offer)
                 offer.increase_submits()
+                offer.reduce_capacity()
                 offer_names.append(offer.name)
                 
                 if len(wi.offers)==5: break
@@ -649,6 +650,11 @@ class Offer(models.Model):
     submits_today = models.IntegerField(default=0)
     submits_total = models.IntegerField(default=0)
     
+    def reduce_capacity(self):
+        self.capacity -= self.payout
+        if self.capacity < 0:
+            self.capacity = 0
+        self.save()    
 
     def increase_submits(self):
         self.submits_today += 1
