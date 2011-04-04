@@ -967,19 +967,19 @@ class Earnings(models.Model):
     payout = models.DecimalField(max_digits=5, decimal_places=2)
     impressions_for_affiliates = models.IntegerField()
     clicks = models.IntegerField()
-    qualified_transactions = models.IntegerField()
-    aproved = models.IntegerField()
+    qualified_transactions = models.IntegerField(null=True)
+    aproved = models.IntegerField(null=True)
     CTR = models.FloatField()
-    aprovedCTR = models.FloatField()
-    eCPM = models.DecimalField(max_digits=5, decimal_places=2)
+    aprovedCTR = models.FloatField(null=True)
+    eCPM = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     EPC = models.DecimalField(max_digits=5, decimal_places=2)
     revenue = models.DecimalField(max_digits=5, decimal_places=2)
 
     def pps(self):
-        return 0 if self.offer.submits_today == 0 else self.revenue/self.offer.submits_today
+        return 0 if self.offer.submits_today == 0 else "%.2f" % (self.revenue/self.offer.submits_today)
     
     def mpps(self):
-        return (self.revenue + self.payout)/(self.offer.submits_today + 1)
+        return "%.2f" % ((self.revenue + self.payout)/(self.offer.submits_today + 1)) 
     
     def account(self):
         return self.offer.account.username
