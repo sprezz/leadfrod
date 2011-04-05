@@ -211,7 +211,7 @@ class WorkManager(models.Model):
         def __init__ (self):
             pass
         
-        def nextLead(self, csvFile):
+        def nextLead(self, csvFile):            
             try:
                 csvLeads = Lead.unlocked.filter(csv=csvFile, 
                                                 status='active', 
@@ -259,7 +259,7 @@ class WorkManager(models.Model):
             leadNiche = wi.lead.getNiche()
             logging.debug('get offer per niche %s' % leadNiche)
             offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('submits_today')
-            offer_names = []
+            offer_names = []            
             for offer in offers:
                 if offer.name in offer_names:
                     continue
@@ -374,7 +374,7 @@ class WorkManager(models.Model):
     def nextWorkItem(self, worker):
         if not worker.get_profile().now_online: raise WorkerNotOnlineException()
         logging.debug('%s is online' % worker)
-        lead = None
+        lead = None        
         for csv_file in CSVFile.objects.filter(workers=worker).order_by('?'):
             if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file): continue
             logging.debug('%s get csv' % csv_file)
@@ -382,7 +382,9 @@ class WorkManager(models.Model):
             logging.debug('Lead instance %s' % lead)
             if lead: break
         
-        if not lead: raise NoWorkException()
+        if not lead: 
+            raise NoWorkException("There are no active leads for your account \
+                                                                    remaining")
         
         if not lead.is_locked:
             logging.debug('locking the lead')
@@ -401,8 +403,9 @@ class WorkManager(models.Model):
             logging.debug('unlock lead')
             lead.unlock_for(worker)
             lead.worker = None
-            lead.save()
-            raise NoWorkException()
+            lead.save()            
+            raise NoWorkException("There are no offers with enough capacity \
+                        left for the leads in niche %s" % (lead.getNiche()))
         return wi 
        
     def signOut(self, worker):
@@ -706,7 +709,8 @@ class Offer(models.Model):
         today = datetime.date.today()
         if not self.dailycap_capacity.filter(date=today).exists(): self.initCapacity()
         return self.dailycap_capacity.get(date=today)
-            
+    
+ 
     def checkCapacity(self):
         "Checks if offer have enough budget to be selected"
         daily_capacity = self.get_capacity_today
