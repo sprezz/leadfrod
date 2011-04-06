@@ -155,7 +155,7 @@ class BaseDataSpyder(object):
                             campaign: ''
                             status: ""
                             payout: 0.00
-                            impressions_for_affiliates: 0 
+                            impressions: 0 
                             clicks: 0
                             CTR: 0.000
                             EPC: 0.00
@@ -173,7 +173,7 @@ class BaseDataSpyder(object):
         
 
         
-class GetAdsSpyder(BaseDataSpyder):
+class XGetAdsSpyder(BaseDataSpyder):
     """ Custom GetAds network parser object """
     
     def parse_data(self, html_data, account):
@@ -209,7 +209,7 @@ class GetAdsSpyder(BaseDataSpyder):
                         'campaign': campaign,
                         'status': td[5].span.string,
                         'payout': "%.2f" % float(td[6].string[1:]),
-                        'impressions_for_affiliates': int(td[7].string),
+                        'impressions': int(td[7].string),
                         'clicks': int(td[8].string),
                         'qualified_transactions': int(td[9].string),
                         'aproved': int(td[10].string),
@@ -250,8 +250,14 @@ class AffiliateSpyder(BaseDataSpyder):
             if not link or not link.string:
                 continue
             
-            offer_num = link['href'][ link['href'].find('=') + 1 : link['href'
+            
+            print link['href']
+#            offer_num = re.search('program_id=(?P<offer_id>\d+)&', link['href']
+#                                                            ).group('offer_id')
+            
+            offer_num = link['href'][ link['href'].find('=') + 1 : link['href'  #TODO:REWORK TO RE>SEARCH
                                                                 ].find('&') ]
+            
             offer = self.get_offer(offer_num, account)
             if not offer:
                 continue
@@ -259,7 +265,7 @@ class AffiliateSpyder(BaseDataSpyder):
             block = str(td[12].b)
             record = {
                 'campaign': link.string,
-                'impressions_for_affiliates': td[2].string,
+                'impressions': td[2].string,
                 'clicks': td[3].string,
                 'CTR': td[5].string[:-1],
                 'EPC': 0 if td[10].string == 'N/A' else td[10].string[1:],
@@ -271,7 +277,7 @@ class AffiliateSpyder(BaseDataSpyder):
             self.update_earnings(offer, record)
 
 
-class HydraSpyder(BaseDataSpyder):
+class XHydraSpyder(BaseDataSpyder):
     """ Custom Hydra network parser object """
     
     def parse_data(self, html_data, account):
@@ -312,14 +318,14 @@ class HydraSpyder(BaseDataSpyder):
                         'payout': td[5].string[1:],
                         'clicks': int(td[2].string),
                         'revenue': td[6].string[1:],
-                        "impressions_for_affiliates": 0, ## TODO: REMOVE HARD CODE
+                        "impressions": 0, ## TODO: REMOVE HARD CODE
                         'EPC': td[7].string[1:],
                         'CTR': td[4].string[:-1],
                         }               
             self.update_earnings(offer, record)
 
 
-class ClickBoothSpyder(BaseDataSpyder):
+class XClickBoothSpyder(BaseDataSpyder):
     """ Custom ClickBooth network parser object """
     
     def __init__(self, network):             
@@ -369,7 +375,7 @@ class ClickBoothSpyder(BaseDataSpyder):
             
             record = {
                 'campaign': link.string,
-                'impressions_for_affiliates': td[1].font.string,
+                'impressions': td[1].font.string,
                 'clicks': td[2].font.string,
                 'CTR': td[8].font.string[:-1],
                 'EPC': 0 if td[10].font.string == 'N/A' else \
@@ -445,7 +451,7 @@ class XCopeacSpyder(BaseDataSpyder):
                         'campaign': campaign,
                         'status': td[5].span.string,
                         'payout': "%.2f" % float(td[6].string[1:]),
-                        'impressions_for_affiliates': int(td[7].string),
+                        'impressions': int(td[7].string),
                         'clicks': int(td[8].string),
                         'qualified_transactions': int(td[9].string),
                         'aproved': int(td[10].string),

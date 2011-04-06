@@ -1011,21 +1011,12 @@ class Earnings(models.Model):
     revenue = models.DecimalField(max_digits=5, decimal_places=2)
 
     def pps(self):
-<<<<<<< HEAD
         return 0 if self.offer.submits_today == 0 else "%.2f" % (
                                         self.revenue/self.offer.submits_today)
     
     def mpps(self):
         return "%.2f" % ((self.revenue + self.payout)/(
                                                 self.offer.submits_today + 1)) 
-    
-=======
-        return 0 if self.offer.submits_today == 0 else "%.2f" % (self.revenue/self.offer.submits_today)    
-    
-    def mpps(self):
-        return "%.2f" % ((self.revenue + self.payout)/(self.offer.submits_today + 1)) 
-
->>>>>>> 7740999643be5e984465e895ed1f106e35c667ab
     def account(self):
         return self.offer.account.username
     
