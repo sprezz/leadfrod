@@ -18,12 +18,14 @@ STATUS_LIST = (
                ('suspicious','suspicious'), 
                ('deleted','deleted'),
                )
+
     
 PAYMENT_TYPE_LIST = (
                      ('CHECK','CHECK'),
                      ('WIRE/ACH','WIRE/ACH'),
                      ('PAYPAL','PAYPAL'),
                      )
+
 
 class IPSolution(models.Model):
     name = models.CharField(max_length=30)
@@ -32,6 +34,7 @@ class IPSolution(models.Model):
     class Meta:
         verbose_name='IP Solution'
         verbose_name_plural='IP Solutions'
+
 
 class WorkerProfile(models.Model):
     user = models.ForeignKey(User, unique=True)
@@ -48,14 +51,23 @@ class WorkerProfile(models.Model):
     def __unicode__ (self):
         return u'%s (%s %s) @ odesk as %s' % (self.user.username, self.user.first_name, self.user.last_name, self.odesk_id) 
 
+
 class NoWorkException(Exception):
     pass
+
+
 class WorkInterceptedException(Exception):
     pass
+
+
 class WorkerNotOnlineException(Exception):
     pass
+
+
 class WorkerProfileDoesNotExistException(Exception):
     pass
+
+
 class Capacity(models.Model):
     "Capacity of remaining daily cap values of corresponding objects. "
     date = models.DateField()
@@ -68,17 +80,21 @@ class Capacity(models.Model):
     def checkOfferCapacity(self, payout):
         if not self.offer.is_active():return False
         return payout<=self.offer.capacity
+    
     def checkAdvertiserCapacity(self, payout):
         if not self.advertiser: return True
         if not self.advertiser.is_active():return False
         adv_account_cap = self.offer.getAdvertiserCapacity()
         return payout <= adv_account_cap.capacity
+    
     def checkAccountCapacity(self, payout):
         if not self.account.is_active():return False
         return payout<=self.account.capacity
+    
     def checkCompanyCapacity(self, payout):
         if not self.company.is_active():return False
         return payout<=self.company.capacity
+    
     def checkOwnerCapacity(self, payout):
         if not self.owner.is_active():return False
         return payout<=self.owner.capacity
@@ -86,17 +102,21 @@ class Capacity(models.Model):
     def updateOfferCapacity(self, payout):
         self.offer.capacity -= payout
         self.offer.save()
+    
     def updateAdvertiserCapacity(self, payout):
         if not self.offer.hasAdvertiser(): return
         adv_account_cap = self.offer.getAdvertiserCapacity()
         adv_account_cap.capacity -= payout
         adv_account_cap.save()
+    
     def updateAccountCapacity(self, payout):
         self.account.capacity -= payout
         self.account.save()
+    
     def updateCompanyCapacity(self, payout):
         self.company.capacity -= payout
         self.company.save()
+    
     def updateOwnerCapacity(self, payout):
         self.owner.capacity -= payout
         self.owner.save()
@@ -104,15 +124,19 @@ class Capacity(models.Model):
     def restoreOfferDailyCapCapacity(self):
         self.offer.capacity = self.offer.daily_cap
         self.offer.save()
+    
     def restoreAdvertiserDailyCapCapacity(self):
         if not self.offer.hasAdvertiser(): return
         self.advertiser.clearCapacityOfAllAccounts()
+    
     def restoreAccountDailyCapCapacity(self):
         self.account.capacity = self.account.daily_cap
         self.account.save()
+    
     def restoreCompanyDailyCapCapacity(self):
         self.company.capacity = self.company.daily_cap
         self.company.save()
+    
     def restoreOwnerDailyCapCapacity(self):
         self.owner.capacity = self.owner.daily_cap
         self.owner.save()
@@ -139,6 +163,7 @@ class Capacity(models.Model):
                                              self.owner.capacity,
                                              self.company.capacity)
 
+
 class WorkItem(object):
     def __init__ (self, workLead=None, workOffers=None):
         self.worker = None
@@ -147,8 +172,10 @@ class WorkItem(object):
             self.offers = []
         else:
             self.offers = workOffers
+            
     def get_header(self):
         return self.lead.csv.csv_headers.split(',')        
+    
     def get_data(self):
         return self.lead.lead_data.split(',')
         
@@ -159,13 +186,16 @@ class WorkItem(object):
             print f,data[idx]
             fields.append((f,data[idx]))
         return fields     
+    
     def addOffer(self, anOffer):
         anOffer.reduceCapacityOnShow()
         self.lead.offers_requested.add(anOffer)
         self.lead.save()
         self.offers.append(anOffer) 
+    
     def __str__ (self):
         return '%s %s' % (self.lead, self.offers)
+
 
 class WorkManager(models.Model):
     "Manages work of workers through work strategy"
@@ -180,7 +210,8 @@ class WorkManager(models.Model):
     class WorkStrategy(object):
         def __init__ (self):
             pass
-        def nextLead(self, csvFile):
+        
+        def nextLead(self, csvFile):            
             try:
                 csvLeads = Lead.unlocked.filter(csv=csvFile, 
                                                 status='active', 
@@ -193,6 +224,7 @@ class WorkManager(models.Model):
                 if csvLeads.count()==0:
                     logging.debug('There is no lead available for %s' % csvFile)
                     return None
+                #csvLeads = sorted(csvLeads, key=lambda lead: lead.csv.niche.priority)
                 logging.debug('Got lead %s' % csvLeads[0])
                 return csvLeads[0]     
             except Lead.DoesNotExist:
@@ -226,8 +258,11 @@ class WorkManager(models.Model):
             """
             leadNiche = wi.lead.getNiche()
             logging.debug('get offer per niche %s' % leadNiche)
-            offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('?')
+            offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('submits_today')
+            offer_names = []            
             for offer in offers:
+                if offer.name in offer_names:
+                    continue
                 logging.debug('offer %s checking capacity...' % offer)
                 if not offer.checkCapacity(): continue
                 
@@ -241,7 +276,12 @@ class WorkManager(models.Model):
                     wi.lead.advertisers.add(offer.advertiser)
                     wi.lead.save()
                 
+                
                 wi.addOffer(offer)
+                offer.increase_submits()
+                offer.reduce_capacity()
+                offer_names.append(offer.name)
+                
                 if len(wi.offers)==5: break
             return wi       
         
@@ -266,7 +306,8 @@ class WorkManager(models.Model):
             workitem.lead.offers_completed.add(offer)
             workitem.lead.offers_requested.remove(offer)
     
-        workitem.lead.save()    
+        workitem.lead.save()  
+                  
     def releaseCurrentWorkItem(self, workitem):
         "Release lead and deassociate lead and offers"
         print 'Releasing lead', workitem.lead
@@ -306,13 +347,15 @@ class WorkManager(models.Model):
         except WorkerProfile.DoesNotExist:
             wp = WorkerProfile(user = user, status='active')
             wp.save()
+            
     def signIn(self, worker):
         logging.debug('%s signing in ' % worker)
         wp = worker.get_profile()
         wp.now_online = True
         wp.save()
         self.workers_online.add(worker)
-        self.save()   
+        self.save()  
+         
     def validateWorkItem(self, workitem):
         logging.debug('validate %s' % workitem)
         try:
@@ -320,6 +363,7 @@ class WorkManager(models.Model):
             return lead.is_locked and lead.is_locked_by(workitem.worker)     
         except:
             return False
+        
     def _checkCsvFileAndSaveIfLeadsCreated(self, csv_file):
         nleads = csv_file.leads.count()
         if not csv_file.hasLeads(): return False
@@ -330,7 +374,7 @@ class WorkManager(models.Model):
     def nextWorkItem(self, worker):
         if not worker.get_profile().now_online: raise WorkerNotOnlineException()
         logging.debug('%s is online' % worker)
-        lead = None
+        lead = None        
         for csv_file in CSVFile.objects.filter(workers=worker).order_by('?'):
             if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file): continue
             logging.debug('%s get csv' % csv_file)
@@ -338,7 +382,9 @@ class WorkManager(models.Model):
             logging.debug('Lead instance %s' % lead)
             if lead: break
         
-        if not lead: raise NoWorkException()
+        if not lead: 
+            raise NoWorkException("There are no active leads for your account \
+                                                                    remaining")
         
         if not lead.is_locked:
             logging.debug('locking the lead')
@@ -357,8 +403,9 @@ class WorkManager(models.Model):
             logging.debug('unlock lead')
             lead.unlock_for(worker)
             lead.worker = None
-            lead.save()
-            raise NoWorkException()
+            lead.save()            
+            raise NoWorkException("There are no offers with enough capacity \
+                        left for the leads in niche %s" % (lead.getNiche()))
         return wi 
        
     def signOut(self, worker):
@@ -383,6 +430,7 @@ class WorkManager(models.Model):
     def __unicode__ (self):
         return u'WorkManager: %s workers online' % self.workers_online.count()
 
+
 class LeadSource(models.Model):
     name = models.CharField(max_length = 255)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
@@ -395,12 +443,14 @@ class LeadSource(models.Model):
     def __unicode__ (self):
         return u'%s' % (self.name)
     
+    
 class Niche(models.Model):
     name = models.CharField(max_length = 30)
     min_clicks = models.FloatField(null=True, blank=True)
     max_clicks = models.FloatField(null=True, blank=True)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 30, null=True, blank=True)
+    priority = models.IntegerField(default=10)
     
     class Meta:
         verbose_name='Niche'
@@ -411,6 +461,7 @@ class Niche(models.Model):
         
     def __unicode__ (self):
         return u'%s' % (self.name) 
+    
     
 class CSVFile(models.Model):
     lead_source = models.ForeignKey(LeadSource)
@@ -465,18 +516,21 @@ class CSVFile(models.Model):
       
     def getPercentOfCompleted(self):
         if self.leads.count()==0: return 0 
-        return self.leads.offers_completed.count()/self.leads.count()*100   
+        return self.leads.offers_completed.count()/self.leads.count()*100  
+     
     def save(self, *args, **kwargs):
         super(CSVFile, self).save(*args, **kwargs)
         self.hasLeads()
         super(CSVFile, self).save(*args, **kwargs)
+        
     def __unicode__ (self):
         name = self.filename or self.csv_files.name
 #        nleads = 0
 #        if self.hasLeads():
         nleads = self.leads.count() 
         return u'%s is %s uploaded by %s contains %s leads' % (name, self.status, self.uploaded_by, nleads)
-    
+
+
 class AdvertiserAccountCapacity(models.Model):
     advertiser = models.ForeignKey('Advertiser', related_name='account_capacity')
     account = models.ForeignKey('Account', related_name='advertiser_capacity')
@@ -488,7 +542,8 @@ class AdvertiserAccountCapacity(models.Model):
         
     def __unicode__ (self):
         return u'%s/%s' % (self.advertiser, self.account)
-     
+
+
 class Advertiser(models.Model):
     name = models.CharField(max_length=30)
     daily_cap = models.FloatField(default=25)
@@ -504,6 +559,7 @@ class Advertiser(models.Model):
     
     def clearCapacityOfAllAccounts(self):
         self.account_capacity.all().update(capacity=self.daily_cap)
+        
     def getAccountCapacity(self, adv_account):
         if  AdvertiserAccountCapacity.objects.filter(advertiser=self, account = adv_account).exists():
             return self.account_capacity.get(account = adv_account)
@@ -511,7 +567,8 @@ class Advertiser(models.Model):
     
     @property
     def getAccounts(self):
-        return self.account_capacity.all()            
+        return self.account_capacity.all()
+               
     class Meta:
         verbose_name='Advertiser'
         verbose_name_plural='Advertisers'
@@ -568,7 +625,15 @@ class Lead(locking.LockableModel):
 #How do I make object names in django admin plural form?
 #What does null=True really mean if I still have to add something to the admin field?    
 
+class OfferManager(models.Manager):
+    
+    def clear_submits_today(self):
+        self.filter(submits_today__gte=0).update(submits_today=0)     
+
+
 class Offer(models.Model):
+    objects = OfferManager()
+    
     name = models.CharField(max_length = 255, null = True, blank=True)
     advertiser = models.ForeignKey(Advertiser, related_name='offers', null=True, blank=True)
     network = models.ForeignKey('Network', related_name='offers')
@@ -581,11 +646,24 @@ class Offer(models.Model):
     capacity = models.FloatField(default = 10)
     url = models.URLField(max_length=2000, verify_exists=False)
     payout = models.FloatField()
-    min_clicks = models.FloatField( null=True, blank=True, default=0.0)
-    max_clicks = models.FloatField( null=True, blank=True, default=0.0)
+    min_clicks = models.FloatField( null=True, blank=True, default=5.0)
+    max_clicks = models.FloatField( null=True, blank=True, default=15.0)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
-    description = models.CharField(max_length = 255, null = True, blank=True)
+    description = models.CharField(max_length = 255, null = True, blank=True)    
+    submits_today = models.IntegerField(default=0)
+    submits_total = models.IntegerField(default=0)
     
+    def reduce_capacity(self):
+        self.capacity -= self.payout
+        if self.capacity < 0:
+            self.capacity = 0
+        self.save()    
+
+    def increase_submits(self):
+        self.submits_today += 1
+        self.submits_total += 1
+        self.save()
+            
     def is_active(self):
         return self.status=='active'
     
@@ -600,15 +678,18 @@ class Offer(models.Model):
     def getAdvertiserCapacity(self):
         if not self.hasAdvertiser(): return None
         return self.getAdvertiser().getAccountCapacity(self.account)
+    
     def getAdvertiser(self):
         if not self.hasAdvertiser(): return None
         if not self.advertiser.getAccountCapacity(self.account):
             AdvertiserAccountCapacity.objects.create(advertiser=self.advertiser, account= self.account, capacity=self.advertiser.daily_cap)
         return self.advertiser
+    
     def _checkOfferAdvertiserCapacity(self):
         if not self.hasAdvertiser(): return 
         if not self.advertiser.getAccountCapacity(self.account):
             AdvertiserAccountCapacity.objects.create(advertiser=self.advertiser, account= self.account, capacity=self.advertiser.daily_cap)
+    
     def initCapacity(self):
         print 'Create new capacity for ', self
         today = datetime.date.today()
@@ -628,7 +709,8 @@ class Offer(models.Model):
         today = datetime.date.today()
         if not self.dailycap_capacity.filter(date=today).exists(): self.initCapacity()
         return self.dailycap_capacity.get(date=today)
-            
+    
+ 
     def checkCapacity(self):
         "Checks if offer have enough budget to be selected"
         daily_capacity = self.get_capacity_today
@@ -661,6 +743,7 @@ class Offer(models.Model):
         daily_capacity.updateCompanyCapacity(self.payout)
         daily_capacity.updateOwnerCapacity(self.payout)
         daily_capacity.save()
+        
     def restoreDailyCapCapacity(self):
         "Reset capacity to dailycap value"
         daily_capacity = self.get_capacity_today
@@ -704,7 +787,8 @@ class Owner(models.Model):
         
     def __unicode__ (self):
         return u'%s capacity: %s/%s' % (self.name,self.capacity, self.daily_cap)
-    
+
+ 
 class Company(models.Model):
     owner = models.ForeignKey(Owner, related_name='companies')
     name_list = models.CharField(max_length=100, null=True, blank=True)
@@ -732,14 +816,15 @@ class Company(models.Model):
         
     def __unicode__ (self):
         return u'%s (owned by %s) capacity: %s/%s' % (self.name_list, self.owner, self.capacity, self.daily_cap)
-    
+
+
 class Account(models.Model):
     network = models.ForeignKey('Network', related_name='accounts')
     company = models.ForeignKey(Company, related_name='accounts')
     
     username = models.CharField(max_length = 30)
     password = models.CharField(max_length = 30, null=True, blank=True)
-    user_id = models.CharField(max_length = 30, null=True, blank=True)
+    user_id = models.CharField(max_length = 255, null=True, blank=True)
     AM = models.CharField(max_length = 30)
     phone = models.CharField(max_length = 30, null=True, blank=True)
     AM_phone_list = models.CharField(max_length = 30, null=True, blank=True)
@@ -754,7 +839,7 @@ class Account(models.Model):
     capacity = models.FloatField(default = 100)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 255, null=True, blank=True)
-    
+    last_checked = models.DateTimeField(null=True, blank=True)
     primary = models.BooleanField(default=True)
     
     def owner(self):
@@ -764,13 +849,18 @@ class Account(models.Model):
     def is_active(self):
         return self.status=='active'
     
+    def checked(self):
+        self.last_checked = datetime.datetime.now()
+        self.save()
+        
     class Meta:
         verbose_name='Account'
         verbose_name_plural='Accounts'
         
     def __unicode__ (self):
         return u'%s capacity: %s/%s' % (self.username, self.capacity, self.daily_cap)
-    
+
+
 class Network(models.Model):
     name = models.CharField(max_length = 30)
     url = models.CharField(max_length = 100)
@@ -786,13 +876,13 @@ class Network(models.Model):
         
     def __unicode__ (self):
         return u'%s' % (self.name)
+
     
 class LeadSourceOfferExclusion(models.Model):
     leadsource = models.ForeignKey(LeadSource)
     advertiser = models.ForeignKey(Advertiser)
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
     description = models.CharField(max_length = 30, null=True)
-
            
     
 TRAFFIC_HOLDER_STATUS_LIST = (
@@ -802,6 +892,7 @@ TRAFFIC_HOLDER_STATUS_LIST = (
                ('deleted','deleted'), 
                ('depleted','depleted'),
                )
+
 
 class TrafficHolderOrder(models.Model):
     owner = models.ForeignKey(Owner, related_name='orders')
@@ -818,7 +909,8 @@ class TrafficHolderOrder(models.Model):
     
     def __unicode__ (self):
         return '%s %s %s' % (self.order_id, self.owner.name, self.status)
-    
+
+
 class OfferQueue(models.Model):
     offer = models.ForeignKey(Offer, related_name='queues')
     order = models.ForeignKey(TrafficHolderOrder, related_name='queues')
@@ -840,8 +932,21 @@ class OfferQueue(models.Model):
         self.save()
         return self.offer.url
     
+    def network(self):
+        return self.offer.network.name
+    
+    def account(self):
+        return self.offer.account.username
+    
+    def offerName(self):
+        return self.offer.name
+    
+    def offerNum(self):
+        return self.offer.offer_num
+    
     def __unicode__ (self):
         return '%s %s %s %s' % (self.offer.name, self.offer.network.name, self.offer.account.username, self.size)
+    
     
 class OfferClicks(models.Model):
     offer_id = models.ForeignKey(Offer)
@@ -849,10 +954,57 @@ class OfferClicks(models.Model):
     last_click_date_time = models.DateTimeField(null = True)
     priority = models.IntegerField(default = 1)
 
+
 class DailyCap(models.Model):
-    date = models.DateTimeField(datetime.date.today())
     offer = models.ForeignKey(Offer)
     submits = models.IntegerField(default = 0)
     lead_list = models.CharField(max_length = 30)
     worker_list = models.CharField(max_length = 30)
+
+
+class Earnings(models.Model):
+    offer = models.ForeignKey(Offer)
+    network = models.ForeignKey(Network)
+    date = models.DateTimeField(default=datetime.datetime.now())
+    campaign = models.CharField(max_length=255)
+    status = models.CharField(max_length=255, null=True)
+    payout = models.DecimalField(max_digits=5, decimal_places=2)
+    impressions = models.IntegerField(null=True)
+    clicks = models.IntegerField()
+    qualified_transactions = models.IntegerField(null=True)
+    aproved = models.IntegerField(null=True)
+    CTR = models.FloatField(null=True)
+    aprovedCTR = models.FloatField(null=True)
+    eCPM = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    EPC = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    revenue = models.DecimalField(max_digits=5, decimal_places=2)
+
+    def pps(self):
+        return 0 if self.offer.submits_today == 0 else "%.2f" % (self.revenue/self.offer.submits_today)    
     
+    def mpps(self):
+        return "%.2f" % ((self.revenue + self.payout)/(self.offer.submits_today + 1)) 
+
+    def account(self):
+        return self.offer.account.username
+    
+    def offer_name(self):
+        return self.offer.name
+    
+    def offer_num(self):
+        return self.offer.offer_num
+    
+    def __unicode__ (self):
+        return '%s / %s / %s / %s' % (self.offer.name, self.offer.offer_num, 
+                        self.offer.account.username, self.offer.network.name)
+    
+
+class UnknownOffer(models.Model):
+    offer_num = models.CharField(max_length=10, null=True, blank=True)
+    network = models.ForeignKey(Network)
+    account = models.ForeignKey(Account)
+    date = models.DateTimeField(default=datetime.datetime.now())
+     
+    def __unicode__(self):
+        return "%s / %s / %s" % (self.offer_num, self.account.username, self.network.name)
+

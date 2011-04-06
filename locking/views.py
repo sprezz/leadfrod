@@ -2,15 +2,50 @@ import simplejson
 
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 
 from locking.decorators import user_may_change_model, is_lockable, log
 from locking import utils, LOCK_TIMEOUT, logger, models
-
+from rotator.models import Account, Network
 """
 These views are called from javascript to open and close assets (objects), in order
 to prevent concurrent editing.
 """
 
+@login_required
+def offer_save(request):
+    try:
+        request.session['account'] = request.GET['account']
+        request.session['network'] = request.GET['network']
+        request.session['advertiser'] = request.GET['advertiser']
+        request.session['niche'] = request.GET['niche']
+        return HttpResponse('1')
+    except:
+        return HttpResponse('0')
+         
+
+@login_required
+def get_saved_offer(request):
+    if 'account' not in request.session or 'network' not in request.session \
+        or 'advertiser' not in request.session or 'niche' not in request.session:
+        return HttpResponse('0')
+    return HttpResponse(simplejson.dumps({
+            'account': request.session['account'],
+            'network': request.session['network'],
+            'niche': request.session['niche'],
+            'advertiser': request.session['advertiser']
+        }), mimetype="application/json")
+
+@login_required
+def account_list(request):
+    data = {}
+    for network in Network.objects.all():        
+        data[network.id] = []
+        for account in network.accounts.all():
+            data[network.id].append(account.id)
+             
+    return HttpResponse(simplejson.dumps(data), mimetype="application/json")
+    
 @log
 @user_may_change_model
 @is_lockable

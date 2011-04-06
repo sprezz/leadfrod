@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     'paging',
     'sentry',
     'sentry.client',
+    #'django_extensions',
     # always in the end
     # 'south',
 )
