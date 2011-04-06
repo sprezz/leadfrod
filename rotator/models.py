@@ -41,7 +41,8 @@ class WorkerProfile(models.Model):
     odesk_id = models.CharField(max_length=30, null=True, blank=True)
     ip_solution = models.ForeignKey(IPSolution, null=True, blank=True)
     now_online = models.BooleanField(default=False, editable=False)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, 
+                                                            default='active')
     description = models.CharField(max_length = 255, null = True, blank=True)
     
     class Meta:
@@ -49,7 +50,10 @@ class WorkerProfile(models.Model):
         verbose_name_plural='Workers profiles'
         
     def __unicode__ (self):
-        return u'%s (%s %s) @ odesk as %s' % (self.user.username, self.user.first_name, self.user.last_name, self.odesk_id) 
+        return u'%s (%s %s) @ odesk as %s' % (self.user.username, 
+                                            self.user.first_name, 
+                                            self.user.last_name, self.odesk_id) 
+
 
 
 class NoWorkException(Exception):
@@ -72,7 +76,8 @@ class Capacity(models.Model):
     "Capacity of remaining daily cap values of corresponding objects. "
     date = models.DateField()
     offer = models.ForeignKey('Offer', related_name='dailycap_capacity')
-    advertiser = models.ForeignKey('Advertiser', related_name='dailycap_capacity', null=True, blank=True)
+    advertiser = models.ForeignKey('Advertiser', null=True, blank=True,
+                                   related_name='dailycap_capacity')
     account = models.ForeignKey('Account', related_name='dailycap_capacity')
     owner = models.ForeignKey('Owner', related_name='dailycap_capacity')
     company = models.ForeignKey('Company', related_name='dailycap_capacity')
@@ -183,7 +188,6 @@ class WorkItem(object):
         fields = []
         data = self.get_data()
         for idx, f in enumerate(self.get_header()):
-            print f,data[idx]
             fields.append((f,data[idx]))
         return fields     
     
@@ -472,13 +476,19 @@ class CSVFile(models.Model):
     cost = models.FloatField(default = 0)
 #    revenue = models.FloatField(default = 0) to be calculated
 #    percent_completed = models.FloatField(default = 0) to be calculated
-    workers = models.ManyToManyField(User, null = True, blank=True, related_name='assignments')
+    workers = models.ManyToManyField(User, null = True, blank=True, 
+                                     related_name='assignments')
     max_offers = models.FloatField(default = 5)
     csv_headers = models.TextField(null = False, blank=True)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, 
+                             default='active')
     description = models.CharField(max_length = 255, null=True, blank=True)
-    csv_files = models.FileField ( upload_to=settings.LEAD_FILE_DIR, help_text='Make sure your CSV file has Excel format (fields are separated with a <tt>comma</tt>)' )
-    has_header = models.BooleanField(default=True, help_text='Whether uploading file has the first row as a header')
+    csv_files = models.FileField ( upload_to=settings.LEAD_FILE_DIR, 
+                    help_text='Make sure your CSV file has Excel format\
+                             (fields are separated with a <tt>comma</tt>)' )
+    has_header = models.BooleanField(default=True, 
+                            help_text='Whether uploading file has the first\
+                                         row as a header')
   
     class Meta:
         verbose_name='CSV File'
@@ -635,7 +645,8 @@ class Offer(models.Model):
     objects = OfferManager()
     
     name = models.CharField(max_length = 255, null = True, blank=True)
-    advertiser = models.ForeignKey(Advertiser, related_name='offers', null=True, blank=True)
+    advertiser = models.ForeignKey(Advertiser, related_name='offers', null=True,
+                                   blank=True)
     network = models.ForeignKey('Network', related_name='offers')
     account = models.ForeignKey('Account', related_name='offers')
     niche = models.ForeignKey(Niche, related_name='offers')
@@ -648,7 +659,12 @@ class Offer(models.Model):
     payout = models.FloatField()
     min_clicks = models.FloatField( null=True, blank=True, default=5.0)
     max_clicks = models.FloatField( null=True, blank=True, default=15.0)
+<<<<<<< HEAD
     status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
+=======
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, 
+                             default='active')
+>>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
     description = models.CharField(max_length = 255, null = True, blank=True)    
     submits_today = models.IntegerField(default=0)
     submits_total = models.IntegerField(default=0)
@@ -682,16 +698,26 @@ class Offer(models.Model):
     def getAdvertiser(self):
         if not self.hasAdvertiser(): return None
         if not self.advertiser.getAccountCapacity(self.account):
-            AdvertiserAccountCapacity.objects.create(advertiser=self.advertiser, account= self.account, capacity=self.advertiser.daily_cap)
+            AdvertiserAccountCapacity.objects.create(
+                                             advertiser=self.advertiser,
+                                             account= self.account, 
+                                             capacity=self.advertiser.daily_cap)
         return self.advertiser
     
     def _checkOfferAdvertiserCapacity(self):
         if not self.hasAdvertiser(): return 
         if not self.advertiser.getAccountCapacity(self.account):
+<<<<<<< HEAD
             AdvertiserAccountCapacity.objects.create(advertiser=self.advertiser, account= self.account, capacity=self.advertiser.daily_cap)
+=======
+            AdvertiserAccountCapacity.objects.create(
+                                             advertiser=self.advertiser,
+                                             account= self.account,
+                                             capacity=self.advertiser.daily_cap)
+>>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
     
     def initCapacity(self):
-        print 'Create new capacity for ', self
+#        print 'Create new capacity for ', self
         today = datetime.date.today()
         if Capacity.objects.filter(date = today, offer=self).count()>0:
             return
@@ -715,20 +741,20 @@ class Offer(models.Model):
         "Checks if offer have enough budget to be selected"
         daily_capacity = self.get_capacity_today
         if not daily_capacity.checkOfferCapacity(self.payout):
-            print 'run out of offer capacity', daily_capacity.offer 
+#            print 'run out of offer capacity', daily_capacity.offer 
             return False
         if self.hasAdvertiser():
             if not daily_capacity.checkAdvertiserCapacity(self.payout):
-                print "run out of advertiser's offer capacity with ", self.account 
+#                print "run out of advertiser's offer capacity with ", self.account 
                 return False
         if not daily_capacity.checkAccountCapacity(self.payout):
-            print 'run out of account capacity', daily_capacity.account 
+#            print 'run out of account capacity', daily_capacity.account 
             return False    
         if not daily_capacity.checkCompanyCapacity(self.payout):
-            print 'run out of company capacity', daily_capacity.company 
+#            print 'run out of company capacity', daily_capacity.company 
             return False
         if not daily_capacity.checkOwnerCapacity(self.payout):
-            print 'run out of owner capacity', daily_capacity.owner 
+#            print 'run out of owner capacity', daily_capacity.owner 
             return False
         
         return True  
@@ -774,13 +800,15 @@ class Owner(models.Model):
     name = models.CharField(max_length=30)
     daily_cap = models.FloatField(default = 0)
     capacity = models.FloatField(default = 0)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, 
+                             default='active')
     description = models.CharField(max_length = 30, null=True, blank=True)
 #    order_id = models.CharField(max_length = 30)
     
     
     def is_active(self):
         return self.status=='active'
+    
     class Meta:
         verbose_name='Owner'
         verbose_name_plural='Owners'
@@ -806,16 +834,24 @@ class Company(models.Model):
     daily_cap = models.FloatField(default = 0)
     capacity = models.FloatField(default = 0)
     websites = models.CharField(max_length=100, null=True, blank=True)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, 
+                             default='active')
     description = models.CharField(max_length = 255, null=True, blank=True)
     def is_active(self):
         return self.status=='active'
+    
     class Meta:
         verbose_name='Company'
         verbose_name_plural='Companies'
         
     def __unicode__ (self):
+<<<<<<< HEAD
         return u'%s (owned by %s) capacity: %s/%s' % (self.name_list, self.owner, self.capacity, self.daily_cap)
+=======
+        return u'%s (owned by %s) capacity: %s/%s' % (self.name_list, 
+                                                      self.owner, self.capacity,
+                                                      self.daily_cap)
+>>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
 
 
 class Account(models.Model):
@@ -837,7 +873,8 @@ class Account(models.Model):
     payment_frequency = models.CharField(max_length = 30, null=True, blank=True)
     daily_cap = models.FloatField(default = 100)
     capacity = models.FloatField(default = 100)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, 
+                             default='active')
     description = models.CharField(max_length = 255, null=True, blank=True)
     last_checked = models.DateTimeField(null=True, blank=True)
     primary = models.BooleanField(default=True)
@@ -858,13 +895,19 @@ class Account(models.Model):
         verbose_name_plural='Accounts'
         
     def __unicode__ (self):
+<<<<<<< HEAD
         return u'%s capacity: %s/%s' % (self.username, self.capacity, self.daily_cap)
+=======
+        return u'%s capacity: %s/%s' % (self.username, self.capacity, 
+                                        self.daily_cap)
+>>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
 
 
 class Network(models.Model):
     name = models.CharField(max_length = 30)
     url = models.CharField(max_length = 100)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, 
+                             default='active')
     description = models.CharField(max_length = 30, null=True, blank=True)
     
     def is_active(self):
@@ -881,7 +924,8 @@ class Network(models.Model):
 class LeadSourceOfferExclusion(models.Model):
     leadsource = models.ForeignKey(LeadSource)
     advertiser = models.ForeignKey(Advertiser)
-    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
+    status= models.CharField(max_length = 30, choices = STATUS_LIST, 
+                             default='active')
     description = models.CharField(max_length = 30, null=True)
            
     
@@ -904,7 +948,9 @@ class TrafficHolderOrder(models.Model):
     clicks_total = models.IntegerField ( default=1000000 )
 #    internal_url = models.CharField(max_length=2000)
     approval_url = models.CharField(max_length=2000, blank=True, null = True)
-    status = models.CharField(max_length = 30, choices = TRAFFIC_HOLDER_STATUS_LIST, default='awaiting approval')
+    status = models.CharField(max_length = 30, 
+                              choices = TRAFFIC_HOLDER_STATUS_LIST, 
+                              default='awaiting approval')
     description = models.CharField(max_length = 30, blank=True, null = True)
     
     def __unicode__ (self):
@@ -925,7 +971,8 @@ class OfferQueue(models.Model):
     def popUrl(self):
         "Gets offer url from queue and decrease the queue length"
         if self.size==0:
-            logging.warning("Attempt to get url from empty queue %s/%s" % (self.order.owner.name,self.order.order_id)) 
+            logging.warning("Attempt to get url from empty queue %s/%s" % (
+                                    self.order.owner.name,self.order.order_id)) 
             return None
         self.size -= 1
         self.order.clicks_received += 1
@@ -945,7 +992,9 @@ class OfferQueue(models.Model):
         return self.offer.offer_num
     
     def __unicode__ (self):
-        return '%s %s %s %s' % (self.offer.name, self.offer.network.name, self.offer.account.username, self.size)
+        return '%s %s %s %s' % (self.offer.name, self.offer.network.name, 
+                                self.offer.account.username, self.size)
+    
     
     
 class OfferClicks(models.Model):
@@ -980,11 +1029,27 @@ class Earnings(models.Model):
     revenue = models.DecimalField(max_digits=5, decimal_places=2)
 
     def pps(self):
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+        return 0 if self.offer.submits_today == 0 else "%.2f" % (
+                                        self.revenue/self.offer.submits_today)
+    
+    def mpps(self):
+        return "%.2f" % ((self.revenue + self.payout)/(
+                                                self.offer.submits_today + 1)) 
+    
+=======
+>>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
         return 0 if self.offer.submits_today == 0 else "%.2f" % (self.revenue/self.offer.submits_today)    
     
     def mpps(self):
         return "%.2f" % ((self.revenue + self.payout)/(self.offer.submits_today + 1)) 
 
+<<<<<<< HEAD
+=======
+>>>>>>> 7740999643be5e984465e895ed1f106e35c667ab
+>>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
     def account(self):
         return self.offer.account.username
     
@@ -1006,5 +1071,10 @@ class UnknownOffer(models.Model):
     date = models.DateTimeField(default=datetime.datetime.now())
      
     def __unicode__(self):
+<<<<<<< HEAD
         return "%s / %s / %s" % (self.offer_num, self.account.username, self.network.name)
 
+=======
+        return "%s / %s / %s" % (self.offer_num, self.account.username, 
+                                 self.network.name)
+>>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f

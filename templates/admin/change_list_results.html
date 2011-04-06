@@ -1,0 +1,33 @@
+
+{% if result_hidden_fields %}
+<div class="hiddenfields"> {# DIV for HTML validation #}
+{% for item in result_hidden_fields %}{{ item }}{% endfor %}
+</div>
+{% endif %}
+{% if results %}
+<table cellspacing="0" id="result_list">
+<thead>
+<tr>
+{% for header in result_headers %}<th{{ header.class_attrib }}>
+{% if header.sortable %}<a href="{{ header.url }}">{% endif %}
+{{ header.text|capfirst }}
+{% if header.sortable %}</a>{% endif %}</th>{% endfor %}
+</tr>
+</thead>
+<tbody>
+<tr class="row2">
+    {% for field in cl.model_admin.list_summary_values %}
+        <td>
+            {% if field %}
+                {{ field|floatformat:2 }}
+            {% endif %}
+        </td>
+    {% endfor %}    
+    
+</tr>
+{% for result in results %}
+<tr class="{% cycle 'row1' 'row2' %}">{% for item in result %}{{ item }}{% endfor %}</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
