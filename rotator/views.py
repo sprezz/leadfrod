@@ -1,18 +1,16 @@
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.shortcuts import render_to_response, get_object_or_404
-
-
-from django.views.decorators.csrf import csrf_protect
+from django.shortcuts import render_to_response
+from django.utils import simplejson
 from django.template import RequestContext
+
 
 import logging
 
 from models import *
 from rotator.trafficholder import TrafficHolder
 from trafficholder import UnknownOrderException
-import simplejson
 
 @login_required
 def index(request):

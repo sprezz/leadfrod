@@ -9,7 +9,8 @@ urlpatterns = patterns('',
     # Example:
     # (r'^leap/', include('leap.foo.urls')),
     (r'^$', 'rotator.views.index'),
-    (r'^(static|media)/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+    (r'^(static|media)/(?P<path>.*)$', 'django.views.static.serve', 
+                                        {'document_root': settings.MEDIA_ROOT}),
 
     # Uncomment the admin/doc line below to enable admin documentation:
      (r'^admin/doc/', include('django.contrib.admindocs.urls')),

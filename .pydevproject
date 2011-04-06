@@ -7,4 +7,7 @@
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/leadfrod</path>
 </pydev_pathproperty>
+<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
+<path>/home/vitaly/WORK/VirtualENVs/leadfrod/lib/python2.6/site-packages</path>
+</pydev_pathproperty>
 </pydev_project>

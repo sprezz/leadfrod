@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from django.db import models
-from django.conf import settings
+#from django.conf import settings
 from django.contrib.auth import models as auth
 
 from locking import LOCK_TIMEOUT, logger
@@ -58,10 +58,8 @@ class LockableModel(models.Model):
         if self.is_locked:
             if self._hard_lock:
                 return "hard"
-            else:
-                return "soft"
-        else:
-            return None
+            return "soft"
+        return None
 
     @property
     def is_locked(self):
@@ -70,10 +68,7 @@ class LockableModel(models.Model):
         Works by calculating if the last lock (self.locked_at) has timed out or not.
         """
         if isinstance(self.locked_at, datetime):
-            if (datetime.today() - self.locked_at).seconds < LOCK_TIMEOUT:
-                return True
-            else:
-                return False
+            return (datetime.today() - self.locked_at).seconds < LOCK_TIMEOUT
         return False
     
     @property
