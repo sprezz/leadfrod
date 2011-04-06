@@ -979,7 +979,7 @@ class Earnings(models.Model):
     EPC = models.DecimalField(max_digits=5, decimal_places=2)
     revenue = models.DecimalField(max_digits=5, decimal_places=2)
 
-    def pps(self):        
+    def pps(self):
         return 0 if self.offer.submits_today == 0 else "%.2f" % (self.revenue/self.offer.submits_today)    
     
     def mpps(self):

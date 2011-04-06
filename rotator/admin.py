@@ -1,5 +1,6 @@
 from django.contrib import admin
 from models import *
+from django.db.models import Sum
 from locking.admin import LockableAdmin
 
 
@@ -129,14 +130,31 @@ class OfferQueueAdmin(admin.ModelAdmin):
     substract_clicks_size.short_description = "Substract 5 clicks from size"
 
 
-class EarningsAdmin(admin.ModelAdmin):
+class EarningsAdmin(admin.ModelAdmin):    
     model = Earnings
+    
+    chlen = "qwert"
 
     list_display = ('network', 'account', 'offer_name', 'offer_num', 'date',
-        'campaign', 'status', 'payout', 'clicks', 'pps', 'mpps', 'revenue',)
+        'campaign', 'status', 'payout', 'clicks', 'pps', 'mpps', 'revenue', 
+        'submits_today')
     list_filter = ('date', 'status', 'network', )
     
-    def pps(self, earning):
+    list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks']    
+        
+#    def changelist_view(self, request, *args, **kwargs):
+#        response_obj = super(EarningsAdmin, self).changelist_view(request, *args, **kwargs)
+#        self.list_summary_values = []
+#        queryset = self.queryset(request)
+#        for field in self.list_display:
+#            self.get_q            
+#            self.list_summary_values.append(getattr(self, field))
+#        print self.list_summary_values
+    
+    def submits_today(self, earning):
+        return earning.offer.submits_today
+    
+    def pps(self, earning):        
         return earning.pps()        
     pps.admin_order_field = 'admin_pps'
     
@@ -150,7 +168,30 @@ class EarningsAdmin(admin.ModelAdmin):
                             'admin_pps': "revenue / rotator_offer.submits_today",
                             'admin_mpps': "(revenue + rotator_earnings.payout) / (rotator_offer.submits_today + 1)",
         })
+        
+        queryset_count = queryset.filter()
+        queryset_count = queryset_count.select_related()
+        self.list_summary_values = [0]*(len(self.list_display) + 1)
+        for earning in queryset_count.all():
+            for field in self.list_summary:
+                attr = getattr(self, field, 0)
+                if attr:
+                    attr = attr(earning)
+                else:                
+                    attr = getattr(earning, field, 0)
+                    attr = attr() if callable(attr) else attr
+                
+                attr = float(attr)
+                                        
+                index = self.list_display.index(field)               
+                self.list_summary_values[index] += attr  
+            
         return queryset
+    
+    def __call__(self, *args, **kwargs):
+        if args or kwargs:
+            return super(EarningsAdmin, self).__call__(*args, **kwargs)
+        return self
         
 
 
