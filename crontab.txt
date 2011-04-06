@@ -1,3 +1,3 @@
-*/5 * * * * ./manage.py getads
+*/5 * * * * ./manage.py spyder
 0 0 * * *  ./manage.py clear_offer_submits
 0 4 * * * ./manage.py getads

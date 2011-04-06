@@ -967,16 +967,16 @@ class Earnings(models.Model):
     network = models.ForeignKey(Network)
     date = models.DateTimeField(default=datetime.datetime.now())
     campaign = models.CharField(max_length=255)
-    status = models.CharField(max_length=255)
+    status = models.CharField(max_length=255, null=True)
     payout = models.DecimalField(max_digits=5, decimal_places=2)
-    impressions_for_affiliates = models.IntegerField()
+    impressions = models.IntegerField(null=True)
     clicks = models.IntegerField()
     qualified_transactions = models.IntegerField(null=True)
     aproved = models.IntegerField(null=True)
-    CTR = models.FloatField()
+    CTR = models.FloatField(null=True)
     aprovedCTR = models.FloatField(null=True)
     eCPM = models.DecimalField(max_digits=5, decimal_places=2, null=True)
-    EPC = models.DecimalField(max_digits=5, decimal_places=2)
+    EPC = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     revenue = models.DecimalField(max_digits=5, decimal_places=2)
 
     def pps(self):
@@ -984,7 +984,7 @@ class Earnings(models.Model):
     
     def mpps(self):
         return "%.2f" % ((self.revenue + self.payout)/(self.offer.submits_today + 1)) 
-    
+
     def account(self):
         return self.offer.account.username
     
