@@ -10,8 +10,8 @@ class NicheAdmin(admin.ModelAdmin):
 
 class AdvertiserAccountCapacityInline(admin.TabularInline):
     model = AdvertiserAccountCapacity
-    
-    
+
+
 class AdvertiserAdmin(admin.ModelAdmin):
     list_display = ('name','daily_cap', 'status','numberOfAccounts' )
     list_display_links = ('name','daily_cap', 'status' )
@@ -32,27 +32,50 @@ class AccountAdmin(admin.ModelAdmin):
 
 class OfferAdmin(admin.ModelAdmin):
     model = Offer
-    
+
     class Media:
         js = ['/media/admin/js/offer.js', ]
 
     list_display = ('name','offer_num','network', 'account','owner_name',
-                    'capacity', 'daily_cap', 'advertiser', 'status',)
+                    'capacity', 'daily_cap', 'advertiser', 'status',
+                    'capacity_error', )
     list_display_links = ('name', )
     search_fields = ['name', 'network__name', 'network__description',
-                     'account__username', 'account__company__owner__name', 
+                     'account__username', 'account__company__owner__name',
                      'advertiser__name', 'advertiser__description']
     list_filter = ('network', 'account', 'status', )
-    
+
     actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
                'add_clicks_capacity', 'substract_clicks_capacity',]
+
+    def capacity_error(self, offer):
+        """
+        Checks if offer have enough budget to be selected
+        """
+        daily_cap = offer.get_capacity_today
+        if not daily_cap.checkOfferCapacity(offer.payout):
+            return 'run out of offer capacity'
+        if offer.hasAdvertiser() and not daily_cap.checkAdvertiserCapacity(
+                                                                offer.payout):
+            return "run out of advertiser's offer capacity \
+                                                    with %s" % (offer.account)
+        if not daily_cap.checkAccountCapacity(offer.payout):
+            return 'run out of account capacity %s' % (daily_cap.account)
+
+        if not daily_cap.checkCompanyCapacity(offer.payout):
+            return 'run out of company capacity %s' % (daily_cap.company)
+
+        if not daily_cap.checkOwnerCapacity(offer.payout):
+            return 'run out of owner capacity %s' % (daily_cap.owner)
+        return "OK"
+    capacity_error.allow_tags = True
 
     def add_clicks_dailycap(self, request, queryset):
         for q in queryset:
             q.daily_cap +=5
             q.save()
     add_clicks_dailycap.short_description = "Add 5 clicks to daily cap"
-    
+
     def substract_clicks_dailycap(self, request, queryset):
         for q in queryset:
             if q.daily_cap < 5:
@@ -61,15 +84,15 @@ class OfferAdmin(admin.ModelAdmin):
                 q.daily_cap -=5
             q.save()
     substract_clicks_dailycap.short_description = "Substract 5 clicks from daily cap"
-    
+
     def add_clicks_capacity(self, request, queryset):
         for q in queryset:
             q.capacity +=5
             q.save()
     add_clicks_capacity.short_description = "Add 5 clicks to capacity"
-    
+
     def substract_clicks_capacity(self, request, queryset):
-        for q in queryset:            
+        for q in queryset:
             if q.capacity < 5:
                 q.capacity = 0
             else:
@@ -84,10 +107,10 @@ class LeadAdmin(LockableAdmin):
 #    list_display_links = ('csv','status','worker','deleted' )
 
 
-class OfferQueueAdmin(admin.ModelAdmin): 
+class OfferQueueAdmin(admin.ModelAdmin):
     model = OfferQueue
     list_display = ('network', 'account', 'offerName', 'offerNum', 'size',)
-    
+
     actions = ['add_clicks_size', 'substract_clicks_size',]
 
     def add_clicks_size(self, request, queryset):
@@ -95,7 +118,7 @@ class OfferQueueAdmin(admin.ModelAdmin):
             q.size +=5
             q.save()
     add_clicks_size.short_description = "Add 5 clicks to size"
-    
+
     def substract_clicks_size(self, request, queryset):
         for q in queryset:
             if q.size < 5:
@@ -104,22 +127,22 @@ class OfferQueueAdmin(admin.ModelAdmin):
                 q.size -=5
             q.save()
     substract_clicks_size.short_description = "Substract 5 clicks from size"
-    
+
 
 class EarningsAdmin(admin.ModelAdmin):
     model = Earnings
-    
+
     list_display = ('network', 'account', 'offer_name', 'offer_num', 'date',
         'campaign', 'status', 'payout', 'clicks', 'pps', 'mpps', 'revenue')
     list_filter = ('date', 'status', 'network',)
 
-    
+
 class UnknownOfferAdmin(admin.ModelAdmin):
     model = UnknownOffer
-    
+
     list_display = ('network', 'account', 'offer_num', 'date')
     list_filter = ('date', 'network',)
-    
+
 
 #class LeadInline(admin.TabularInline):
 #    model = Lead
@@ -128,10 +151,10 @@ class UnknownOfferAdmin(admin.ModelAdmin):
 
 #class OfferInline(admin.TabularInline):
 #    model = Offer
-#    
+#
 #class CapacityAdmin(admin.ModelAdmin):
 #    inlines = [OfferInline]
-#admin.site.register(Capacity,CapacityAdmin) 
+#admin.site.register(Capacity,CapacityAdmin)
 
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(LeadSource)
@@ -149,7 +172,7 @@ admin.site.register(WorkerProfile)
 admin.site.register(Capacity)
 admin.site.register(Lead, LeadAdmin)
 admin.site.register(TrafficHolderOrder)
-admin.site.register(UnknownOffer, UnknownOfferAdmin)      
-admin.site.register(OfferQueue, OfferQueueAdmin)    
-admin.site.register(Earnings, EarningsAdmin)  
-  
+admin.site.register(UnknownOffer, UnknownOfferAdmin)
+admin.site.register(OfferQueue, OfferQueueAdmin)
+admin.site.register(Earnings, EarningsAdmin)
+
