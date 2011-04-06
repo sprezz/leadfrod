@@ -133,8 +133,25 @@ class EarningsAdmin(admin.ModelAdmin):
     model = Earnings
 
     list_display = ('network', 'account', 'offer_name', 'offer_num', 'date',
-        'campaign', 'status', 'payout', 'clicks', 'pps', 'mpps', 'revenue')
-    list_filter = ('date', 'status', 'network',)
+        'campaign', 'status', 'payout', 'clicks', 'pps', 'mpps', 'revenue',)
+    list_filter = ('date', 'status', 'network', )
+    
+    def pps(self, earning):
+        return earning.pps()        
+    pps.admin_order_field = 'admin_pps'
+    
+    def mpps(self, earning):
+        return earning.mpps()
+    mpps.admin_order_field = 'admin_mpps'
+
+    def queryset(self, request):
+        queryset = super(EarningsAdmin, self).queryset(request)
+        queryset = queryset.extra(select={
+                            'admin_pps': "revenue / rotator_offer.submits_today",
+                            'admin_mpps': "(revenue + rotator_earnings.payout) / (rotator_offer.submits_today + 1)",
+        })
+        return queryset
+        
 
 
 class UnknownOfferAdmin(admin.ModelAdmin):
