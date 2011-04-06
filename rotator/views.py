@@ -29,13 +29,13 @@ def submit_workitem(request):
                 wm.completeCurrentWorkItem(wi)
             except WorkInterceptedException, msg:
                 logging.warning(msg)
-            return HttpResponseRedirect('/next') 
+            return HttpResponseRedirect('/next')
         else:
             print 'Cancel job!'
             logging.info('User %s has canceled work item %s' % (request.user, wi))
             request.session['msg']='Work item %s was canceled by %s'% (wi, request.user)
             wm.releaseCurrentWorkItem(wi)
-            
+
             return HttpResponseRedirect('/next')
 
 @login_required
@@ -47,11 +47,11 @@ def next_workitem(request):
     if not request.user.get_profile().now_online:
         print 'setting ',request.user,' online'
         wm.signIn(request.user)
-    wi = None    
-    for attempt in range(1,3):    
-        try:    
+    wi = None
+    for attempt in range(1,3):
+        try:
             print 'Getting work item'
-            if 'workitem' not in request.session: 
+            if 'workitem' not in request.session:
                 wi = wm.nextWorkItem(request.user)
                 request.session['workitem']=wi
             else:
@@ -60,23 +60,26 @@ def next_workitem(request):
                     wi = wm.nextWorkItem(request.user)
                     request.session['workitem']=wi
                     request.session['msg']='Your previous work item was cancelled by administrator. Start with next.'
-            TrafficHolder().processOffers ( wi.offers )         
-            msg = None    
+            TrafficHolder().processOffers ( wi.offers )
+            msg = None
             if 'msg' in request.session:
                 msg = request.session['msg']
-                del request.session['msg']   
-            return render_to_response('worker/showlead.html', 
+                del request.session['msg']
+            return render_to_response('worker/showlead.html',
                                       {'user':request.user,'wi':wi, 'message':msg},
                                       context_instance=RequestContext(request))
-        except NoWorkException:
-            return render_to_response('worker/worker_goodbye.html', {'user':request.user})
+        except NoWorkException as exception:
+            return render_to_response('worker/worker_goodbye.html', 
+                                      {'user':request.user,
+                                       'message': str(exception) 
+                                       })
         except WorkInterceptedException:
             logging.warning('User %s got intercepted work exception' % request.user)
             continue
         except WorkerProfileDoesNotExistException:
             logging.error('User %s got unrecoverable error in getting next work item' % request.user)
             raise Http404
-    
+
 
 def click_logout(request):
     wm = WorkManager.instance()
@@ -84,10 +87,10 @@ def click_logout(request):
         wi = request.session['workitem']
         del request.session['workitem']
         wm.releaseCurrentWorkItem(wi)
-    try:    
+    try:
         wm.signOut(request.user)
     except Exception, msg:
-        logging.error(msg)    
+        logging.error(msg)
     logout( request )
     return HttpResponseRedirect('/')
 
@@ -99,16 +102,16 @@ def admin_manage_dailycap(request):
 
     for offer in Offer.objects.all():
         offer.checkCapacity()
-        
-    return render_to_response("daily_capacity.html", 
+
+    return render_to_response("daily_capacity.html",
                               {'capacity':Capacity.objects.filter(date=datetime.date.today()).all()},
-                              context_instance=RequestContext(request))    
+                              context_instance=RequestContext(request))
 
 @permission_required('rotator.change_lead')
 def admin_show_locked_leads(request):
-    return render_to_response("locked_leads.html", 
+    return render_to_response("locked_leads.html",
                               {'leads':Lead.locked.all().order_by('-_locked_at')},
-                              context_instance=RequestContext(request))    
+                              context_instance=RequestContext(request))
 
 @permission_required('rotator.change_lead')
 def admin_release_lead(request):
@@ -118,13 +121,13 @@ def admin_release_lead(request):
         wm.unlockLead(lead_id, request.user)
         return HttpResponseRedirect('/locked_leads')
     else:
-        logging.warning('GET /release_lead when POST is expected' )    
+        logging.warning('GET /release_lead when POST is expected' )
 
 @permission_required('rotator.change_lead')
 def admin_show_csvfiles(request):
-    return render_to_response("csvfiles.html", 
+    return render_to_response("csvfiles.html",
                               {'files':CSVFile.objects.all()},
-                              context_instance=RequestContext(request))    
+                              context_instance=RequestContext(request))
 
 @permission_required('rotator.change_lead')
 def admin_delete_csvfile(request):
@@ -140,10 +143,10 @@ def admin_delete_csvfile(request):
             csv.delete()
             print 'deleted, remove defer'
             CSVFile.objects.defer(None)
-            data={'code':'OK'}  
+            data={'code':'OK'}
         except Exception, msg:
             print 'Exception', msg
-            data={'code':'NOK','message':msg}    
+            data={'code':'NOK','message':msg}
         return HttpResponse(simplejson.dumps(data),mimetype='application/json')
     else:
         logging.warning('GET /delete_file when POST is expected' )
@@ -156,22 +159,22 @@ def admin_delete_csvfile_raw(request):
             csv_id = int(request.POST['csvfile_id'])
             from django.db import connection, transaction
             cursor = connection.cursor()
-        
+
             # Data modifying operation - commit required
             cursor.execute("DELETE FROM rotator_lead WHERE csv_id = %s", [csv_id])
             cursor.execute("DELETE FROM rotator_csvfile_workers WHERE csvfile_id = %s", [csv_id])
             cursor.execute("DELETE FROM rotator_csvfile WHERE id = %s", [csv_id])
             transaction.commit_unless_managed()
-            data={'code':'OK'}  
+            data={'code':'OK'}
         except Exception, msg:
             print 'Exception', msg
-            data={'code':'NOK','message':msg}    
+            data={'code':'NOK','message':msg}
         return HttpResponse(simplejson.dumps(data),mimetype='application/json')
     else:
         logging.warning('GET /delete_file when POST is expected' )
 
 
- 
+
 
 
 
@@ -179,14 +182,14 @@ def trafficholder_callback(request, owner):
     if request.method=='GET':
         try:
             url = TrafficHolder().popOfferQueueUrl ( owner )
-            if url: 
+            if url:
                 return HttpResponseRedirect ( url )
             else:
                 logging.debug('Owner [%s] queue size is zero but url requested' % owner)
                 return render_to_response('empty_queue.html')
         except UnknownOrderException:
-            raise Http404    
-        
+            raise Http404
+
 
 
 # Original functions
@@ -245,7 +248,7 @@ def filter_distinct_advertisers():
 #something else
 
 #Filter Order for Leads:
-#SELECT LEADS WHERE 
+#SELECT LEADS WHERE
 #LEAD=ACTIVE
 #UNLOCK = FALSE
 #COMPLETED = FALSE

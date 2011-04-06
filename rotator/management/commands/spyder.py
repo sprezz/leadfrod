@@ -1,27 +1,30 @@
-""" """
-from django.core.management.base import BaseCommand
-from django.utils.importlib import import_module
+
+from django.core.management.base import BaseCommand, CommandError
+import datetime
+from BeautifulSoup import BeautifulSoup
+from rotator.models import Account
+from rotator.spyderhandler import GetAdsHandler, HydraHandler, \
+    AffiliateComHandler, ACPAffiliatesHandler
 
 from rotator.models import Network
 from rotator import spyder_objects
 from string import capitalize
 
 class Command(BaseCommand):
-    """ Custom command for importing data from external networks """
-    
+
     def handle(self, *args, **options):   
-        """ This method should run every spyder to get all data from networks 
-        """
-    
-        networks = Network.objects.all()
-        for net in networks:
-            try:                
-                spy_class = getattr(spyder_objects, '%sSpyder' % (net.name))
-            except AttributeError:
-                continue
-            else:
-                spy = spy_class(net)
-                spy.run_spyder()
-                
+        now = datetime.datetime.now()   
+        print now 
+        networks = {
+            "http://getads.com/": 'GetAdsHandler', 
+            "http://affiliate.com/": 'AffiliateComHandler', 
+            "https://network.hydranetwork.com/login": "HydraHandler",
+            'http://acpaffiliates.com/Publishers': 'ACPAffiliatesHandler'
+        }
         
-        print "Finished."    
+        for account in Account.objects.all():
+            if account.network.url in networks:
+                account.checked()
+                globals()[ networks[account.network.url] ](now, account).run()
+  
+        print "Finished."

@@ -4,6 +4,6 @@
 
 {% block content %}
 <p>
-Dear {%if user.first_name%} {{ user.first_name }} {%else%} {{ user.username }} {%endif%}, there is no more work   for for today! Take a break.
+Dear {%if user.first_name%} {{ user.first_name }} {%else%} {{ user.username }} {%endif%}! {{ message }}! Take a break.
 </p>
 {% endblock %}
