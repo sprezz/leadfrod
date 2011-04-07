@@ -2,6 +2,7 @@ from django.contrib import admin
 from models import *
 from django.db.models import Sum
 from locking.admin import LockableAdmin
+from django.contrib.admin.views.main import ChangeList
 
 
 class NicheAdmin(admin.ModelAdmin):
@@ -129,6 +130,26 @@ class OfferQueueAdmin(admin.ModelAdmin):
             q.save()
     substract_clicks_size.short_description = "Substract 5 clicks from size"
 
+class EarningChangeList(ChangeList):
+    def get_summary(self):        
+        queryset_count = self.get_query_set().select_related()
+        model_admin = self.model_admin
+        list_summary_values = [0]*len(model_admin.list_display)
+        for earning in queryset_count.all():
+            for field in model_admin.list_summary:
+                attr = getattr(model_admin, field, 0)
+                if attr:
+                    attr = attr(earning)
+                else:                
+                    attr = getattr(earning, field, 0)
+                    attr = attr() if callable(attr) else attr
+                
+                attr = float(attr)
+                                        
+                index = model_admin.list_display.index(field)               
+                list_summary_values[index] += attr  
+        return list_summary_values
+        
 
 class EarningsAdmin(admin.ModelAdmin):    
     model = Earnings
@@ -141,16 +162,8 @@ class EarningsAdmin(admin.ModelAdmin):
     list_filter = ('date', 'status', 'network', )
     
     list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks']    
-        
-#    def changelist_view(self, request, *args, **kwargs):
-#        response_obj = super(EarningsAdmin, self).changelist_view(request, *args, **kwargs)
-#        self.list_summary_values = []
-#        queryset = self.queryset(request)
-#        for field in self.list_display:
-#            self.get_q            
-#            self.list_summary_values.append(getattr(self, field))
-#        print self.list_summary_values
-    
+
+
     def submits_today(self, earning):
         return earning.offer.submits_today
     
@@ -161,6 +174,12 @@ class EarningsAdmin(admin.ModelAdmin):
     def mpps(self, earning):
         return earning.mpps()
     mpps.admin_order_field = 'admin_mpps'
+    
+    def get_changelist(self, request, **kwargs):
+        """
+        Returns the ChangeList class for use on the changelist page.
+        """
+        return EarningChangeList
 
     def queryset(self, request):
         queryset = super(EarningsAdmin, self).queryset(request)
@@ -168,23 +187,6 @@ class EarningsAdmin(admin.ModelAdmin):
                             'admin_pps': "revenue / rotator_offer.submits_today",
                             'admin_mpps': "(revenue + rotator_earnings.payout) / (rotator_offer.submits_today + 1)",
         })
-        
-        queryset_count = queryset.filter()
-        queryset_count = queryset_count.select_related()
-        self.list_summary_values = [0]*(len(self.list_display) + 1)
-        for earning in queryset_count.all():
-            for field in self.list_summary:
-                attr = getattr(self, field, 0)
-                if attr:
-                    attr = attr(earning)
-                else:                
-                    attr = getattr(earning, field, 0)
-                    attr = attr() if callable(attr) else attr
-                
-                attr = float(attr)
-                                        
-                index = self.list_display.index(field)               
-                self.list_summary_values[index] += attr  
             
         return queryset
     
