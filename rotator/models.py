@@ -1020,7 +1020,9 @@ class Earnings(models.Model):
                                                 self.offer.submits_today + 1)) 
     
     def conv(self):
-        return "%.2f" % ((self.revenue + self.payout) / self.clicks)        
+        if not self.payout or not self.clicks:
+            return 1
+        return "%.2f" % ((self.revenue / self.payout) / self.clicks)        
     
     def account(self):
         return self.offer.account.username

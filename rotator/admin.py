@@ -196,7 +196,7 @@ class EarningsAdmin(admin.ModelAdmin):
                 'admin_pps': "revenue / rotator_offer.submits_today",
                 'admin_mpps': "(revenue + rotator_earnings.payout) / \
                                             (rotator_offer.submits_today + 1)",                    
-                'admin_conv': "(revenue + rotator_earnings.payout) / clicks",
+                'admin_conv': "(revenue / rotator_earnings.payout) / clicks",
         })
             
         return queryset
