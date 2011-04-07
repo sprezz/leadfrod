@@ -280,7 +280,7 @@ class WorkManager(models.Model):
                     wi.lead.save()
                 
                 
-                wi.addOffer(offer)
+                wi.addOffer(offer)                
                 offer.increase_submits()
                 offer.reduce_capacity()
                 offer_names.append(offer.name)
@@ -663,6 +663,11 @@ class Offer(models.Model):
     description = models.CharField(max_length=255, null=True, blank=True)    
     submits_today = models.IntegerField(default=0)
     submits_total = models.IntegerField(default=0)
+    
+    def asd(self):
+        print self.description
+        print self.id, self.offer_num 
+        return self.description
     
     def reduce_capacity(self):
         self.capacity -= self.payout

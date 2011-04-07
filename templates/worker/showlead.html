@@ -17,9 +17,10 @@
 	<h3>Offer {{offer.offer_num}}</h3>
 	<table border="1">
 		<tr><td>Name</td><td>{{offer.name}}</td></tr>
-		<tr><td>Url</td><td>http://referer.us/{{offer.url}}</td></tr>
+		<tr><td>Url</td><td><a target="_blank" href="http://referer.us/{{offer.url}}">http://referer.us/{{offer.url}}</a></td></tr>
 		<tr><td>Network</td><td>{{offer.network.name}}</td></tr>
-		<tr><td>Account</td><td>{{offer.account.username}}</td></tr>
+		<tr><td>Account</td><td>{{offer.account.username}}</td></tr>		
+		<tr><td>Description</td><td>{{ offer.description }}</td></tr>
 	</table>
 {% endfor %}
 </div> 
