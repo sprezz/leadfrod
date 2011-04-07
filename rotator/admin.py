@@ -191,6 +191,7 @@ class EarningsAdmin(admin.ModelAdmin):
 
     def queryset(self, request):
         queryset = super(EarningsAdmin, self).queryset(request)
+        queryset = queryset.select_related()
         queryset = queryset.extra(select={
                 'admin_pps': "revenue / rotator_offer.submits_today",
                 'admin_mpps': "(revenue + rotator_earnings.payout) / \
