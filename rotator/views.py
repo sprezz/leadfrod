@@ -12,9 +12,9 @@ from models import *
 from rotator.trafficholder import TrafficHolder
 from trafficholder import UnknownOrderException
 
-@login_required
+#@login_required
 def index(request):
-    return HttpResponseRedirect('/next')
+   return HttpResponseRedirect('/next')
 
 @login_required
 def submit_workitem(request):

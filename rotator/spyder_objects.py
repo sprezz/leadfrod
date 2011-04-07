@@ -40,7 +40,7 @@ NETWORKS_MAP={
                     "login_url":'http://emt.copeac.com/forms/login.aspx',
                     "data_url":'http://emt.copeac.com/forms/report.aspx?MenuId=99786',  ## TODO: check menu id for hard code
                     "login_key":'txtUserName',
-                    'password_key':'password',
+                    'password_key':'txtPassword',
                     'login_form_selector':{'name':'form1'},
                   },
               
@@ -77,7 +77,8 @@ class BaseDataSpyder(object):
         self.data_url = current_network_map.get('data_url')
         self.login_key = current_network_map.get('login_key')
         self.password_key = current_network_map.get('password_key')
-        self.login_form_selector = current_network_map.get('login_form_selector')
+        self.login_form_selector = current_network_map.get(
+                                                        'login_form_selector')
         
     
     def run_spyder(self):
@@ -102,11 +103,11 @@ class BaseDataSpyder(object):
         br = mechanize.Browser()
         br.set_debug_responses(True)
         br.set_debug_redirects(True)
-        response = br.open(self.login_url)        
+        br.open(self.login_url)        
         br.select_form(**self.login_form_selector)
         br[self.login_key] = account.user_id
         br[self.password_key] = account.password
-        response = br.submit()
+        br.submit()
         return br
     
     def get_data(self, br):
@@ -170,14 +171,28 @@ class BaseDataSpyder(object):
             exist_earnings.delete()
 
         Earnings(offer=offer, network=self.network, **earning_data).save()
-        
 
         
-class XGetAdsSpyder(BaseDataSpyder):
+class GetAdsSpyder(BaseDataSpyder):
     """ Custom GetAds network parser object """
     
     def parse_data(self, html_data, account):
-        """ Custom GetAds network parser """
+        """ Custom GetAds network parser 
+            Available fields in report :
+            CID            3
+            Campaign        4
+            Status        5    
+            Payout        6
+            I            7    
+            C            8
+            Q            9
+            A            10
+            CTR            11
+            Approved %    12   0.00%?
+            eCPM        13
+            EPC            14
+            Commission    15
+        """
         
         soup = BeautifulSoup(html_data)
         report_list_block = soup.find('div', {
@@ -219,6 +234,7 @@ class XGetAdsSpyder(BaseDataSpyder):
                         'EPC': td[14].string[1:],
                         'revenue': td[15].string[1:],
                         }               
+            
             self.update_earnings(offer, record)
 
 
@@ -239,25 +255,38 @@ class AffiliateSpyder(BaseDataSpyder):
         
     
     def parse_data(self, html_data, account):
-        """ Custom Afilate network parser """
+        """ Custom Afilate network parser 
+            Available fields in report :
+            Type            0
+            Campaign Name    1
+            Impressions        2
+            Clicks            3
+            Leads                4
+            Click Thru Ratio    5
+            S/U                6
+            Number Of Sales    7
+            # Sub-Sales        8
+            Total Sales        9
+            EPC                10
+            Payout             11
+            Total                12
+            Current Status        13
+            Banner Stats        14
+            SubID                15
+        """
         
         soup = BeautifulSoup(html_data)
         for tr in soup.find('table', {'class': 'recordTable'}).findAll('tr'):
             td = tr.findAll('td')
             if not td[1].b:
                 continue
+            
             link = td[1].b.a
             if not link or not link.string:
                 continue
             
-            
-            print link['href']
-#            offer_num = re.search('program_id=(?P<offer_id>\d+)&', link['href']
-#                                                            ).group('offer_id')
-            
-            offer_num = link['href'][ link['href'].find('=') + 1 : link['href'  #TODO:REWORK TO RE>SEARCH
-                                                                ].find('&') ]
-            
+            offer_num = re.search('pid=(?P<offer_id>\d+)&', link['href']
+                                                            ).group('offer_id')
             offer = self.get_offer(offer_num, account)
             if not offer:
                 continue
@@ -273,11 +302,10 @@ class AffiliateSpyder(BaseDataSpyder):
                 'payout': td[11].a.string[1:-5],
                 'revenue':  block[block.find('$') + 1 : block.find('a') - 1]        
             }
-            
             self.update_earnings(offer, record)
 
 
-class XHydraSpyder(BaseDataSpyder):
+class HydraSpyder(BaseDataSpyder):
     """ Custom Hydra network parser object """
     
     def parse_data(self, html_data, account):
@@ -318,6 +346,7 @@ class XHydraSpyder(BaseDataSpyder):
                         'payout': td[5].string[1:],
                         'clicks': int(td[2].string),
                         'revenue': td[6].string[1:],
+                        'status':'',
                         "impressions": 0, ## TODO: REMOVE HARD CODE
                         'EPC': td[7].string[1:],
                         'CTR': td[4].string[:-1],
@@ -325,7 +354,7 @@ class XHydraSpyder(BaseDataSpyder):
             self.update_earnings(offer, record)
 
 
-class XClickBoothSpyder(BaseDataSpyder):
+class ClickBoothSpyder(BaseDataSpyder):
     """ Custom ClickBooth network parser object """
     
     def __init__(self, network):             
@@ -380,14 +409,15 @@ class XClickBoothSpyder(BaseDataSpyder):
                 'CTR': td[8].font.string[:-1],
                 'EPC': 0 if td[10].font.string == 'N/A' else \
                                                         td[10].font.string[1:],
-#                'leads': td[3].font.string[1:], 
                 'payout': 0.00,
-                'revenue':  td[7].font.string[1:]        
+                'status':'',
+                'revenue': td[7].font.string[1:],        
+#                'leads': td[3].font.string[1:], 
             }
             self.update_earnings(offer, record)
             
             
-class XCopeacSpyder(BaseDataSpyder):
+class CopeacSpyder(BaseDataSpyder):
     """ Custom Copeac network parser object """
     """ ANKNOWN PROBLEM WITH LOGIN FORM SUBMIT This Spyder isn't ready yet and 
         it currently don't using """
@@ -398,67 +428,87 @@ class XCopeacSpyder(BaseDataSpyder):
             saved in database via save_earnings"""
         
         br = mechanize.Browser()
-        br.set_debug_responses(True)
-        br.set_debug_redirects(True)
-        response = br.open(self.login_url)        
+        # Browser options
+        br.set_handle_redirect(True)
+        br.set_handle_referer(True)
+        
+        br.open(self.login_url)        
         br.select_form(**self.login_form_selector)
-#        print 11111111111
-        br[self.login_key] = account.user_id
-        br[self.password_key] = account.password
-#        print br.__str__()
-        response = br.submit()
+        br.form.find_control('password').__dict__['name'] = 'txtPassword'
+        br.form.find_control('submit').__dict__['name'] = 'btnSubmit'
+        br.form.new_control('hidden', '__EVENTARGUMENT', {'value': u''})
+        br.form.new_control('hidden', '__EVENTTARGET', {'value': u''})
+        br.form[self.login_key] = account.user_id
+        br.form['txtPassword'] = account.password
+        br.submit(coord=[21, 4])
         return br
-    
-    
     
     def get_data(self, br):
         """ Custom Copeac network get data method """
         
-        response = br.open(self.data_url)
-#        print 22222222222
-#        print br.__str__()
+        br.open(self.data_url)
         br.select_form(nr=0)
         br.find_control("ctl00$mainContent$lstAlias").get("2515"
                                                           ).selected = True
-        response = br.submit()
-        return response.read()
-    
+        br.find_control("ctl00$mainContent$SelectAlias").get("rdoSelectAlias"
+                                                             ).selected = True
+        br.form.new_control('hidden', '__EVENTARGUMENT', {'value': u''})
+        br.form.new_control('hidden', '__EVENTTARGET', {'value': u''})
+        br.find_control("ctl00$mainContent$hfLocalToUTCTimeDiffInMin"
+                                                        ).readonly = False 
+        br.form.find_control('ctl00$ctrlNavigation$btnSearch'
+                        ).__dict__['name'] = 'ctl00$mainContent$imgbtnSearch'
+
+#        br.find_control("ctl00$mainContent$ddlDateRange").get("YD").selected = True  ### LOCAL HACK
+#        br.form['ctl00$mainContent$hfLocalToUTCTimeDiffInMin']=u'-180' ## THIS MAY BE NEADED IN POST  
+
+        response = br.submit(coord=[34,13])
+        return response.read() 
+        
     
     def parse_data(self, html_data, account):
         """ Custom Copeac network parser.
             Available fields in report :
+            Offer ID    0
+            Offer Name   1 
+            Imp.        2
+            Clicks    3
+            CTR        4
+            Conv.        5 ??
+            Conv. %    6 ??
+            Rev.        7
+            EPC        8
+            Avg.CPA    9 ??
             
         """
 
         soup = BeautifulSoup(html_data)
-        content_block = soup.find('div', {'id': 'report-content'})
-        if not content_block:
+        content_table = soup.find('table', {'id': 'ctl00_mainContent_gvReport'})
+        if not content_table:
             return
-        
-        table = content_block.findAll('table')[0]                           
-        for tr in table.findAll('tr'):
+                                
+        for tr in content_table.findAll('tr'):
             td = tr.findAll('td')
-            if td[0].div:
+            if not td or not td[0].a  :
                 continue
             
             offer_num = td[0].a.string            
             offer = self.get_offer(offer_num, account)
-            
             if not offer:
                 continue
             
             record = {
-                        'campaign': campaign,
-                        'status': td[5].span.string,
-                        'payout': "%.2f" % float(td[6].string[1:]),
-                        'impressions': int(td[7].string),
-                        'clicks': int(td[8].string),
-                        'qualified_transactions': int(td[9].string),
-                        'aproved': int(td[10].string),
-                        'CTR': td[11].string[:-2],
-                        'aprovedCTR': aprovedCTRblock.string[:-2],
-                        'eCPM': td[13].string[1:],
-                        'EPC': td[14].string[1:],
-                        'revenue': td[15].string[1:],
+                        'campaign': td[1].a.string,
+                        'impressions': int(td[2].a.string),
+                        'clicks': int(td[3].a.string),
+                        'CTR': td[4].a.string[:-1],
+                        'EPC': td[8].a.string[1:],
+                        'revenue': td[7].a.string[1:],
+                        'payout': '0.00', ## ?????
+                        'status': '',
+#                        'qualified_transactions': int(td[9].string),
+#                        'aproved': int(td[10].string),
+#                        'aprovedCTR': aprovedCTRblock.string[:-2],
+#                        'eCPM': td[13].string[1:],
                         }                        
             self.update_earnings(offer, record)
