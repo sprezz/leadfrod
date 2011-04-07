@@ -15,7 +15,7 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row2">
+<tr class="row_summary">
     {% for field in cl.get_summary %}
         {% if forloop.counter == 2 %}
             <th>
@@ -36,6 +36,26 @@
 {% for result in results %}
 <tr class="{% cycle 'row1' 'row2' %}">{% for item in result %}{{ item }}{% endfor %}</tr>
 {% endfor %}
+
+<tr class="row_summary">
+    {% for field in cl.get_summary %}
+        {% if forloop.counter == 2 %}
+            <th>
+        {% else %}        
+            <td>
+        {% endif %}
+            {% if field %}
+                {{ field|floatformat:2 }}
+            {% endif %}
+        {% if forloop.counter == 2 %}
+            </th>
+        {% else %}        
+            </td>
+        {% endif %}
+    {% endfor %}    
+    
+</tr>
+
 </tbody>
 </table>
 {% endif %}

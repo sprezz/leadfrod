@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import *
+from rotator.models import *
 from django.db.models import Sum
 from locking.admin import LockableAdmin
 from django.contrib.admin.views.main import ChangeList
@@ -157,10 +157,15 @@ class EarningsAdmin(admin.ModelAdmin):
 
     list_display = ('network', 'account', 'offer_name', 'offer_num', 'date',
         'campaign', 'status', 'payout', 'clicks', 'pps', 'mpps', 'revenue', 
-        'submits_today')
+        'submits_today', 'conv')
     list_filter = ('date', 'status', 'network', )
     
-    list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks']    
+    list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks', 
+                    'conv']    
+    class Media:
+        css = {
+            "all": ("admin/css/admin_earnings.css",)
+        }
 
 
     def submits_today(self, earning):
@@ -169,6 +174,10 @@ class EarningsAdmin(admin.ModelAdmin):
     def pps(self, earning):        
         return earning.pps()        
     pps.admin_order_field = 'admin_pps'
+    
+    def conv(self, earning):        
+        return earning.conv()        
+    conv.admin_order_field = 'admin_conv'
     
     def mpps(self, earning):
         return earning.mpps()
@@ -183,8 +192,10 @@ class EarningsAdmin(admin.ModelAdmin):
     def queryset(self, request):
         queryset = super(EarningsAdmin, self).queryset(request)
         queryset = queryset.extra(select={
-                            'admin_pps': "revenue / rotator_offer.submits_today",
-                            'admin_mpps': "(revenue + rotator_earnings.payout) / (rotator_offer.submits_today + 1)",
+                'admin_pps': "revenue / rotator_offer.submits_today",
+                'admin_mpps': "(revenue + rotator_earnings.payout) / \
+                                            (rotator_offer.submits_today + 1)",                    
+                'admin_conv': "(revenue + rotator_earnings.payout) / clicks",
         })
             
         return queryset
