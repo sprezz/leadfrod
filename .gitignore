@@ -1,0 +1,5 @@
+csvfiles.tar
+dump.sql
+local_settings.py
+.settings
+*.pyc

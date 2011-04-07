@@ -16,12 +16,20 @@
 </thead>
 <tbody>
 <tr class="row2">
-    {% for field in cl.model_admin.list_summary_values %}
-        <td>
+    {% for field in cl.get_summary %}
+        {% if forloop.counter == 2 %}
+            <th>
+        {% else %}        
+            <td>
+        {% endif %}
             {% if field %}
                 {{ field|floatformat:2 }}
             {% endif %}
-        </td>
+        {% if forloop.counter == 2 %}
+            </th>
+        {% else %}        
+            </td>
+        {% endif %}
     {% endfor %}    
     
 </tr>
