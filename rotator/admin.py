@@ -49,7 +49,7 @@ class OfferAdmin(admin.ModelAdmin):
 
     actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
                'add_clicks_capacity', 'substract_clicks_capacity',
-               'activate', 'paused',]
+               'activate', 'paused', 'set_submits_today',]
 
     def capacity_error(self, offer):
         """
@@ -102,8 +102,17 @@ class OfferAdmin(admin.ModelAdmin):
         queryset.update(status='paused')
     paused.short_description = "Set paused"
 
+    def paused(self, request, queryset):
+        queryset.update(status='paused')
+    paused.short_description = "Set paused"
+    
+    def set_submits_today(self, request, queryset):
+        queryset.update(submits_today=1)
+    set_submits_today.short_description = "Set submits_today to 1"
+
+
 class LeadAdmin(LockableAdmin):
-    model=Lead
+    model = Lead
 #    list_display = ('lock','csv','status','worker','deleted', )
 #    list_display_links = ('csv','status','worker','deleted' )
 
@@ -128,6 +137,7 @@ class OfferQueueAdmin(admin.ModelAdmin):
                 q.size -=5
             q.save()
     substract_clicks_size.short_description = "Substract 5 clicks from size"
+
 
 class EarningChangeList(ChangeList):
     def get_summary(self):        
@@ -206,7 +216,6 @@ class EarningsAdmin(admin.ModelAdmin):
             return super(EarningsAdmin, self).__call__(*args, **kwargs)
         return self
         
-
 
 class UnknownOfferAdmin(admin.ModelAdmin):
     model = UnknownOffer
