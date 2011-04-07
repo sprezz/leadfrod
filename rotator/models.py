@@ -659,12 +659,8 @@ class Offer(models.Model):
     payout = models.FloatField()
     min_clicks = models.FloatField( null=True, blank=True, default=5.0)
     max_clicks = models.FloatField( null=True, blank=True, default=15.0)
-<<<<<<< HEAD
-    status= models.CharField(max_length = 30, choices = STATUS_LIST, default='active')
-=======
     status= models.CharField(max_length = 30, choices = STATUS_LIST, 
                              default='active')
->>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
     description = models.CharField(max_length = 255, null = True, blank=True)    
     submits_today = models.IntegerField(default=0)
     submits_total = models.IntegerField(default=0)
@@ -707,14 +703,10 @@ class Offer(models.Model):
     def _checkOfferAdvertiserCapacity(self):
         if not self.hasAdvertiser(): return 
         if not self.advertiser.getAccountCapacity(self.account):
-<<<<<<< HEAD
-            AdvertiserAccountCapacity.objects.create(advertiser=self.advertiser, account= self.account, capacity=self.advertiser.daily_cap)
-=======
             AdvertiserAccountCapacity.objects.create(
                                              advertiser=self.advertiser,
                                              account= self.account,
                                              capacity=self.advertiser.daily_cap)
->>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
     
     def initCapacity(self):
 #        print 'Create new capacity for ', self
@@ -845,13 +837,7 @@ class Company(models.Model):
         verbose_name_plural='Companies'
         
     def __unicode__ (self):
-<<<<<<< HEAD
         return u'%s (owned by %s) capacity: %s/%s' % (self.name_list, self.owner, self.capacity, self.daily_cap)
-=======
-        return u'%s (owned by %s) capacity: %s/%s' % (self.name_list, 
-                                                      self.owner, self.capacity,
-                                                      self.daily_cap)
->>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
 
 
 class Account(models.Model):
@@ -895,12 +881,8 @@ class Account(models.Model):
         verbose_name_plural='Accounts'
         
     def __unicode__ (self):
-<<<<<<< HEAD
-        return u'%s capacity: %s/%s' % (self.username, self.capacity, self.daily_cap)
-=======
         return u'%s capacity: %s/%s' % (self.username, self.capacity, 
                                         self.daily_cap)
->>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
 
 
 class Network(models.Model):
@@ -1029,9 +1011,6 @@ class Earnings(models.Model):
     revenue = models.DecimalField(max_digits=5, decimal_places=2)
 
     def pps(self):
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
         return 0 if self.offer.submits_today == 0 else "%.2f" % (
                                         self.revenue/self.offer.submits_today)
     
@@ -1039,17 +1018,6 @@ class Earnings(models.Model):
         return "%.2f" % ((self.revenue + self.payout)/(
                                                 self.offer.submits_today + 1)) 
     
-=======
->>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
-        return 0 if self.offer.submits_today == 0 else "%.2f" % (self.revenue/self.offer.submits_today)    
-    
-    def mpps(self):
-        return "%.2f" % ((self.revenue + self.payout)/(self.offer.submits_today + 1)) 
-
-<<<<<<< HEAD
-=======
->>>>>>> 7740999643be5e984465e895ed1f106e35c667ab
->>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
     def account(self):
         return self.offer.account.username
     
@@ -1071,10 +1039,5 @@ class UnknownOffer(models.Model):
     date = models.DateTimeField(default=datetime.datetime.now())
      
     def __unicode__(self):
-<<<<<<< HEAD
-        return "%s / %s / %s" % (self.offer_num, self.account.username, self.network.name)
-
-=======
         return "%s / %s / %s" % (self.offer_num, self.account.username, 
                                  self.network.name)
->>>>>>> 65c35d86fc592613373bda11b434c134c5fb711f
