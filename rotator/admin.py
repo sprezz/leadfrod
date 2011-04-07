@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import *
+from rotator.models import *
 from django.db.models import Sum
 from locking.admin import LockableAdmin
 from django.contrib.admin.views.main import ChangeList
@@ -48,7 +48,8 @@ class OfferAdmin(admin.ModelAdmin):
     list_filter = ('network', 'account', 'status', )
 
     actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
-               'add_clicks_capacity', 'substract_clicks_capacity',]
+               'add_clicks_capacity', 'substract_clicks_capacity',
+               'activate', 'paused',]
 
     def capacity_error(self, offer):
         """
@@ -93,15 +94,13 @@ class OfferAdmin(admin.ModelAdmin):
             q.save()
     add_clicks_capacity.short_description = "Add 5 clicks to capacity"
 
-    def substract_clicks_capacity(self, request, queryset):
-        for q in queryset:
-            if q.capacity < 5:
-                q.capacity = 0
-            else:
-                q.capacity -=5
-            q.save()
-    substract_clicks_capacity.short_description = "Substract 5 clicks from capacity"
+    def activate(self, request, queryset):
+        queryset.update(status='active')
+    activate.short_description = "Set active"
 
+    def paused(self, request, queryset):
+        queryset.update(status='paused')
+    paused.short_description = "Set paused"
 
 class LeadAdmin(LockableAdmin):
     model=Lead
@@ -158,10 +157,15 @@ class EarningsAdmin(admin.ModelAdmin):
 
     list_display = ('network', 'account', 'offer_name', 'offer_num', 'date',
         'campaign', 'status', 'payout', 'clicks', 'pps', 'mpps', 'revenue', 
-        'submits_today')
+        'submits_today', 'conv')
     list_filter = ('date', 'status', 'network', )
     
-    list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks']    
+    list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks', 
+                    'conv']    
+    class Media:
+        css = {
+            "all": ("admin/css/admin_earnings.css",)
+        }
 
 
     def submits_today(self, earning):
@@ -170,6 +174,10 @@ class EarningsAdmin(admin.ModelAdmin):
     def pps(self, earning):        
         return earning.pps()        
     pps.admin_order_field = 'admin_pps'
+    
+    def conv(self, earning):        
+        return earning.conv()        
+    conv.admin_order_field = 'admin_conv'
     
     def mpps(self, earning):
         return earning.mpps()
@@ -184,8 +192,10 @@ class EarningsAdmin(admin.ModelAdmin):
     def queryset(self, request):
         queryset = super(EarningsAdmin, self).queryset(request)
         queryset = queryset.extra(select={
-                            'admin_pps': "revenue / rotator_offer.submits_today",
-                            'admin_mpps': "(revenue + rotator_earnings.payout) / (rotator_offer.submits_today + 1)",
+                'admin_pps': "revenue / rotator_offer.submits_today",
+                'admin_mpps': "(revenue + rotator_earnings.payout) / \
+                                            (rotator_offer.submits_today + 1)",                    
+                'admin_conv': "(revenue + rotator_earnings.payout) / clicks",
         })
             
         return queryset
