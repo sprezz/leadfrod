@@ -1,6 +1,7 @@
 import mechanize
-from BeautifulSoup import BeautifulSoup
+from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 from rotator.models import Earnings, Offer, UnknownOffer
+import urllib2
 
 
 class Handler:
@@ -306,4 +307,56 @@ class ACPAffiliatesHandler(Handler):
                 impressions=record['impressions'],
                 revenue=record['revenue']
             ).save()
+       
+
+class Convert2MediaHandler(Handler):
+    
+    def __init__(self, now, account):
+        Handler.__init__(self, now, account)
+        self.loginurl = "http://www.c2mtrax.com/"
+        self.apiurl = "http://www.c2mtrax.com/affiliates/Extjs.ashx?s=api_key"
+        self.url = "http://www.c2mtrax.com/affiliates/api/1/reports.asmx/CampaignSummary?affiliate_id=1189&api_key=gun7m21UOic&start_date=04/04/2011&end_date=04/06/2011"
+
+    def getSoup(self):
+        self.br.open(self.loginurl)          
+        self.br.select_form(nr=0)
+        self.br['u'] = self.account.user_id
+        self.br['p'] = self.account.password
+        print "login ... "
+        response = self.br.submit()
+        html = response.read()
+        f = open('response.html', 'w')
+        f.write(html)
+        f.close()
+        print "opening %s ..." % self.apiurl
+        html = self.br.open(self.apiurl).read()
+        return html
+        
+    def run(self):
+        if self.account.user_id != "bruceandersonmarketing@gmail.com" or \
+            self.account.password != 'cpacf123':
+            return False
+        
+        print 'extracting from ' + self.url
+        
+        soup = BeautifulStoneSoup(urllib2.urlopen(self.url))
+        
+        for i in soup.findAll('campaign'):
+            offer_num = i.offer_id.string
+    
+            offer = self.getOffer(offer_num)
+            if not offer:
+                continue
             
+            self.checkEarnings(offer)
+            Earnings(
+                offer=offer, 
+                network=self.account.network,
+                campaign=i.vertical_name.string,
+                payout=i.price.string,
+                clicks=i.clicks.string,
+                impressions=i.impressions.string,
+                revenue=i.revenue.string,
+                EPC=i.epc.string
+            ).save()
+        
