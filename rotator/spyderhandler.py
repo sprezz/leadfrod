@@ -313,9 +313,11 @@ class Convert2MediaHandler(Handler):
     
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
-        self.loginurl = "http://www.c2mtrax.com/"
+        self.loginurl = "http://www.c2mtrax.com/login.ashx"
+        self.loginurl2 = "http://www.c2mtrax.com/affiliates/login.ashx"
+
         self.apiurl = "http://www.c2mtrax.com/affiliates/Extjs.ashx?s=api_key"
-        self.url = "http://www.c2mtrax.com/affiliates/api/1/reports.asmx/CampaignSummary?affiliate_id=1189&api_key=gun7m21UOic&start_date=04/04/2011&end_date=04/06/2011"
+        self.url = "http://www.c2mtrax.com/affiliates/api/1/reports.asmx/CampaignSummary?affiliate_id=%d&api_key=%s&start_date=%s&end_date=%s"
 
     def getSoup(self):
         self.br.open(self.loginurl)          
@@ -333,9 +335,15 @@ class Convert2MediaHandler(Handler):
         return html
         
     def run(self):
-        if self.account.user_id != "bruceandersonmarketing@gmail.com" or \
-            self.account.password != 'cpacf123':
+        if self.account.user_id == "bruceandersonmarketing@gmail.com" and \
+            self.account.password == 'cpacf123':
+            affiliate_id = 1189
+            api_key = 'gun7m21UOic'
+        else:    
             return False
+        
+        date = "%s/%s/%s" % (self.now.month, self.now.day, self.now.year)
+        self.url = self.url % (affiliate_id, api_key, date, date)
         
         print 'extracting from ' + self.url
         
@@ -359,4 +367,13 @@ class Convert2MediaHandler(Handler):
                 revenue=i.revenue.string,
                 EPC=i.epc.string
             ).save()
-        
+            
+
+
+
+
+
+
+
+
+      
