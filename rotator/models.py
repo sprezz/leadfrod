@@ -1017,6 +1017,10 @@ class Earnings(models.Model):
     def mpps(self):
         return "%.2f" % ((self.revenue + self.payout)/(
                                                 self.offer.submits_today + 1)) 
+    
+    def conv(self):
+        return "%.2f" % ((self.revenue + self.payout)/self.clicks)
+    
     def account(self):
         return self.offer.account.username
     
