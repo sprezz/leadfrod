@@ -271,7 +271,10 @@ class ACPAffiliatesHandler(Handler):
     def run(self):
         soup = self.getSoup()
 
-        for tr in soup.find('tbody', {'id': 'pagingBody'}).findAll('tr'):
+        block = soup.find('tbody', {'id': 'pagingBody'})
+        if not block:
+            return
+        for tr in block.findAll('tr'):
             td = tr.findAll('td')
             
             href = td[0].a['href']
@@ -282,14 +285,15 @@ class ACPAffiliatesHandler(Handler):
                 continue
             
             link = td[0].a.string
-            b = link.find('(')    
+            b = link.find('(')
+            clicks = int(td[2].string)
             record = {
                 'offer_num': offer_num,
                 'campaign': link[link.find('-') + 2 : len(link) if b == -1 else b - 1 ],
                 'impressions': td[1].string,
-                'clicks': td[2].string,
+                'clicks': clicks,
                 'payout': td[4].string[1:],
-                'revenue': td[5].string[1:]
+                'revenue': float(td[5].string[1:]) * clicks
             }
 
             self.checkEarnings(offer)
