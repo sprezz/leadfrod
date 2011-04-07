@@ -4,3 +4,4 @@ local_settings.py
 csvfiles.tar
 dump.sql
 .settings
+.pydevproject
