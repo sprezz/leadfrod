@@ -164,7 +164,7 @@ class EarningsAdmin(admin.ModelAdmin):
                     'conv']    
     class Media:
         css = {
-            "all": ("admin/css/admin_earnings.css",)
+            "all": ("css/admin_earnings.css",)
         }
 
 
