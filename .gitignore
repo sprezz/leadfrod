@@ -1,11 +1,6 @@
-<<<<<<< .merge_file_a01468
 *.pyc
 *.pyo
 local_settings.py
-=======
 csvfiles.tar
 dump.sql
-local_settings.py
 .settings
-*.pyc
->>>>>>> .merge_file_a01372
