@@ -48,7 +48,8 @@ class OfferAdmin(admin.ModelAdmin):
     list_filter = ('network', 'account', 'status', )
 
     actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
-               'add_clicks_capacity', 'substract_clicks_capacity',]
+               'add_clicks_capacity', 'substract_clicks_capacity',
+               'activate', 'paused',]
 
     def capacity_error(self, offer):
         """
@@ -93,15 +94,13 @@ class OfferAdmin(admin.ModelAdmin):
             q.save()
     add_clicks_capacity.short_description = "Add 5 clicks to capacity"
 
-    def substract_clicks_capacity(self, request, queryset):
-        for q in queryset:
-            if q.capacity < 5:
-                q.capacity = 0
-            else:
-                q.capacity -=5
-            q.save()
-    substract_clicks_capacity.short_description = "Substract 5 clicks from capacity"
+    def activate(self, request, queryset):
+        queryset.update(status='active')
+    activate.short_description = "Set active"
 
+    def paused(self, request, queryset):
+        queryset.update(status='paused')
+    paused.short_description = "Set paused"
 
 class LeadAdmin(LockableAdmin):
     model=Lead
