@@ -1021,7 +1021,7 @@ class Earnings(models.Model):
     
     def conv(self):
         if not self.payout or not self.clicks:
-            return 1
+            return 0
         return "%.2f" % ((self.revenue / self.payout) / self.clicks)        
     
     def account(self):
