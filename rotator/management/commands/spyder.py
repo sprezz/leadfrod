@@ -3,8 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 import datetime
 from BeautifulSoup import BeautifulSoup
 from rotator.models import Account
-from rotator.spyderhandler import GetAdsHandler, HydraHandler, \
-    AffiliateComHandler, ACPAffiliatesHandler
+from rotator.spyderhandler import *
 
 from rotator.models import Network
 from rotator import spyder_objects
@@ -15,11 +14,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):   
         now = datetime.datetime.now()   
         print now 
-        networks = {
+        networks = {            
             "http://getads.com/": 'GetAdsHandler', 
             "http://affiliate.com/": 'AffiliateComHandler', 
             "https://network.hydranetwork.com/login": "HydraHandler",
-            'http://acpaffiliates.com/Publishers': 'ACPAffiliatesHandler'
+            'http://acpaffiliates.com/Publishers': 'ACPAffiliatesHandler',
+            'http://www.c2mtrax.com/': 'Convert2MediaHandler',
         }
         
         for account in Account.objects.all():
