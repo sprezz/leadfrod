@@ -25,6 +25,7 @@ urlpatterns = patterns('',
      (r'^files/?$', 'rotator.views.admin_show_csvfiles'),
      (r'^th/(?P<owner>.+)/?$', 'rotator.views.trafficholder_callback'),
      (r'^sentry/', include('sentry.urls')),
+     (r'^revenue/month/$', 'rotator.views.month_revenue'),
      
     # Uncomment the next line to enable the admin:
      (r'^admin/', include(admin.site.urls)),

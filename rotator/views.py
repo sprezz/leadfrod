@@ -5,6 +5,7 @@ from django.shortcuts import render_to_response
 from django.utils import simplejson
 from django.template import RequestContext
 
+from datetime import timedelta, date
 
 import logging
 
@@ -12,9 +13,11 @@ from models import *
 from rotator.trafficholder import TrafficHolder
 from trafficholder import UnknownOrderException
 
+
 #@login_required
 def index(request):
    return HttpResponseRedirect('/next')
+
 
 @login_required
 def submit_workitem(request):
@@ -37,6 +40,7 @@ def submit_workitem(request):
             wm.releaseCurrentWorkItem(wi)
 
             return HttpResponseRedirect('/next')
+
 
 @login_required
 def next_workitem(request):
@@ -94,6 +98,7 @@ def click_logout(request):
     logout( request )
     return HttpResponseRedirect('/')
 
+
 @permission_required('rotator.change_offer')
 def admin_manage_dailycap(request):
     if request.method=='POST':
@@ -107,11 +112,13 @@ def admin_manage_dailycap(request):
                               {'capacity':Capacity.objects.filter(date=datetime.date.today()).all()},
                               context_instance=RequestContext(request))
 
+
 @permission_required('rotator.change_lead')
 def admin_show_locked_leads(request):
     return render_to_response("locked_leads.html",
                               {'leads':Lead.locked.all().order_by('-_locked_at')},
                               context_instance=RequestContext(request))
+
 
 @permission_required('rotator.change_lead')
 def admin_release_lead(request):
@@ -123,11 +130,13 @@ def admin_release_lead(request):
     else:
         logging.warning('GET /release_lead when POST is expected' )
 
+
 @permission_required('rotator.change_lead')
 def admin_show_csvfiles(request):
     return render_to_response("csvfiles.html",
                               {'files':CSVFile.objects.all()},
                               context_instance=RequestContext(request))
+
 
 @permission_required('rotator.change_lead')
 def admin_delete_csvfile(request):
@@ -150,6 +159,7 @@ def admin_delete_csvfile(request):
         return HttpResponse(simplejson.dumps(data),mimetype='application/json')
     else:
         logging.warning('GET /delete_file when POST is expected' )
+
 
 @permission_required('rotator.change_lead')
 def admin_delete_csvfile_raw(request):
@@ -174,10 +184,6 @@ def admin_delete_csvfile_raw(request):
         logging.warning('GET /delete_file when POST is expected' )
 
 
-
-
-
-
 def trafficholder_callback(request, owner):
     if request.method=='GET':
         try:
@@ -191,10 +197,10 @@ def trafficholder_callback(request, owner):
             raise Http404
 
 
-
 # Original functions
 def show_login():
     pass
+
 
 def dashboard():
     ''' The dashboard which gives a quick summary of important details '''
@@ -211,6 +217,7 @@ def get_offers_for_lead():
     It also calls each of the filtering functions in turn
     and returns just the filtered list of offers '''
 
+
 #Pick next Lead
 def get_lead(worker_id):
     ''' Use the worker's id to determine which lead to get.
@@ -219,6 +226,21 @@ def get_lead(worker_id):
     #select leads where active=true, completed=false locked=false, deleted=false from the csv ids above
     #set lock=true
     pass
+
+
+def month_revenue(request, template="month_revenue.html"):
+    today = date.today()
+    d = date.today() - timedelta(days=30)
+    content = {'data': [] }
+
+    for i in range(0, 30):
+        d += timedelta(days=1)
+        content['data'].append({'date' : d, 'revenue': Earnings.objects.filter(
+            date__day=d.day, date__month=d.month, date__year=d.year).extra(
+            select= {'total': 'sum(revenue)'})[0].total})                        
+
+    return render_to_response(template, content, context_instance=RequestContext(request))
+
 
 def release_lead():
     #set completed = true
@@ -230,14 +252,18 @@ def release_lead():
 def filter_active_offers():
     pass
 
+
 def filter_daily_caps():
     pass
+
 
 def filter_advertiser_exclusion():
     pass
 
+
 def filter_duplicate_titles():
     pass
+
 
 def filter_distinct_advertisers():
     pass
