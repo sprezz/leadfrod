@@ -229,7 +229,7 @@ def get_lead(worker_id):
 
 
 def month_revenue(request, template="month_revenue.html"):
-    d = date.today() - timedelta(days=30)
+    d = date.today() - timedelta(days=31)
     totals = []
     months = []
     max = 1
