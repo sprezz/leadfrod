@@ -871,12 +871,7 @@ class Account(models.Model):
                              default='active')
     description = models.CharField(max_length=255, null=True, blank=True)
     last_checked = models.DateTimeField(null=True, blank=True)
-    primary = models.BooleanField(default=True)
-    
-    def network_name(self):
-        return self.network.name
-    network_name.admin_order_field = 'network__name'
-    network_name.short_description = "Network"
+    primary = models.BooleanField(default=True)   
 
     def owner(self):
         return self.company.owner
