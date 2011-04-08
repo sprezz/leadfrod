@@ -9,6 +9,11 @@ class Handler:
     def __init__(self, now, account):
         self.account = account
         self.now = now
+        self.loginurl = 'set loginurl'
+        self.url = 'set url'
+        self.loginform = False
+        self.username_field = 'username'
+        self.password_field = 'password'
         self.br = mechanize.Browser()
         self.br.set_debug_responses(True)
         self.br.set_debug_redirects(True)
@@ -38,6 +43,21 @@ class Handler:
         
         print "save offer %s .." % offer.offer_num    
 
+    def getSoup(self):
+        print "opening %s ..." % self.loginurl
+        self.br.open(self.loginurl)      
+        if self.loginform:  
+            self.br.select_form(name=self.loginform)
+        else:
+            self.br.select_form(nr=0)
+        self.br[self.username_field] = self.account.user_id
+        self.br[self.password_field] = self.account.password
+        print "login ... "
+        self.br.submit()
+        
+        print "opening %s ..." % self.url
+        return BeautifulSoup(self.br.open(self.url).read())
+
 
 class GetAdsHandler(Handler): 
   
@@ -45,20 +65,10 @@ class GetAdsHandler(Handler):
         Handler.__init__(self, now, account)
         self.loginurl = 'http://publisher.getads.com/Welcome/LogInAndSignUp.aspx'
         self.url = 'http://publisher.getads.com/RptCampaignPerformance.aspx'
-        
-    def getSoup(self):
-        self.br.open(self.loginurl)        
-        self.br.select_form(name='aspnetForm')
-        
-        self.br['ctl00$ContentPlaceHolder1$lcLogin$txtUserName'] = self.account.user_id
-        self.br['ctl00$ContentPlaceHolder1$lcLogin$txtPassword'] = self.account.password
-        print "submit ..." 
-        self.br.submit()
-        
-        print "opening %s ..." % self.url
-       
-        return BeautifulSoup(self.br.open(self.url).read())
-    
+        self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
+        self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
+        self.loginform = 'aspnetForm'
+           
     def run(self):        
         soup = self.getSoup()
         
@@ -130,18 +140,9 @@ class AffiliateComHandler(Handler):
         self.url = "https://login.tracking101.com/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
             % (int(self.now.month), int(self.now.day), int(self.now.year), int(self.now.month), 
                int(self.now.day), int(self.now.year))
-    
-    def getSoup(self):
-        self.br.open(self.loginurl)          
-        self.br.select_form(nr=0)
-        self.br['DL_AUTH_USERNAME'] = self.account.user_id
-        self.br['DL_AUTH_PASSWORD'] = self.account.password
-        print "submit login form ..."
-        self.br.submit()
-        
-        print "opening %s ..." % self.url        
-        return BeautifulSoup(self.br.open(self.url).read())
-    
+        self.username_field = 'DL_AUTH_USERNAME'
+        self.password_field = 'DL_AUTH_PASSWORD'    
+   
     def run(self):       
         soup = self.getSoup()
 
@@ -192,19 +193,10 @@ class HydraHandler(Handler):
         Handler.__init__(self, now, account)
         self.loginurl = "https://network.hydranetwork.com/login"
         self.url = "https://network.hydranetwork.com/load_component/MyCampaigns/sort_by-Campaign/sort_order-asc/date_range-Today"
-
-    def getSoup(self):
-        self.br.open(self.loginurl)          
-        self.br.select_form(name='login_form')
-        self.br['email_address'] = self.account.user_id
-        self.br['password'] = self.account.password
-        print "login ... "
-        self.br.submit()
-        
-        print "opening %s ..." % self.url
-        
-        return BeautifulSoup(self.br.open(self.url).read())
-               
+        self.username_field = 'email_address'
+        self.password_field = 'password'
+        self.loginform = 'login_form'
+                      
     def run(self):       
         soup =  self.getSoup()        
                
@@ -244,8 +236,6 @@ class EncoreAds(Handler):
         self.loginurl = "http://www.ecoretrax.com/"
         self.url = ""
 
-    def getSoup(self):
-        return BeautifulSoup('')
     
     def run(self):
         pass
@@ -257,17 +247,9 @@ class ACPAffiliatesHandler(Handler):
         Handler.__init__(self, now, account)
         self.loginurl = "http://www.acpaffiliates.com/"
         self.url = "http://publisher.affiliatecashpile.com/stats/index/offers" 
-    
-    def getSoup(self):
-        self.br.open(self.loginurl)          
-        self.br.select_form(name='loginform')
-        self.br['data[User][email]'] = self.account.user_id
-        self.br['data[User][password]'] = self.account.password
-        print "login ... "
-        self.br.submit()
-        
-        print "opening %s ..." % self.url
-        return BeautifulSoup(self.br.open(self.url).read())
+        self.username_field = 'data[User][email]'
+        self.password_field = 'data[User][password]'
+        self.loginform = 'loginform'        
     
     def run(self):
         soup = self.getSoup()
@@ -313,37 +295,15 @@ class Convert2MediaHandler(Handler):
     
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
-        self.loginurl = "http://www.c2mtrax.com/login.ashx"
-        self.loginurl2 = "http://www.c2mtrax.com/affiliates/login.ashx"
-
-        self.apiurl = "http://www.c2mtrax.com/affiliates/Extjs.ashx?s=api_key"
-        self.url = "http://www.c2mtrax.com/affiliates/api/1/reports.asmx/CampaignSummary?affiliate_id=%d&api_key=%s&start_date=%s&end_date=%s"
-
-    def getSoup(self):
-        self.br.open(self.loginurl)          
-        self.br.select_form(nr=0)
-        self.br['u'] = self.account.user_id
-        self.br['p'] = self.account.password
-        print "login ... "
-        response = self.br.submit()
-        html = response.read()
-        f = open('response.html', 'w')
-        f.write(html)
-        f.close()
-        print "opening %s ..." % self.apiurl
-        html = self.br.open(self.apiurl).read()
-        return html
+        self.url = "http://www.c2mtrax.com/affiliates/api/1/reports.asmx/CampaignSummary?affiliate_id=%s&api_key=%s&start_date=%s&end_date=%s"
         
     def run(self):
-        if self.account.user_id == "bruceandersonmarketing@gmail.com" and \
-            self.account.password == 'cpacf123':
-            affiliate_id = 1189
-            api_key = 'gun7m21UOic'
-        else:    
+        if not hasattr(self.account, 'api'):
+            print "Warning! Add api for account %s" % self.account
             return False
-        
+
         date = "%s/%s/%s" % (self.now.month, self.now.day, self.now.year)
-        self.url = self.url % (affiliate_id, api_key, date, date)
+        self.url = self.url % (self.account.api.affiliate_id, self.account.api.api_key, date, date)
         
         print 'extracting from ' + self.url
         
@@ -367,13 +327,4 @@ class Convert2MediaHandler(Handler):
                 revenue=i.revenue.string,
                 EPC=i.epc.string
             ).save()
-            
-
-
-
-
-
-
-
-
-      
+    

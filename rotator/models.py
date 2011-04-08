@@ -891,6 +891,12 @@ class Account(models.Model):
                                         self.daily_cap)
 
 
+class AccountAPI(models.Model):
+    account = models.OneToOneField(Account, related_name="api")
+    affiliate_id = models.CharField(max_length=255) 
+    api_key = models.CharField(max_length=255)
+
+
 class Network(models.Model):
     name = models.CharField(max_length=30)
     url = models.CharField(max_length=100)

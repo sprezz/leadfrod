@@ -113,8 +113,6 @@ class OfferAdmin(admin.ModelAdmin):
 
 class LeadAdmin(LockableAdmin):
     model = Lead
-#    list_display = ('lock','csv','status','worker','deleted', )
-#    list_display_links = ('csv','status','worker','deleted' )
 
 
 class OfferQueueAdmin(admin.ModelAdmin):
@@ -177,7 +175,6 @@ class EarningsAdmin(admin.ModelAdmin):
             "all": ("css/admin_earnings.css",),
         }
 
-
     def submits_today(self, earning):
         return earning.offer.submits_today
     
@@ -224,6 +221,11 @@ class UnknownOfferAdmin(admin.ModelAdmin):
     list_filter = ('date', 'network',)
 
 
+class AccountAPIAdmin(admin.ModelAdmin):
+    model = AccountAPI
+    list_display = ('account', 'affiliate_id', 'api_key',)
+    
+    
 #class LeadInline(admin.TabularInline):
 #    model = Lead
 #class CSVFileAdmin(admin.ModelAdmin):
@@ -236,6 +238,7 @@ class UnknownOfferAdmin(admin.ModelAdmin):
 #    inlines = [OfferInline]
 #admin.site.register(Capacity,CapacityAdmin)
 
+admin.site.register(AccountAPI, AccountAPIAdmin)
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(LeadSource)
 admin.site.register(CSVFile)
