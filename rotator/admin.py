@@ -27,9 +27,9 @@ class AdvertiserAdmin(admin.ModelAdmin):
 
 class AccountAdmin(admin.ModelAdmin):
     model = Account
-    list_display = ('owner','network', 'username', 'last_checked')
+    list_display = ('owner', 'username', 'last_checked', 'network_name')
     list_display_links = ('owner', )
-    list_filter = ('network', )
+    list_filter = ('network',)
 
 
 class OfferAdmin(admin.ModelAdmin):

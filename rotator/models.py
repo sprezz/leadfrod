@@ -458,6 +458,7 @@ class Niche(models.Model):
     class Meta:
         verbose_name = 'Niche'
         verbose_name_plural = 'Niches'
+        ordering = ['name']
     
     def is_active(self):
         return self.status == 'active'
@@ -581,6 +582,7 @@ class Advertiser(models.Model):
     class Meta:
         verbose_name = 'Advertiser'
         verbose_name_plural = 'Advertisers'
+        ordering = ['name']
         
     def __unicode__ (self):
         return u'%s' % (self.name)
@@ -871,6 +873,11 @@ class Account(models.Model):
     last_checked = models.DateTimeField(null=True, blank=True)
     primary = models.BooleanField(default=True)
     
+    def network_name(self):
+        return self.network.name
+    network_name.admin_order_field = 'network__name'
+    network_name.short_description = "Network"
+
     def owner(self):
         return self.company.owner
     owner.short_description = "Owner"
@@ -885,6 +892,7 @@ class Account(models.Model):
     class Meta:
         verbose_name = 'Account'
         verbose_name_plural = 'Accounts'
+        ordering = ['username', 'capacity']
         
     def __unicode__ (self):
         return u'%s capacity: %s/%s' % (self.username, self.capacity,
@@ -910,6 +918,7 @@ class Network(models.Model):
     class Meta:
         verbose_name = 'Network'
         verbose_name_plural = 'Networks'
+        ordering = ['name']
         
     def __unicode__ (self):
         return u'%s' % (self.name)
