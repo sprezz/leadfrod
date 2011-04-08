@@ -2,10 +2,14 @@
 
 {% block title %} Month revenue {% endblock %}
 {% block content %}
+<img src="{{ chart }}" />
+{%comment%}
+
 <table border="1">
 	<tr><th>Day</th><th align="right">Revenue</th></tr>
 {% for  i in data %}
 	<tr><td>{{ i.date }}</td><td align="right"> $ {{ i.revenue|default:"0.00" }}</td></tr>
 {% endfor %}
 </table>
+{% endcomment%}
 {% endblock %}

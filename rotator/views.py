@@ -229,17 +229,22 @@ def get_lead(worker_id):
 
 
 def month_revenue(request, template="month_revenue.html"):
-    today = date.today()
     d = date.today() - timedelta(days=30)
-    content = {'data': [] }
-
+    totals = []
+    months = []
     for i in range(0, 30):
         d += timedelta(days=1)
-        content['data'].append({'date' : d, 'revenue': Earnings.objects.filter(
-            date__day=d.day, date__month=d.month, date__year=d.year).extra(
-            select= {'total': 'sum(revenue)'})[0].total})                        
+        total = Earnings.objects.filter(date__day=d.day, date__month=d.month, date__year=d.year).extra(
+            select={'total': 'sum(revenue)'})[0].total            
+        totals.append(total if total else 0)
+        m = d.strftime('%B')
+        if m not in months:
+            months.append(m)                 
 
-    return render_to_response(template, content, context_instance=RequestContext(request))
+    return render_to_response(template, 
+        {'chart': "https://chart.googleapis.com/chart?cht=lc&chs=800x375&chd=t:%s&chxt=x,y&chxl=0:|%s" % \
+            (','.join(str(n) for n in totals), '|'.join(str(n) for n in months)) },
+        context_instance=RequestContext(request))
 
 
 def release_lead():
