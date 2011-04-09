@@ -3,10 +3,8 @@
 {% block title %} Month revenue {% endblock %}
 
 {% block scripts%} 
-<script type="text/javascript" src="/media/admin/js/jquery.min.js"></script>
-<script type="text/javascript" src="/media/js/highcharts.js"></script>		
-<script type="text/javascript" src="/media/js/modules/exporting.js"></script>
-
+<script type="text/javascript" src="/media/ext/highcharts.js"></script>		
+<script type="text/javascript" src="/media/ext/modules/exporting.js"></script>
 <script type="text/javascript">
 	var datay = {{ datay|safe }};
 	var datax = {{ datax|safe }};
@@ -58,9 +56,7 @@
 {% endblock %}
 
 {% block content %}
-<body>
-	<div id="container" style="width: 800px; height: 400px; margin: 0 auto"></div>			
-</body>
+<div id="container" style="width: 800px; height: 400px; margin: 0 auto"></div>			
 {% endblock %}
 
 
