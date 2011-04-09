@@ -786,7 +786,8 @@ class Offer(models.Model):
     class Meta:
         verbose_name = 'Offer'
         verbose_name_plural = 'Offers'
-        
+        unique_together = ("offer_num", "account")
+
     def __unicode__ (self):
         name = self.offer_num
         if self.name:
