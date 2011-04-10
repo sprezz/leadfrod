@@ -10,9 +10,6 @@
 	var datax = {{ datax|safe }};
 	var chart;
 	$(document).ready(function() {
-		console.log(datay)
-		console.log(datax)
-
 		chart = new Highcharts.Chart({
 			chart: {
 				renderTo: 'container',
@@ -29,8 +26,7 @@
 					width: 1,
 					color: '#808080'
 				}]
-			},
-			
+			},			
 			tooltip: {
 				formatter: function() {
 		                return '$ ' + this.y 
@@ -50,7 +46,6 @@
 			}]
 		});	
 	})		
-
 </script>
 
 {% endblock %}
