@@ -51,7 +51,7 @@ NETWORKS_MAP={
                     'password_key':'DL_AUTH_PASSWORD',
                     'login_form_selector':{'nr':0},
                   },
-                "http://clickbooth.com":{
+                "http://clickbooth.com/":{
                     "login_url":'https://publishers.clickbooth.com/',
                     "data_url":'https://publishers.clickbooth.com/partners/reports/performance.html?program_menu_type=0&program_id=0&period=today&start_date_day=%s&end_date_day=%s&report_type=html',
                     "login_key":'DL_AUTH_USERNAME',
