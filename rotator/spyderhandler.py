@@ -291,19 +291,16 @@ class ACPAffiliatesHandler(Handler):
             ).save()
        
 
-class Convert2MediaHandler(Handler):
+class APIHandler(Handler):
     
-    def __init__(self, now, account):
-        Handler.__init__(self, now, account)
-        self.url = "http://www.c2mtrax.com/affiliates/api/1/reports.asmx/CampaignSummary?affiliate_id=%s&api_key=%s&start_date=%s&end_date=%s"
-        
     def run(self):
         if not hasattr(self.account, 'api'):
             print "Warning! Add api for account %s" % self.account
             return False
 
         date = "%s/%s/%s" % (self.now.month, self.now.day, self.now.year)
-        self.url = self.url % (self.account.api.affiliate_id, self.account.api.api_key, date, date)
+        self.url = "%saffiliates/api/1/reports.asmx/CampaignSummary?affiliate_id=%s&api_key=%s&start_date=%s&end_date=%s" \
+            % (self.account.network.url, self.account.api.affiliate_id, self.account.api.api_key, date, date)
         
         print 'extracting from ' + self.url
         
@@ -327,4 +324,11 @@ class Convert2MediaHandler(Handler):
                 revenue=i.revenue.string,
                 EPC=i.epc.string
             ).save()
-    
+            
+            
+class Convert2MediaHandler(APIHandler):
+    pass 
+   
+   
+class EncoreAdsHandler(APIHandler):
+    pass

@@ -20,6 +20,7 @@ class Command(BaseCommand):
             "https://network.hydranetwork.com/login": "HydraHandler",
             'http://acpaffiliates.com/Publishers': 'ACPAffiliatesHandler',
             'http://www.c2mtrax.com/': 'Convert2MediaHandler',
+            'http://www.ecoretrax.com/': 'EncoreAdsHandler',
         }
         
         for account in Account.objects.all():

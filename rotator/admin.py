@@ -40,7 +40,7 @@ class OfferAdmin(admin.ModelAdmin):
 
     list_display = ('name','offer_num','network', 'account','owner_name',
                     'capacity', 'daily_cap', 'advertiser', 'status',
-                    'capacity_error', )
+                    'capacity_error', 'description', 'submits_today')
     list_display_links = ('name', )
     search_fields = ['name', 'network__name', 'network__description',
                      'account__username', 'account__company__owner__name',
