@@ -278,7 +278,11 @@ class AdscendHandler(Handler):
     def run(self):    
         soup = self.getSoup()
         
-        for tr in soup.find('table', {'class': 'bordered'}).findAll('tr'):
+        div = soup.find('div', {'id': 'content'})
+        table = div.findAll('table', {'class': 'bordered'})
+        print "table count: %d" % len(table)
+        
+        for tr in table[0].findAll('tr'):
             td = tr.findAll('td')
             if not td[0].a: 
                 continue
