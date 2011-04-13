@@ -9,7 +9,7 @@ class Handler:
     def __init__(self, now, account):
         self.account = account
         self.now = now
-        self.loginurl = 'set loginurl'
+        self.loginurl = self.account.network.url
         self.url = 'set url'
         self.loginform = False
         self.username_field = 'username'
@@ -80,11 +80,9 @@ class GetAdsHandler(Handler):
             td = tr.findAll('td')
 
             if len(td) == 1 or not td[2].find('img', {'title': 'Daily Breakout'}):
-                continue
-    
-            offer_num = td[3].string            
+                continue         
            
-            offer = self.getOffer(offer_num)
+            offer = self.getOffer(td[3].string)
             if not offer:
                 continue
             
@@ -94,41 +92,24 @@ class GetAdsHandler(Handler):
             else:
                 campaign = td[4].string
             
-            aprovedCTRblock = td[12].span if td[12].span else td[12]
-                
-            record = {
-                'offer_num': offer_num,
-                'campaign': campaign,
-                'status': td[5].span.string,
-                'payout': "%.2f" % float(td[6].string[1:]),
-                'impressions': int(td[7].string),
-                'clicks': int(td[8].string),
-                'qualified_transactions': int(td[9].string),
-                'aproved': int(td[10].string),
-                'CTR': td[11].string[:-2],
-                'aprovedCTR': aprovedCTRblock.string[:-2],
-                'eCPM': td[13].string[1:],
-                'EPC': td[14].string[1:],
-                'revenue': td[15].string[1:],
-            }               
+            aprovedCTRblock = td[12].span if td[12].span else td[12]             
             
-            self.checkEarnings(offer)    
-               
+            self.checkEarnings(offer)               
             Earnings(
                 offer=offer, 
                 network=self.account.network,
-                campaign=record['campaign'],
-                status=record['status'],
-                payout=record['payout'],
-                impressions=record['impressions'],
-                clicks=record['clicks'],
-                qualified_transactions=record['qualified_transactions'],
-                aproved=record['aproved'],
-                CTR=record['CTR'],
-                aprovedCTR=record['aprovedCTR'],
-                eCPM=record['eCPM'],
-                EPC=record['EPC'],
-                revenue=record['revenue']
+                campaign=campaign,
+                status=td[5].span.string,
+                payout="%.2f" % float(td[6].string[1:]),
+                impressions=int(td[7].string),
+                clicks=int(td[8].string),
+                qualified_transactions=int(td[9].string),
+                aproved=int(td[10].string),
+                CTR=td[11].string[:-2],
+                aprovedCTR=aprovedCTRblock.string[:-2],
+                eCPM=td[13].string[1:],
+                EPC=td[14].string[1:],
+                revenue=td[15].string[1:]
             ).save()
 
 
@@ -136,7 +117,6 @@ class AffiliateComHandler(Handler):
     
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
-        self.loginurl = "http://affiliate.com/"
         self.url = "https://login.tracking101.com/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
             % (int(self.now.month), int(self.now.day), int(self.now.year), int(self.now.month), 
                int(self.now.day), int(self.now.year))
@@ -160,30 +140,19 @@ class AffiliateComHandler(Handler):
                 continue
             
             block = str(td[12].b)
-            record = {
-                'campaign': link.string,
-                'offer_num': offer_num,
-                'impressions': td[2].string,
-                'clicks': td[3].string,
-                'CTR': td[5].string[:-1],
-                'EPC': 0 if td[10].string == 'N/A' else td[10].string[1:],
-                'status': td[13].string.lower(),
-                'payout': td[11].a.string[1:-5],
-                'revenue':  block[block.find('$') + 1 : block.find('a') - 1]        
-            }
         
             self.checkEarnings(offer)
             Earnings(
                 offer=offer, 
                 network=self.account.network,
-                campaign=record['campaign'],
-                status=record['status'],
-                payout=record['payout'],
-                impressions=record['impressions'],
-                clicks=record['clicks'],
-                CTR=record['CTR'],
-                EPC=record['EPC'],
-                revenue=record['revenue']
+                campaign=link.string,
+                status=td[13].string.lower(),
+                payout=td[11].a.string[1:-5],
+                impressions=td[2].string,
+                clicks=td[3].string,
+                CTR=td[5].string[:-1],
+                EPC=0 if td[10].string == 'N/A' else td[10].string[1:],
+                revenue=block[block.find('$') + 1 : block.find('a') - 1]
             ).save()
 
 
@@ -191,10 +160,8 @@ class HydraHandler(Handler):
     
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
-        self.loginurl = "https://network.hydranetwork.com/login"
         self.url = "https://network.hydranetwork.com/load_component/MyCampaigns/sort_by-Campaign/sort_order-asc/date_range-Today"
         self.username_field = 'email_address'
-        self.password_field = 'password'
         self.loginform = 'login_form'
                       
     def run(self):       
@@ -203,43 +170,21 @@ class HydraHandler(Handler):
         for tr in soup.find('div', {'class': 'table-data-div'}).findAll('tr'):
             td = tr.findAll('td')
             
-            offer_num = td[0].a.string
-            offer = self.getOffer(offer_num)
+            offer = self.getOffer(td[0].a.string)
             if not offer:
-                continue
-            
-            record = {
-                'offer_num': offer_num,
-                'campaign': td[1].a.string,
-                'clicks': td[2].string,
-                'payout': td[5].string.strip()[1:],
-                'EPC': td[6].string.strip()[1:],
-                'revenue': td[7].string.strip()[1:]
-            }
+                continue            
             
             self.checkEarnings(offer)
             Earnings(
                 offer=offer, 
                 network=self.account.network,
-                campaign=record['campaign'],
-                payout=record['payout'],
-                clicks=record['clicks'],
-                EPC=record['EPC'],
-                revenue=record['revenue']
+                campaign=td[1].a.string,
+                payout=td[5].string.strip()[1:],
+                clicks=td[2].string,
+                EPC=td[6].string.strip()[1:],
+                revenue=td[7].string.strip()[1:]
             ).save()
-
-
-class EncoreAds(Handler):
-    
-    def __init__(self, now, account):
-        Handler.__init__(self, now, account)
-        self.loginurl = "http://www.ecoretrax.com/"
-        self.url = ""
-
-    
-    def run(self):
-        pass
-    
+  
 
 class ACPAffiliatesHandler(Handler):
     
@@ -270,24 +215,16 @@ class ACPAffiliatesHandler(Handler):
             link = td[0].a.string
             b = link.find('(')
             clicks = int(td[2].string)
-            record = {
-                'offer_num': offer_num,
-                'campaign': link[link.find('-') + 2 : len(link) if b == -1 else b - 1 ],
-                'impressions': td[1].string,
-                'clicks': clicks,
-                'payout': td[4].string[1:],
-                'revenue': float(td[5].string[1:]) * clicks
-            }
 
             self.checkEarnings(offer)
             Earnings(
                 offer=offer, 
                 network=self.account.network,
-                campaign=record['campaign'],
-                payout=record['payout'],
-                clicks=record['clicks'],
-                impressions=record['impressions'],
-                revenue=record['revenue']
+                campaign=link[link.find('-') + 2 : len(link) if b == -1 else b - 1 ],
+                payout=td[4].string[1:],
+                clicks=clicks,
+                impressions=td[1].string,
+                revenue=float(td[5].string[1:]) * clicks
             ).save()
        
 
@@ -307,9 +244,7 @@ class APIHandler(Handler):
         soup = BeautifulStoneSoup(urllib2.urlopen(self.url))
         
         for i in soup.findAll('campaign'):
-            offer_num = i.offer_id.string
-    
-            offer = self.getOffer(offer_num)
+            offer = self.getOffer(i.offer_id.string)
             if not offer:
                 continue
             
@@ -325,10 +260,42 @@ class APIHandler(Handler):
                 EPC=i.epc.string
             ).save()
             
-            
-class Convert2MediaHandler(APIHandler):
-    pass 
-   
-   
-class EncoreAdsHandler(APIHandler):
-    pass
+
+class Ads4DoughHandler(Handler):
+    def __init__(self, now, account):
+        Handler.__init__(self, now, account)
+        self.url = "http://publisher.affiliatecashpile.com/stats/index/offers" 
+        self.loginform = 'login' 
+
+
+class AdscendHandler(Handler):
+    def __init__(self, now, account):
+        Handler.__init__(self, now, account)
+        self.url = "https://adscendmedia.com/campstats.php"
+        #self.url += "?start_m=1&start_d=13&start_y=2011&end_m=4&end_d=13&end_y=2011&country=&camps[]="
+        self.username_field = 'email'
+        
+    def run(self):    
+        soup = self.getSoup()
+        
+        for tr in soup.find('table', {'class': 'bordered'}).findAll('tr'):
+            td = tr.findAll('td')
+            if not td[0].a: 
+                continue
+        
+            campaign = td[0].a.string
+            try:    
+                offer = Offer.objects.get(name=campaign, account=self.account, network=self.account.network)  
+            except:
+                continue            
+
+            self.checkEarnings(offer)
+            Earnings(
+                offer=offer, 
+                network=self.account.network,
+                campaign=campaign,
+                payout=td[5].a.string[1:],
+                EPC=td[3].string[1:],
+                clicks=td[1].string,
+                revenue=td[6].string[1:]
+            ).save()

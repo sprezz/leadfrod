@@ -19,8 +19,10 @@ class Command(BaseCommand):
             "http://affiliate.com/": 'AffiliateComHandler', 
             "https://network.hydranetwork.com/login": "HydraHandler",
             'http://acpaffiliates.com/Publishers': 'ACPAffiliatesHandler',
-            'http://www.c2mtrax.com/': 'Convert2MediaHandler',
-            'http://www.ecoretrax.com/': 'EncoreAdsHandler',
+            'http://www.c2mtrax.com/': 'APIHandler',
+            'http://www.ecoretrax.com/': 'APIHandler',
+            #'http://www.ads4dough.com/': 'Ads4DoughHandler',
+            'https://adscendmedia.com/': 'AdscendHandler'
         }
         
         for account in Account.objects.all():
