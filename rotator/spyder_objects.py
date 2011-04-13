@@ -89,6 +89,8 @@ class BaseDataSpyder(object):
             for account in accounts:
                 browser = self.login(account)
                 data = self.get_data(browser)
+                account.last_checked = datetime.now()
+                account.save() 
                 self.parse_data(data, account)
         else:
             print "Sorry here are no accounts for %s network in database" % (
