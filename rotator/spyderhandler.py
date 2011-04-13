@@ -2,7 +2,7 @@ import mechanize
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 from rotator.models import Earnings, Offer, UnknownOffer
 import urllib2
-
+import decimal
 
 class Handler:
     
@@ -262,13 +262,45 @@ class APIHandler(Handler):
             
 
 class Ads4DoughHandler(Handler):
+    
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
-        self.url = "http://publisher.affiliatecashpile.com/stats/index/offers" 
+        self.url = "https://affiliate.a4dtracker.com/logged.php?pgid=22" 
         self.loginform = 'login' 
 
+    def run(self):        
+        def saveEarnings(trs):
+            for tr in trs:               
+                td = tr.findAll('td')
+                if not td[1].nobr:
+                    continue
+                name = td[1].nobr.string
+                offer = self.getOffer(name[1:name.find(')')])
+                if not offer:
+                    continue
+                
+                self.checkEarnings(offer)               
+                Earnings(
+                    offer=offer, 
+                    network=self.account.network,
+                    campaign=name[name.find(')')+1:],
+                    payout=offer.payout,
+                    clicks=int(td[3].a.string),
+                    revenue=decimal.Decimal(td[7].div.string[1:]),
+                    EPC=decimal.Decimal(td[6].string[1:])
+                ).save()
+                
+                
+                
+                
+        soup = self.getSoup()
+        table = soup.find('table', {'class': 'reportinner'})
+        saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt1'}))
+        saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt2'}))
+            
 
 class AdscendHandler(Handler):
+    
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
         self.url = "https://adscendmedia.com/campstats.php"
@@ -277,12 +309,8 @@ class AdscendHandler(Handler):
         
     def run(self):    
         soup = self.getSoup()
-        
-        div = soup.find('div', {'id': 'content'})
-        table = div.findAll('table', {'class': 'bordered'})
-        print "table count: %d" % len(table)
-        
-        for tr in table[0].findAll('tr'):
+       
+        for tr in soup.find('div', {'id': 'content'}).find('table', {'class': 'bordered'}).findAll('tr'):
             td = tr.findAll('td')
             if not td[0].a: 
                 continue
@@ -303,3 +331,4 @@ class AdscendHandler(Handler):
                 clicks=td[1].string,
                 revenue=td[6].string[1:]
             ).save()
+
