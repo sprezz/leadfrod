@@ -15,19 +15,20 @@ class Command(BaseCommand):
         now = datetime.datetime.now()   
         print now 
         networks = {            
-            "http://getads.com/": 'GetAdsHandler', 
-            "http://affiliate.com/": 'AffiliateComHandler', 
-            "https://network.hydranetwork.com/login": "HydraHandler",
-            'http://acpaffiliates.com/Publishers': 'ACPAffiliatesHandler',
-            'http://www.c2mtrax.com/': 'APIHandler',
-            'http://www.ecoretrax.com/': 'APIHandler',
-            #'http://www.ads4dough.com/': 'Ads4DoughHandler',
-            'https://adscendmedia.com/': 'AdscendHandler'
+            "http://getads.com/": GetAdsHandler, 
+            "http://affiliate.com/": AffiliateComHandler, 
+            "https://network.hydranetwork.com/login": HydraHandler,
+            'http://acpaffiliates.com/Publishers': ACPAffiliatesHandler,
+            'http://www.c2mtrax.com/': APIHandler,
+            'http://www.ecoretrax.com/': APIHandler,
+            #'http://www.ads4dough.com/': Ads4DoughHandler,
+            'https://adscendmedia.com/': AdscendHandler,
+            'http://www.epicdirectnetwork.com/': AzoogleHandler
         }
         
         for account in Account.objects.all():
             if account.network.url in networks:
                 account.checked()
-                globals()[ networks[account.network.url] ](now, account).run()
+                networks[account.network.url](now, account).run()
   
         print "Finished."

@@ -1018,7 +1018,7 @@ class Earnings(models.Model):
     status = models.CharField(max_length=255, null=True)
     payout = models.DecimalField(max_digits=5, decimal_places=2)
     impressions = models.IntegerField(null=True)
-    clicks = models.IntegerField()
+    clicks = models.IntegerField(null=True)
     qualified_transactions = models.IntegerField(null=True)
     aproved = models.IntegerField(null=True)
     CTR = models.FloatField(null=True)

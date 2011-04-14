@@ -52,6 +52,7 @@ class Handler:
             self.br.select_form(nr=0)
         self.br[self.username_field] = self.account.user_id
         self.br[self.password_field] = self.account.password
+                
         print "login ... "
         self.br.submit()
         
@@ -284,14 +285,11 @@ class Ads4DoughHandler(Handler):
                     offer=offer, 
                     network=self.account.network,
                     campaign=name[name.find(')')+1:],
-                    payout=offer.payout,
+                    payout=decimal.Decimal(str(offer.payout)),
                     clicks=int(td[3].a.string),
                     revenue=decimal.Decimal(td[7].div.string[1:]),
                     EPC=decimal.Decimal(td[6].string[1:])
-                ).save()
-                
-                
-                
+                ).save()                          
                 
         soup = self.getSoup()
         table = soup.find('table', {'class': 'reportinner'})
@@ -332,3 +330,36 @@ class AdscendHandler(Handler):
                 revenue=td[6].string[1:]
             ).save()
 
+
+class AzoogleHandler(Handler):
+    
+    def __init__(self, now, account):
+        Handler.__init__(self, now, account)
+        self.loginurl = "https://login.azoogleads.com/affiliate/login/"
+        self.url = "https://login.azoogleads.com/affiliate/offer/show_search_results?advanced_statustype=active_offers&range=7&offer_per_page=50&category_select_id=0&region_select_id=&availability=ALL&page=0&view_type=list&order_direction=3&traffic_types%5B1%5D=1&traffic_types%5B2%5D=2&traffic_types%5B3%5D=3&traffic_types%5B6%5D=6&traffic_types%5B16%5D=16&traffic_types%5B17%5D=17&traffic_types%5B18%5D=18&order_by=open_date"
+        self.username_field = 'login_name'
+        self.password_field = 'login_password'
+    
+    def run(self):
+        soup = self.getSoup()
+        
+        for tr in soup.find('table', {'class': 'resultset offerlist'}).findAll('tr'):
+            td = tr.findAll('td')
+            if not td:
+                continue
+                        
+            if td[4].string != self.now.strftime('%m/%d/%Y'):
+                break 
+            
+            offer = self.getOffer(td[2].string)
+            if not offer:
+                continue            
+
+            self.checkEarnings(offer)
+            Earnings(
+                offer=offer, 
+                network=self.account.network,
+                campaign=td[3].a.string,
+                payout=decimal.Decimal(str(offer.payout)),
+                revenue=decimal.Decimal(td[6].string[1:])
+            ).save()
