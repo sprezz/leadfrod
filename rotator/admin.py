@@ -101,11 +101,7 @@ class OfferAdmin(admin.ModelAdmin):
     def paused(self, request, queryset):
         queryset.update(status='paused')
     paused.short_description = "Set paused"
-
-    def paused(self, request, queryset):
-        queryset.update(status='paused')
-    paused.short_description = "Set paused"
-    
+   
     def set_submits_today(self, request, queryset):
         queryset.update(submits_today=1)
     set_submits_today.short_description = "Set submits_today to 1"
@@ -162,14 +158,30 @@ class EarningsAdmin(admin.ModelAdmin):
     model = Earnings
     
     chlen = "qwert"
-
+    
     list_display = ('network', 'account', 'offer_name', 'offer_num', 'date',
-        'campaign', 'status', 'payout', 'clicks', 'pps', 'mpps', 'revenue', 
+        'campaign', 'payout', 'clicks', 'pps', 'mpps', 'revenue', 
         'submits_today', 'conv')
     list_filter = ('date', 'status', 'network', )
     
     list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks', 
                     'conv']    
+    
+    actions = ['activate', 'paused', ]
+    
+    def activate(self, request, queryset):
+        for q in queryset:
+            q.offer.status ='active'
+            q.offer.save()
+        queryset.update(status='active')
+    activate.short_description = "Set active"
+
+    def paused(self, request, queryset):
+        for q in queryset:
+             q.offer.status ='paused'
+             q.offer.save()          
+    paused.short_description = "Set paused"
+    
     class Media:
         css = {
             "all": ("css/admin_earnings.css",),
