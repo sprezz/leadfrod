@@ -361,5 +361,50 @@ class AzoogleHandler(Handler):
                 network=self.account.network,
                 campaign=td[3].a.string,
                 payout=decimal.Decimal(str(offer.payout)),
-                revenue=decimal.Decimal(td[6].string[1:])
+                revenue=td[6].string[1:]
             ).save()
+            
+            
+class CopeacHandler(Handler):
+    
+    def __init__(self, now, account):
+        Handler.__init__(self, now, account)
+        self.username_field = 'txtUserName'
+        self.password_field = 'txtPassword'
+        self.loginform = 'form1'
+        
+    def getSoup(self):
+        self.br.set_handle_redirect(True)
+        self.br.set_handle_referer(True)
+        
+        self.br.open(self.loginurl)     
+        print "login to copeac..."   
+        self.br.select_form(name=self.loginform)
+        self.br.form.find_control('password').__dict__['name'] = 'txtPassword'
+        self.br.form.find_control('submit').__dict__['name'] = 'btnSubmit'
+        self.br.form.new_control('hidden', '__EVENTARGUMENT', {'value': u''})
+        self.br.form.new_control('hidden', '__EVENTTARGET', {'value': u''})
+        self.br.form[self.username_field] = self.account.user_id
+        self.br.form[self.password_field] = self.account.password
+        return BeautifulSoup(self.br.submit(coord=[21, 4]).read())
+        
+    def run(self):
+        soup = self.getSoup()
+        
+        for tr in soup.find('table', {'id': 'itemPlaceholderContainer'}).findAll('tr', {'valign': 'top'}):
+            td = tr.findAll('td')
+            offer = self.getOffer(td[0].a.string)
+            if not offer:
+                continue            
+
+            self.checkEarnings(offer)
+            Earnings(
+                offer=offer, 
+                network=self.account.network,
+                campaign=td[1].a.string,
+                clicks=td[2].a.string,
+                payout=decimal.Decimal(str(offer.payout)),
+                EPC=td[6].a.string[1:],
+                revenue=td[5].a.string[1:]
+            ).save()
+        
