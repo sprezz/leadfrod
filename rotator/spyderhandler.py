@@ -53,7 +53,7 @@ class Handler:
         self.br[self.username_field] = self.account.user_id
         self.br[self.password_field] = self.account.password
                 
-        print "login ... "
+        print "login %s %s ... " % (self.account.user_id, self.account.password)
         self.br.submit()
         
         print "opening %s ..." % self.url
