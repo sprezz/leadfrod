@@ -47,7 +47,7 @@ class Handler:
         print "opening %s ..." % self.loginurl
         try:
             self.br.open(self.loginurl)      
-        except URLError:
+        except:
             return False
         
         if self.loginform:  
@@ -68,11 +68,15 @@ class GetAdsHandler(Handler):
   
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
-        self.loginurl = 'http://publisher.getads.com/Welcome/LogInAndSignUp.aspx'
-        self.url = 'http://publisher.getads.com/RptCampaignPerformance.aspx'
+        #self.loginurl = 'http://publisher.getads.com/Welcome/LogInAndSignUp.aspx'
+        self.username_field = 'Username'
+        self.password_field = 'Password'
+        """
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
         self.loginform = 'aspnetForm'
+        """
+        self.url = 'http://publisher.getads.com/RptCampaignPerformance.aspx' 
            
     def run(self):        
         soup = self.getSoup()
