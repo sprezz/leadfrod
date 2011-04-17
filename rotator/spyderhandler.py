@@ -58,8 +58,10 @@ class Handler:
         self.br[self.password_field] = self.account.password
                 
         print "login %s %s ... " % (self.account.user_id, self.account.password)
-        self.br.submit()
-        
+        try:
+            self.br.submit()
+        except:
+            return False
         print "opening %s ..." % self.url
         return BeautifulSoup(self.br.open(self.url).read())
 

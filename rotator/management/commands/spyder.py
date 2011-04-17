@@ -28,8 +28,8 @@ class Command(BaseCommand):
         }
         
         for account in Account.objects.all():
-            if account.network.url in networks:
-                account.checked()
+            if account.network.url in networks:                
                 networks[account.network.url](now, account).run()
+                account.checked()
   
         print "Finished."
