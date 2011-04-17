@@ -123,6 +123,7 @@ class GetAdsHandler(Handler):
                 EPC=td[14].string[1:],
                 revenue=td[15].string[1:]
             ).save()
+        return True
 
 
 class AffiliateComHandler(Handler):
@@ -166,6 +167,7 @@ class AffiliateComHandler(Handler):
                 EPC=0 if td[10].string == 'N/A' else td[10].string[1:],
                 revenue=block[block.find('$') + 1 : block.find('a') - 1]
             ).save()
+        return True
 
 
 class HydraHandler(Handler):
@@ -196,6 +198,7 @@ class HydraHandler(Handler):
                 EPC=td[6].string.strip()[1:],
                 revenue=td[7].string.strip()[1:]
             ).save()
+        return True
   
 
 class ACPAffiliatesHandler(Handler):
@@ -238,6 +241,7 @@ class ACPAffiliatesHandler(Handler):
                 impressions=td[1].string,
                 revenue=float(td[5].string[1:]) * clicks
             ).save()
+        return True
        
 
 class APIHandler(Handler):
@@ -271,6 +275,7 @@ class APIHandler(Handler):
                 revenue=i.revenue.string,
                 EPC=i.epc.string
             ).save()
+        return True
             
 
 class Ads4DoughHandler(Handler):
@@ -306,6 +311,7 @@ class Ads4DoughHandler(Handler):
         table = soup.find('table', {'class': 'reportinner'})
         saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt1'}))
         saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt2'}))
+        return True
             
 
 class AdscendHandler(Handler):
@@ -340,6 +346,7 @@ class AdscendHandler(Handler):
                 clicks=td[1].string,
                 revenue=td[6].string[1:]
             ).save()
+        return True
 
 
 class AzoogleHandler(Handler):
@@ -374,6 +381,7 @@ class AzoogleHandler(Handler):
                 payout=decimal.Decimal(str(offer.payout)),
                 revenue=td[6].string[1:]
             ).save()
+        return True
             
             
 class CopeacHandler(Handler):
@@ -418,4 +426,5 @@ class CopeacHandler(Handler):
                 EPC=td[6].a.string[1:],
                 revenue=td[5].a.string[1:]
             ).save()
+        return True
         
