@@ -243,6 +243,14 @@ def month_revenue(request, template="month_revenue.html"):
         context_instance=RequestContext(request))
 
 
+def offer_changestatus(request, offer_id, status):
+    try:
+        Offer.objects.get(id=offer_id).update(status=status)
+        return HttpResponse('1')
+    except:
+        return HttpResponse('0')
+
+
 def release_lead():
     #set completed = true
     #set lock=false

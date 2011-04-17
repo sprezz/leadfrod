@@ -26,7 +26,7 @@ urlpatterns = patterns('',
      (r'^th/(?P<owner>.+)/?$', 'rotator.views.trafficholder_callback'),
      (r'^sentry/', include('sentry.urls')),
      (r'^revenue/month/$', 'rotator.views.month_revenue'),
-     
+     url(r'^offer/(?P<offer_id>\d+)/changestatus/', 'rotator.views.offer_changestatus', name="changeOfferStatus"),
     # Uncomment the next line to enable the admin:
      (r'^admin/', include(admin.site.urls)),
      (r'^ajax/admin/', include('locking.urls')),

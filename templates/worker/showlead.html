@@ -22,6 +22,13 @@
 		<tr><td>Account</td><td>{{offer.account.username}}</td></tr>		
 		<tr><td>Description</td><td>{{ offer.description }}</td></tr>
 	</table>
+	<!--
+	<form method="post" action={{ changeOfferStatus offer.id}}>
+		Active: <input type="radio" value="active" checked="checked" name="status"/>
+		Suspicious: <input type="radio" value="suspicious" name="status"/>
+		<input type="submit" />
+	</form>
+	-->
 {% endfor %}
 </div> 
 </br>

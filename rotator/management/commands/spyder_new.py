@@ -4,6 +4,7 @@ from django.utils.importlib import import_module
 
 from rotator.models import Network
 from rotator import spyder_objects
+from rotator.spyder_objects import NETWORKS_MAP
 from string import capitalize
 
 class Command(BaseCommand):
@@ -21,8 +22,9 @@ class Command(BaseCommand):
             except AttributeError:
                 continue
             else:
-                spy = spy_class(net)
-                spy.run_spyder()
+                if net.url in NETWORKS_MAP:                
+                    spy = spy_class(net)
+                    spy.run_spyder()
                 
         
         print "Finished."
