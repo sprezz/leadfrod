@@ -45,7 +45,11 @@ class Handler:
 
     def getSoup(self):
         print "opening %s ..." % self.loginurl
-        self.br.open(self.loginurl)      
+        try:
+            self.br.open(self.loginurl)      
+        except URLError:
+            return False
+        
         if self.loginform:  
             self.br.select_form(name=self.loginform)
         else:
@@ -72,7 +76,8 @@ class GetAdsHandler(Handler):
            
     def run(self):        
         soup = self.getSoup()
-        
+        if not soup:
+            return False
         div = soup.find('div', {'id': 'ctl00_ContentPlaceHolder1_divReportData'})
         if not div:
             return False                      
