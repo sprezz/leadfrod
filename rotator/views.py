@@ -243,7 +243,7 @@ def month_revenue(request, template="month_revenue.html"):
         context_instance=RequestContext(request))
 
 
-def offer_changestatus(request, offer_id, status):
+def offer_changestatus(request, offer_id):
     try:
         Offer.objects.get(id=offer_id).update(status=request.POST['status'])
         return HttpResponse('1')
