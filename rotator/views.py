@@ -244,10 +244,13 @@ def month_revenue(request, template="month_revenue.html"):
 
 
 def offer_changestatus(request, offer_id):
-    offer = Offer.objects.get(id=offer_id)
-    offer.status = request.POST['status']
-    offer.save()
-    return HttpResponse('1')
+    try:
+        offer = Offer.objects.get(id=offer_id)
+        offer.status = request.POST['status']
+        offer.save()
+        return HttpResponse('1')
+    except:
+        return HttpResponse('0')
 
 
 def release_lead():
