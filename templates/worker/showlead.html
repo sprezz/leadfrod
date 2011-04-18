@@ -2,7 +2,7 @@
 {% block title%} {{user.username}}'s backlog {% endblock %}
 {% block scripts%}
 <script type="text/javascript" src="/media/ext/jquery.form.js"></script> 
-
+<script>
 $(function(){
 	$(".form_changestaus").submit(function(){
 		$(this).ajaxSubmit(function(o) {
@@ -10,7 +10,7 @@ $(function(){
 		})
 	})
 })
-
+</script>
 {% endblock %}
 
 {% block content %}
