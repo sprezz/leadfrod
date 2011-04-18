@@ -39,10 +39,10 @@ $(function(){
 		<tr><td>Description</td><td>{{ offer.description }}</td></tr>
 	</table>
 	<div>
-		<form method="post" class="form_changestaus" action={% url changeOfferStatus offer.id %}>
-			Active: <input type="radio" value="active" checked="checked" name="status"/>
-			Suspicious: <input type="radio" value="suspicious" name="status"/>
-			<input type="submit" />
+		<form method="post" class="form_changestaus" action="{% url changeOfferStatus offer.id %}" >
+			Active: <input type="radio" value="active" {% if offer.status != 'suspicious'%}checked="checked"{% endif %} name="status"/>
+			Suspicious: <input type="radio" value="suspicious" name="status" {% if offer.status == 'suspicious'%}checked="checked"{% endif %} />
+			<input type="submit" value="Change status" />
 		</form>
 	</div>
 	

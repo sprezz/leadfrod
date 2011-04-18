@@ -94,6 +94,15 @@ class OfferAdmin(admin.ModelAdmin):
             q.save()
     add_clicks_capacity.short_description = "Add 5 clicks to capacity"
 
+    def substract_clicks_capacity(self, request, queryset):
+        for q in queryset:            
+            if q.capacity < 5:
+                q.capacity = 0
+            else:
+                q.capacity -=5
+            q.save()
+    substract_clicks_capacity.short_description = "Substract 5 clicks from capacity"
+    
     def activate(self, request, queryset):
         queryset.update(status='active')
     activate.short_description = "Set active"
@@ -167,7 +176,9 @@ class EarningsAdmin(admin.ModelAdmin):
     list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks', 
                     'conv']    
     
-    actions = ['activate', 'paused', ]
+    actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
+               'add_clicks_capacity', 'substract_clicks_capacity',
+               'activate', 'paused',]
     
     def activate(self, request, queryset):
         for q in queryset:
@@ -181,6 +192,36 @@ class EarningsAdmin(admin.ModelAdmin):
              q.offer.status ='paused'
              q.offer.save()          
     paused.short_description = "Set paused"
+    
+    def add_clicks_dailycap(self, request, queryset):
+        for q in queryset:
+            q.offer.daily_cap +=5
+            q.offer.save()
+    add_clicks_dailycap.short_description = "Add 5 clicks to daily cap"
+
+    def substract_clicks_dailycap(self, request, queryset):
+        for q in queryset:
+            if q.offer.daily_cap < 5:
+                q.offer.daily_cap = 0
+            else:
+                q.offer.daily_cap -=5
+            q.offer.save()
+    substract_clicks_dailycap.short_description = "Substract 5 clicks from daily cap"
+
+    def add_clicks_capacity(self, request, queryset):
+        for q in queryset:
+            q.offer.capacity +=5
+            q.offer.save()
+    add_clicks_capacity.short_description = "Add 5 clicks to capacity"
+
+    def substract_clicks_capacity(self, request, queryset):
+        for q in queryset:            
+            if q.offer.capacity < 5:
+                q.offer.capacity = 0
+            else:
+                q.offer.capacity -=5
+            q.save()
+    substract_clicks_capacity.short_description = "Substract 5 clicks from capacity"
     
     class Media:
         css = {
