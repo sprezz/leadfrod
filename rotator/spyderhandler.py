@@ -4,12 +4,19 @@ from rotator.models import Earnings, Offer, UnknownOffer
 import urllib2
 import decimal
 
+PROXIES = [
+    '148.122.38.202:8080', # good
+    '95.65.26.94:8080', # good
+    '84.88.67.196:80', # slowly
+]
+  
 class Handler:
     
     def __init__(self, now, account):
         self.account = account
         self.now = now
         self.loginurl = self.account.network.url
+        self.chance = 0
         self.url = 'set url'
         self.loginform = False
         self.username_field = 'username'
@@ -43,13 +50,21 @@ class Handler:
         
         print "save offer %s .." % offer.offer_num    
 
+    def changeProxy(self):
+        print "<-Exception"
+        self.chance += 1
+        if self.chance < len(PROXIES):
+            self.br.set_proxies({"http": PROXIES[self.chance]})
+            return self.getSoup()
+        
+        return False
+        
     def getSoup(self):
         print "opening %s ..." % self.loginurl
         try:
             self.br.open(self.loginurl)      
         except:
-            print "<-Exception"
-            return False
+            return self.changeProxy()
         
         if self.loginform:  
             self.br.select_form(name=self.loginform)
@@ -62,8 +77,7 @@ class Handler:
         try:
             self.br.submit()
         except:
-            print "<-Exception"
-            return False
+            return self.changeProxy()
         print "opening %s ..." % self.url
         return BeautifulSoup(self.br.open(self.url).read())
 
@@ -76,14 +90,10 @@ class GetAdsHandler(Handler):
         #self.username_field = 'Username'
         #self.password_field = 'Password'
         #self.br.set_proxies({"http": "187.115.194.88:3128"})
-        self.br.set_proxies({"http": "148.122.38.202:8080"})
+        self.br.set_proxies({"http": PROXIES[self.chance]})
         """
         proxy:
         http://tools.rosinstrument.com/proxy/
-        95.65.26.94:8080
-        72.240.34.21:80
-        84.88.67.196:80
-        94.112.246.2.static.b2b.upcbusiness.cz:8080
         """
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
