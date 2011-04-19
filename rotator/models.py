@@ -219,7 +219,7 @@ class WorkManager(models.Model):
                 csvLeads = Lead.unlocked.filter(csv=csvFile, 
                                                 status='active',
                                                 worker__isnull=True,
-                                                deleted=False).order_by('?')
+                                                deleted=False).order_by('csv__niche__priority')
 #                csvLeads = Lead.objects.filter(csv=csvFile, status='active', worker__isnull=True, deleted=False).order_by('?')                                
                 if csvLeads.count() == 0:
                     logging.debug('There is no lead available for %s' % csvFile)
