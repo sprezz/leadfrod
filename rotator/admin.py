@@ -278,6 +278,16 @@ class AccountAPIAdmin(admin.ModelAdmin):
     model = AccountAPI
     list_display = ('account', 'affiliate_id', 'api_key',)
     
+
+class CSVFileAdmin(admin.ModelAdmin):
+    model = CSVFile
+    list_display = ('filename', 'niche', 'status', 'uploaded_by', 'comleted_leads', 'leads', )
+
+    def leads(self, csv):
+        return csv.leads.count()
+    
+    def comleted_leads(self, csv):
+        return csv.leads.offers_completed.count()
     
 #class LeadInline(admin.TabularInline):
 #    model = Lead
@@ -294,7 +304,7 @@ class AccountAPIAdmin(admin.ModelAdmin):
 admin.site.register(AccountAPI, AccountAPIAdmin)
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(LeadSource)
-admin.site.register(CSVFile)
+admin.site.register(CSVFile, CSVFileAdmin)
 admin.site.register(WorkManager)
 admin.site.register(Owner)
 admin.site.register(Company)
