@@ -98,7 +98,7 @@ class GetAdsHandler(Handler):
             return False
         div = soup.find('div', {'id': 'ctl00_ContentPlaceHolder1_divReportData'})
         if not div:
-            return False                      
+            return True                      
          
         for tr in div.findAll('table')[1].findAll('tr'):
             td = tr.findAll('td')
@@ -228,7 +228,7 @@ class ACPAffiliatesHandler(Handler):
 
         block = soup.find('tbody', {'id': 'pagingBody'})
         if not block:
-            return
+            return True
         for tr in block.findAll('tr'):
             td = tr.findAll('td')
             
