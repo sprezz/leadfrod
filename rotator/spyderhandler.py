@@ -48,6 +48,7 @@ class Handler:
         try:
             self.br.open(self.loginurl)      
         except:
+            print "<-Exception"
             return False
         
         if self.loginform:  
@@ -61,6 +62,7 @@ class Handler:
         try:
             self.br.submit()
         except:
+            print "<-Exception"
             return False
         print "opening %s ..." % self.url
         return BeautifulSoup(self.br.open(self.url).read())
@@ -73,8 +75,17 @@ class GetAdsHandler(Handler):
         self.loginurl = 'http://publisher.getads.com/Welcome/LogInAndSignUp.aspx'
         #self.username_field = 'Username'
         #self.password_field = 'Password'
-        self.br.set_proxies({"http": "187.115.194.88:3128"})
-        
+        #self.br.set_proxies({"http": "187.115.194.88:3128"})
+        self.br.set_proxies({"http": "66.96.200.38:80"})
+        """
+        proxy:
+        173.52.207.2:1280
+        66.96.200.38:80
+        167.192.220.240:80
+        68.50.10.61:27977
+        208.64.176.157:80
+        68.82.17.139:27977
+        """
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
         self.loginform = 'aspnetForm'
