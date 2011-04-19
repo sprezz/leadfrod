@@ -76,15 +76,14 @@ class GetAdsHandler(Handler):
         #self.username_field = 'Username'
         #self.password_field = 'Password'
         #self.br.set_proxies({"http": "187.115.194.88:3128"})
-        self.br.set_proxies({"http": "66.96.200.38:80"})
+        self.br.set_proxies({"http": "148.122.38.202:8080"})
         """
         proxy:
-        173.52.207.2:1280
-        66.96.200.38:80
-        167.192.220.240:80
-        68.50.10.61:27977
-        208.64.176.157:80
-        68.82.17.139:27977
+        http://tools.rosinstrument.com/proxy/
+        95.65.26.94:8080
+        72.240.34.21:80
+        84.88.67.196:80
+        94.112.246.2.static.b2b.upcbusiness.cz:8080
         """
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'

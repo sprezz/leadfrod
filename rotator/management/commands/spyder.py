@@ -26,6 +26,7 @@ class Command(BaseCommand):
             'http://www.epicdirectnetwork.com/': AzoogleHandler,
             'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
         }
+        networks = { "http://getads.com/": GetAdsHandler}
         
         for account in Account.objects.all():
             if account.network.url in networks:                
