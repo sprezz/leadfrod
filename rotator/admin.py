@@ -281,16 +281,16 @@ class AccountAPIAdmin(admin.ModelAdmin):
 
 class CSVFileAdmin(admin.ModelAdmin):
     model = CSVFile
-    list_display = ('filename', 'niche', 'status', 'uploaded_by', 'comleted_leads', 'requested_leads', 'leads', )
+    list_display = ('filename', 'niche', 'status', 'uploaded_by', 'active_leads', 'completed_leads', 'leads', )
 
     def leads(self, csv):
         return csv.leads.count()
     
-    def comleted_leads(self, csv):
-        return csv.leads.offers_completed.count()
+    def active_leads(self, csv):
+        return csv.leads.filter(status='active').count()
     
-    def requested_leads(self, csv):
-        return csv.leads.offers_requested.count()
+    def completed_leads(self, csv):
+        return csv.leads.filter(status='completed').count()
     
 #class LeadInline(admin.TabularInline):
 #    model = Lead
