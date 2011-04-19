@@ -530,7 +530,6 @@ class CSVFile(models.Model):
         self.hasLeads()
         super(CSVFile, self).save(*args, **kwargs)
         
-        
     def __unicode__ (self):
         name = self.filename or self.csv_files.name
 #        nleads = 0
