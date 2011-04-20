@@ -287,7 +287,7 @@ class CSVFileAdmin(admin.ModelAdmin):
         return csv.leads.count()
     
     def active_leads(self, csv):
-        return csv.leads.filter(csv=self, status='active', worker__isnull=True, deleted=False).count()
+        return csv.leads.filter(csv=csv, status='active', worker__isnull=True, deleted=False).count()
     
     def completed_leads(self, csv):
         return csv.leads.filter(status='completed').count()
