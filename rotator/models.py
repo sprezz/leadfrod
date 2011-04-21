@@ -375,7 +375,10 @@ class WorkManager(models.Model):
         if not worker.get_profile().now_online: raise WorkerNotOnlineException()
         logging.debug('%s is online' % worker)
         lead = None        
-        for csv_file in CSVFile.objects.filter(workers=worker).order_by('?'):
+        csv_files = CSVFile.objects.filter(workers=worker).order_by('?')
+        logging.debug('Founded %d csv files' % len(csv_files))
+        
+        for csv_file in csv_files:
             if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file): continue
             logging.debug('%s get csv' % csv_file)
             lead = self.work_strategy.nextLead(csv_file)
