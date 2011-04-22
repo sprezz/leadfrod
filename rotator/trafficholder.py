@@ -102,8 +102,8 @@ class TrafficHolder(object):
         offerQueue_q = OfferQueue.objects.filter(order=order, size__gt=0)
         if offerQueue_q.exists():
             offerQueue = offerQueue_q.order_by('?')[0]
-            logging.debug('Redirect to %s' % offerQueue.offer.url)
-            return offerQueue.popUrl()
+            logging.debug('Redirect to http://referer.us/%s' % offerQueue.offer.url)
+            return 'http://referer.us/%s' % offerQueue.popUrl()
         else:
             logging.debug('Queue %s is empty. Stopping traffic holder!' % owner_name)
             self.stop ( order.order_id )
