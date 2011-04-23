@@ -259,7 +259,7 @@ class WorkManager(models.Model):
             leadNiche = wi.lead.getNiche()
             logging.debug('get offer per niche %s' % leadNiche)
             offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('submits_today')
-            logging.debug('Found %d in niche %s' % len(offers), leadNiche)
+            logging.debug('Found %d in niche %s' % (len(offers), leadNiche))
             offer_names = []            
             for offer in offers:
                 if offer.name in offer_names:
