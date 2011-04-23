@@ -64,6 +64,7 @@ def next_workitem(request):
                     wi = wm.nextWorkItem(request.user)
                     request.session['workitem']=wi
                     request.session['msg']='Your previous work item was cancelled by administrator. Start with next.'
+            logging.info('User %s: Found offers in views: %d' % (request.user, len(wi.offers)))
             TrafficHolder().processOffers ( wi.offers )
             msg = None
             if 'msg' in request.session:

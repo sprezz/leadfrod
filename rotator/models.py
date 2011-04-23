@@ -259,31 +259,39 @@ class WorkManager(models.Model):
             leadNiche = wi.lead.getNiche()
             logging.debug('get offer per niche %s' % leadNiche)
             offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('submits_today')
-            logging.debug('Found %d in niche %s' % (len(offers), leadNiche))
-            offer_names = []            
-            for offer in offers:
+            logging.info('Found %d offers in niche %s' % (len(offers), leadNiche))
+            offer_names = []
+            i = 0             
+            for offer in offers:                
                 if offer.name in offer_names:
                     continue
-                logging.debug('offer %s checking capacity...' % offer)
-                if not offer.checkCapacity(): continue
-                
-                logging.debug('offer %s has capacity!' % offer)
-                logging.debug('offer has advertiser = %s' % offer.hasAdvertiser())
-                if offer.hasAdvertiser() and wi.lead.checkAdvertiser(offer.advertiser):
-                    print wi.lead, 'already was given to ', offer.advertiser, '. Skipping...'
-                    logging.debug('%s already was given to %s. Skipping...' % (wi.lead, offer.advertiser))
+                i += 1
+                check_capacity = offer.checkCapacity()
+                logging.info('offer checking capacity=%d in offer %d: %s' % (int(check_capacity), i, offer.offer_num))
+                if not check_capacity: 
                     continue
-                elif offer.hasAdvertiser():
+                
+                logging.info('offer has capacity: %d: %s ' % (i,  offer.offer_num))
+                logging.debug('offer has capacity: %s ' % offer)
+                hasAdvertiser = offer.hasAdvertiser()
+                logging.info('offer %d: %s has advertiser = %s' % (i, offer.offer_num, hasAdvertiser))
+                if hasAdvertiser:
+                    if wi.lead.checkAdvertiser(offer.advertiser):
+                        print wi.lead, 'already was given to ', offer.advertiser, '. Skipping...'
+                        logging.info('Skipping offer %d: %s because %s was given for lead %s' % (i, offer.offer_num, offer.advertiser, wi.lead.id))
+                        logging.debug('%s already was given to %s. Skipping...' % (wi.lead, offer.advertiser))
+                        continue                
                     wi.lead.advertisers.add(offer.advertiser)
                     wi.lead.save()
                 
-                
+                logging.info('Adding offer %d: %s to resutlt' % (i, offer.offer_num))
                 wi.addOffer(offer)                
                 offer.increase_submits()
                 offer.reduce_capacity()
                 offer_names.append(offer.name)
                 
                 if len(wi.offers) == 5: break
+            logging.info('Found %d result offers in niche %s' % (len(wi.offers), leadNiche))    
             return wi       
         
     work_strategy = WorkStrategy()
@@ -373,7 +381,10 @@ class WorkManager(models.Model):
         return True    
                     
     def nextWorkItem(self, worker):
-        if not worker.get_profile().now_online: raise WorkerNotOnlineException()
+        logging.info('START finding nextWorkItem')
+        if not worker.get_profile().now_online: 
+            logging.info('%s is OFFLINE' % worker)
+            raise WorkerNotOnlineException()
         logging.debug('%s is online' % worker)
         lead = None        
         csv_files = CSVFile.objects.filter(workers=worker).order_by('?')
@@ -409,7 +420,8 @@ class WorkManager(models.Model):
             lead.worker = None
             lead.save()            
             raise NoWorkException("There are no offers with enough capacity \
-                        left for the leads in niche %s" % (lead.getNiche()))
+                        left for the leads in niche %s and no offer after advertiser checking" % (lead.getNiche()))
+
         return wi 
        
     def signOut(self, worker):
