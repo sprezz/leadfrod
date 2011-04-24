@@ -290,7 +290,8 @@ class WorkManager(models.Model):
                 offer.reduce_capacity()
                 offer_names.append(offer.name)
                 
-                if len(wi.offers) == 5: break
+                if len(wi.offers) == wi.lead.csv.max_offers: 
+                    break
             logging.info('Found %d result offers in niche %s' % (len(wi.offers), leadNiche))    
             return wi       
         
