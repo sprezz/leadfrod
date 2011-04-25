@@ -1038,7 +1038,6 @@ class Earnings(models.Model):
     CTR = models.FloatField(null=True)
     aprovedCTR = models.FloatField(null=True)
     eCPM = models.DecimalField(max_digits=5, decimal_places=2, null=True)
-    EPC = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     revenue = models.DecimalField(max_digits=5, decimal_places=2)
 
     def pps(self):
@@ -1077,3 +1076,9 @@ class UnknownOffer(models.Model):
     def __unicode__(self):
         return "%s / %s / %s" % (self.offer_num, self.account.username,
                                  self.network.name)
+
+
+class ManualQueue(models.Model):
+    url = models.URLField(max_length=2000, verify_exists=False)
+    size = models.SmallIntegerField(default=10)
+    createdDate = models.DateTimeField(default=datetime.datetime.now())

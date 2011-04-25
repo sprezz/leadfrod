@@ -229,6 +229,23 @@ def get_lead(worker_id):
     pass
 
 
+def manualQueueCreate(request, template='manualQueueCreate.html'):
+    message = ''
+    if request.method == 'POST' and 'urls' in request.POST:
+        urls = request.POST['urls'].split()
+        if urls:
+            for url in urls:
+                existManualQueue = ManualQueue.objects.filter(url=url)
+                if existManualQueue:
+                    existManualQueue[0].size += 10
+                    existManualQueue[0].save()
+                else:    
+                    ManualQueue(url=url).save()
+            message = "URLs were saved successfully"
+            
+    return render_to_response(template, {'message': message },
+        context_instance=RequestContext(request))
+
 def month_revenue(request, template="month_revenue.html"):
     d = date.today() - timedelta(days=31)
     totals = []

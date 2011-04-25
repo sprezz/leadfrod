@@ -291,7 +291,11 @@ class CSVFileAdmin(admin.ModelAdmin):
     
     def completed_leads(self, csv):
         return csv.leads.filter(status='completed').count()
-    
+
+
+class ManualQueueAdmin(admin.ModelAdmin):
+    model = ManualQueue
+    list_display = ('url', 'size',)
 #class LeadInline(admin.TabularInline):
 #    model = Lead
 #class CSVFileAdmin(admin.ModelAdmin):
@@ -304,6 +308,7 @@ class CSVFileAdmin(admin.ModelAdmin):
 #    inlines = [OfferInline]
 #admin.site.register(Capacity,CapacityAdmin)
 
+admin.site.register(ManualQueue, ManualQueueAdmin)
 admin.site.register(AccountAPI, AccountAPIAdmin)
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(LeadSource)
