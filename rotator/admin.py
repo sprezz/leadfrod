@@ -295,7 +295,7 @@ class CSVFileAdmin(admin.ModelAdmin):
 
 class ManualQueueAdmin(admin.ModelAdmin):
     model = ManualQueue
-    list_display = ('url', 'size',)
+    list_display = ('url', 'size', 'createdDate')
 #class LeadInline(admin.TabularInline):
 #    model = Lead
 #class CSVFileAdmin(admin.ModelAdmin):

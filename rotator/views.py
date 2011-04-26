@@ -246,6 +246,14 @@ def manualQueueCreate(request, template='manualQueueCreate.html'):
     return render_to_response(template, {'message': message },
         context_instance=RequestContext(request))
 
+
+def manualQueueGo(request):
+    mq = ManualQueue.objects.filter(size__gt=0).order_by('createdDate')
+    if mq:
+        mq[0].decreaseSize()
+        return HttpResponseRedirect(mq[0].url)
+    return HttpResponse('No url with size > 0')
+    
 def month_revenue(request, template="month_revenue.html"):
     d = date.today() - timedelta(days=31)
     totals = []
