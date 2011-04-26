@@ -418,7 +418,8 @@ class CopeacHandler(Handler):
         self.br.set_handle_referer(True)
         
         self.br.open(self.loginurl)     
-        print "login to copeac..."   
+        print "login to copeac..."  
+        print self.loginurl
         self.br.select_form(name=self.loginform)
         self.br.form.find_control('password').__dict__['name'] = 'txtPassword'
         self.br.form.find_control('submit').__dict__['name'] = 'btnSubmit'
@@ -426,6 +427,7 @@ class CopeacHandler(Handler):
         self.br.form.new_control('hidden', '__EVENTTARGET', {'value': u''})
         self.br.form[self.username_field] = self.account.user_id
         self.br.form[self.password_field] = self.account.password
+        print "%s %s" % (self.account.user_id, self.account.password)
         return BeautifulSoup(self.br.submit(coord=[21, 4]).read())
         
     def run(self):
@@ -444,7 +446,6 @@ class CopeacHandler(Handler):
                 campaign=td[1].a.string,
                 clicks=td[2].a.string,
                 payout=decimal.Decimal(str(offer.payout)),
-                EPC=td[6].a.string[1:],
                 revenue=td[5].a.string[1:]
             ).save()
         return True
