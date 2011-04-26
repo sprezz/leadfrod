@@ -1038,6 +1038,7 @@ class Earnings(models.Model):
     CTR = models.FloatField(null=True)
     aprovedCTR = models.FloatField(null=True)
     eCPM = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    EPC = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     revenue = models.DecimalField(max_digits=5, decimal_places=2)
 
     def pps(self):

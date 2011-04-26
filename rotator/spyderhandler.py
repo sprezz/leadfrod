@@ -418,7 +418,7 @@ class CopeacHandler(Handler):
         self.br.set_handle_referer(True)
         
         self.br.open(self.loginurl)     
-        print "login to copeac..."  
+        print "login to copeac..."   
         print self.loginurl
         self.br.select_form(name=self.loginform)
         self.br.form.find_control('password').__dict__['name'] = 'txtPassword'
@@ -446,6 +446,7 @@ class CopeacHandler(Handler):
                 campaign=td[1].a.string,
                 clicks=td[2].a.string,
                 payout=decimal.Decimal(str(offer.payout)),
+                EPC=td[6].a.string[1:],
                 revenue=td[5].a.string[1:]
             ).save()
         return True
