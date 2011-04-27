@@ -71,8 +71,11 @@ def next_workitem(request):
                 msg = request.session['msg']
                 del request.session['msg']
             return render_to_response('worker/showlead.html',
-                                      {'user':request.user,'wi':wi, 'message':msg},
-                                      context_instance=RequestContext(request))
+                    {
+                        'user':request.user,'wi':wi, 
+                        'message':msg, 
+                        'remaining_leads': wi.get_remaining_leads()
+                    }, context_instance=RequestContext(request))
         except NoWorkException as exception:
             return render_to_response('worker/worker_goodbye.html', 
                                       {'user':request.user,

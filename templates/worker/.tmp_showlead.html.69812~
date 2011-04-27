@@ -20,7 +20,6 @@ $(function(){
 <div>{%if message %}<p style="color:red"><strong>{{message}}</strong></p>{%endif%}</div>
 <div style="display: block; float:left; width:49%;">
 <h2>Lead</h2>
-<div>Remaining leads: {{ remaining_leads }}</div>
 <table>
 	{% for f,v in wi.get_fields %}
 		<tr><td>{{f}}</td><td>{{v}}</td></tr>

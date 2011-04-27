@@ -175,8 +175,12 @@ class WorkItem(object):
         if workOffers is None:
             self.offers = []
         else:
-            self.offers = workOffers
+            self.offers = workOffers        
             
+    def get_remaining_leads(self):
+        count = Lead.unlocked.filter(csv__niche=self.lead.niche, status='active', worker__isnull=True, deleted=False).count()
+        return count - 1 if count > 0 else 0
+        
     def get_header(self):
         return self.lead.csv.csv_headers.split(',')        
     
@@ -212,21 +216,21 @@ class WorkManager(models.Model):
                
     class WorkStrategy(object):
         def __init__ (self):
-            pass
+            self.remainingLeads = 0
         
         def nextLead(self, csvFile):            
             try:
                 csvLeads = Lead.unlocked.filter(csv=csvFile, 
                                                 status='active',
                                                 worker__isnull=True,
-                                                deleted=False).order_by('csv__niche__priority')
-#                csvLeads = Lead.objects.filter(csv=csvFile, status='active', worker__isnull=True, deleted=False).order_by('?')                                
-                if csvLeads.count() == 0:
+                                                deleted=False).order_by('?')
+#                csvLeads = Lead.objects.filter(csv=csvFile, status='active', worker__isnull=True, deleted=False).order_by('?')                                            
+                if leadsCount == 0:
                     logging.debug('There is no lead available for %s' % csvFile)
                     return None
                 #csvLeads = sorted(csvLeads, key=lambda lead: lead.csv.niche.priority)
                 logging.debug('Got lead %s' % csvLeads[0])
-                return csvLeads[0]     
+                return csvLeads[0]
             except Lead.DoesNotExist:
                 return None    
             
@@ -387,8 +391,9 @@ class WorkManager(models.Model):
             logging.info('%s is OFFLINE' % worker)
             raise WorkerNotOnlineException()
         logging.debug('%s is online' % worker)
-        lead = None        
-        csv_files = CSVFile.objects.filter(workers=worker).order_by('?')
+        lead = None    
+        nextLead = None
+        csv_files = CSVFile.objects.filter(workers=worker).order_by('niche__priority')
         logging.debug('Founded %d csv files' % len(csv_files))
         
         for csv_file in csv_files:
@@ -408,8 +413,9 @@ class WorkManager(models.Model):
             lead.worker = worker
             lead.save()
         else:
-            raise WorkInterceptedException("Locked by %s at %s" % (lead.locked_by, lead.locked_at))
+            raise WorkInterceptedException("Locked by %s at %s" % (lead.locked_by, lead.locked_at))      
         
+                                                
         wi = WorkItem(lead)
         wi.worker = worker    
         logging.debug('finding offers')
