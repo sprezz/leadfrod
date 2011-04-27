@@ -171,6 +171,7 @@ class Capacity(models.Model):
 class WorkItem(object):
     def __init__ (self, workLead=None, workOffers=None):
         self.worker = None
+        self.nextLead = None
         self.lead = workLead
         if workOffers is None:
             self.offers = []
@@ -178,7 +179,7 @@ class WorkItem(object):
             self.offers = workOffers        
             
     def get_remaining_leads(self):
-        count = Lead.unlocked.filter(csv__niche=self.lead.niche, status='active', worker__isnull=True, deleted=False).count()
+        count = Lead.unlocked.filter(csv__niche=self.lead.csv.niche, status='active', worker__isnull=True, deleted=False).count()
         return count - 1 if count > 0 else 0
         
     def get_header(self):
@@ -225,14 +226,15 @@ class WorkManager(models.Model):
                                                 worker__isnull=True,
                                                 deleted=False).order_by('?')
 #                csvLeads = Lead.objects.filter(csv=csvFile, status='active', worker__isnull=True, deleted=False).order_by('?')                                            
+                leadsCount = csvLeads.count() 
                 if leadsCount == 0:
                     logging.debug('There is no lead available for %s' % csvFile)
-                    return None
+                    return None, None
                 #csvLeads = sorted(csvLeads, key=lambda lead: lead.csv.niche.priority)
                 logging.debug('Got lead %s' % csvLeads[0])
-                return csvLeads[0]
+                return csvLeads[0], csvLeads[1] if leadsCount > 1 else None
             except Lead.DoesNotExist:
-                return None    
+                return None, None
             
         def getOffersForLead(self, wi):
             """
@@ -397,11 +399,18 @@ class WorkManager(models.Model):
         logging.debug('Founded %d csv files' % len(csv_files))
         
         for csv_file in csv_files:
-            if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file): continue
-            logging.debug('%s get csv' % csv_file)
-            lead = self.work_strategy.nextLead(csv_file)
-            logging.debug('Lead instance %s' % lead)
-            if lead: break
+            if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file): 
+                continue
+            
+            if lead:
+                nextLead = self.work_strategy.nextLead(csv_file)
+            else:    
+                logging.debug('%s get csv' % csv_file)
+                lead, nextLead = self.work_strategy.nextLead(csv_file)
+                logging.debug('Lead instance %s' % lead)
+                
+            if lead and nextLead: 
+                    break
         
         if not lead: 
             raise NoWorkException("There are no active leads for your account \
@@ -417,7 +426,8 @@ class WorkManager(models.Model):
         
                                                 
         wi = WorkItem(lead)
-        wi.worker = worker    
+        wi.worker = worker  
+        wi.nextLead = nextLead  
         logging.debug('finding offers')
         wi = self.work_strategy.getOffersForLead(wi)
         logging.debug('found %s offers' % len(wi.offers))  
