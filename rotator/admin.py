@@ -27,9 +27,12 @@ class AdvertiserAdmin(admin.ModelAdmin):
 
 class AccountAdmin(admin.ModelAdmin):
     model = Account
-    list_display = ('owner', 'network', 'username', 'last_checked')
+    list_display = ('owner', 'network', 'username', 'last_checked', 'revenue',)
     list_display_links = ('owner', )
     list_filter = ('network',)
+    
+    def revenue(self, account):
+        return Earnings.objects.filter(offer__account=account).extra(select={'total': 'sum(revenue)'})[0].total
 
 
 class OfferAdmin(admin.ModelAdmin):
