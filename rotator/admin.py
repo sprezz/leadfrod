@@ -55,7 +55,7 @@ class OfferAdmin(admin.ModelAdmin):
     search_fields = ['name', 'network__name', 'network__description',
                      'account__username', 'account__company__owner__name',
                      'advertiser__name', 'advertiser__description']
-    list_filter = ('network', 'account', 'status', 'niche', )
+    list_filter = ('status', 'niche', 'network', 'account',  )
 
     actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
                'add_clicks_capacity', 'substract_clicks_capacity',
