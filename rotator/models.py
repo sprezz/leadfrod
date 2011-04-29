@@ -273,24 +273,24 @@ class WorkManager(models.Model):
                     continue
                 i += 1
                 check_capacity = offer.checkCapacity()
-                logging.info('offer checking capacity=%d in offer %d: %s' % (int(check_capacity), i, offer.offer_num))
+                #logging.info('offer checking capacity=%d in offer %d: %s' % (int(check_capacity), i, offer.offer_num))
                 if not check_capacity: 
                     continue
                 
-                logging.info('offer has capacity: %d: %s ' % (i,  offer.offer_num))
+                #logging.info('offer has capacity: %d: %s ' % (i,  offer.offer_num))
                 logging.debug('offer has capacity: %s ' % offer)
                 hasAdvertiser = offer.hasAdvertiser()
-                logging.info('offer %d: %s has advertiser = %s' % (i, offer.offer_num, hasAdvertiser))
+                #logging.info('offer %d: %s has advertiser = %s' % (i, offer.offer_num, hasAdvertiser))
                 if hasAdvertiser:
                     if wi.lead.checkAdvertiser(offer.advertiser):
                         print wi.lead, 'already was given to ', offer.advertiser, '. Skipping...'
-                        logging.info('Skipping offer %d: %s because %s was given for lead %s' % (i, offer.offer_num, offer.advertiser, wi.lead.id))
+                        #logging.info('Skipping offer %d: %s because %s was given for lead %s' % (i, offer.offer_num, offer.advertiser, wi.lead.id))
                         logging.debug('%s already was given to %s. Skipping...' % (wi.lead, offer.advertiser))
                         continue                
                     wi.lead.advertisers.add(offer.advertiser)
                     wi.lead.save()
                 
-                logging.info('Adding offer %d: %s to resutlt' % (i, offer.offer_num))
+                #logging.info('Adding offer %d: %s to resutlt' % (i, offer.offer_num))
                 wi.addOffer(offer)                
                 offer.increase_submits()
                 offer.reduce_capacity()
@@ -388,13 +388,12 @@ class WorkManager(models.Model):
         return True    
                     
     def nextWorkItem(self, worker):
-        logging.info('START finding nextWorkItem')
         if not worker.get_profile().now_online: 
-            logging.info('%s is OFFLINE' % worker)
             raise WorkerNotOnlineException()
         logging.debug('%s is online' % worker)
         lead = None    
         nextLead = None
+        exceptionMessage = False
         csv_files = CSVFile.objects.filter(workers=worker).order_by('niche__priority')
         logging.debug('Founded %d csv files' % len(csv_files))
         
@@ -409,37 +408,43 @@ class WorkManager(models.Model):
                 lead, nextLead = self.work_strategy.nextLead(csv_file)
                 logging.debug('Lead instance %s' % lead)
                 
+            logging.info('nextLead instance %s' % nextLead)
+                
             if lead and nextLead: 
-                    break
+                if not lead.is_locked:
+                    logging.debug('locking the lead')
+                    lead.lock_for(worker)
+                    lead.worker = worker
+                    lead.save()
+                else:
+                    exceptionMessage = "Locked by %s at %s" % (lead.locked_by, lead.locked_at)
+                    logging.debug(exceptionMessage) 
+                    continue
+
+                wi = WorkItem(lead)
+                wi.worker = worker  
+                wi.nextLead = nextLead  
+                wi = self.work_strategy.getOffersForLead(wi)
+                logging.debug('found %s offers' % len(wi.offers))  
+                if len(wi.offers) == 0:
+                    logging.debug('unlock lead')
+                    lead.unlock_for(worker)
+                    lead.worker = None
+                    lead.save()  
+                    exceptionMessage = "There are no offers with enough \
+                        capacity left for the leads in niche %s and no offer \
+                        after advertiser checking" % (lead.getNiche())
+                    logging.debug(exceptionMessage)      
+                    continue  
         
-        if not lead: 
+                return wi 
+        
+        if not lead:
             raise NoWorkException("There are no active leads for your account \
                                                                     remaining")
-        
-        if not lead.is_locked:
-            logging.debug('locking the lead')
-            lead.lock_for(worker)
-            lead.worker = worker
-            lead.save()
-        else:
-            raise WorkInterceptedException("Locked by %s at %s" % (lead.locked_by, lead.locked_at))      
-        
-                                                
-        wi = WorkItem(lead)
-        wi.worker = worker  
-        wi.nextLead = nextLead  
-        logging.debug('finding offers')
-        wi = self.work_strategy.getOffersForLead(wi)
-        logging.debug('found %s offers' % len(wi.offers))  
-        if len(wi.offers) == 0:
-            logging.debug('unlock lead')
-            lead.unlock_for(worker)
-            lead.worker = None
-            lead.save()            
-            raise NoWorkException("There are no offers with enough capacity \
-                        left for the leads in niche %s and no offer after advertiser checking" % (lead.getNiche()))
+        elif exceptionMessage:
+            raise NoWorkException(exceptionMessage)        
 
-        return wi 
        
     def signOut(self, worker):
         logging.debug('signing out %s' % worker)

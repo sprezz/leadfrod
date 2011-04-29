@@ -1,7 +1,7 @@
 import mechanize
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 from rotator.models import Earnings, Offer, UnknownOffer
-import urllib2
+import urllib2, urllib
 import decimal
 
 PROXIES = [
@@ -380,6 +380,28 @@ class AzoogleHandler(Handler):
         self.password_field = 'login_password'
     
     def run(self):
+        
+        url = 'https://login.azoogleads.com/affiliate/affiliatestats/stats_data'
+        params = {
+            'RandomKey': '315946231083.7238',
+            '_': '',    
+            'clicks_revenue_only': False,
+            'eac_advertisers': 0,
+            'exclude': '',    
+            'htmlstat[currency]': 0,
+            'htmlstat[exclude_offer_ids]': False,
+            'htmlstat[lower_date]': '04/28/2011',
+            'htmlstat[upper_date]': '04/28/2011',
+            'range': 11,
+            'report': 'OfferReport',
+            'sales_only': False,
+            'session_key': 1944640460,
+            'window_number': 1,
+        }
+        #response = mechanize.urlopen(url, urllib.urlencode(params))
+        
+    """
+    def run(self):
         soup = self.getSoup()
         
         for tr in soup.find('table', {'class': 'resultset offerlist'}).findAll('tr'):
@@ -403,7 +425,7 @@ class AzoogleHandler(Handler):
                 revenue=td[6].string[1:]
             ).save()
         return True
-            
+    """     
             
 class CopeacHandler(Handler):
     
