@@ -1,13 +1,9 @@
-
 from django.core.management.base import BaseCommand, CommandError
-import datetime
-from BeautifulSoup import BeautifulSoup
 from rotator.models import Account
 from rotator.spyderhandler import *
 
-from rotator.models import Network
-from rotator import spyder_objects
-from string import capitalize
+import datetime
+
 
 class Command(BaseCommand):
 
@@ -23,7 +19,6 @@ class Command(BaseCommand):
             'http://www.ecoretrax.com/': APIHandler,
             #'http://www.ads4dough.com/': Ads4DoughHandler,
             'https://adscendmedia.com/': AdscendHandler,
-            'http://www.epicdirectnetwork.com/': AzoogleHandler,
             'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
         }
         #networks = { 'http://emt.copeac.com/forms/login.aspx': CopeacHandler}

@@ -204,8 +204,11 @@ class HydraHandler(Handler):
                       
     def run(self):       
         soup =  self.getSoup()        
-               
-        for tr in soup.find('div', {'class': 'table-data-div'}).findAll('tr'):
+        div = soup.find('div', {'class': 'table-data-div'})
+        if not div:
+            return False
+        
+        for tr in div.findAll('tr'):
             td = tr.findAll('td')
             
             offer = self.getOffer(td[0].a.string)
@@ -333,6 +336,8 @@ class Ads4DoughHandler(Handler):
                 
         soup = self.getSoup()
         table = soup.find('table', {'class': 'reportinner'})
+        if not table:
+            return False
         saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt1'}))
         saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt2'}))
         return True
@@ -401,7 +406,8 @@ class AzoogleHandler(Handler):
             'session_key': 1944640460,
             'window_number': 1,
         }
-        #response = mechanize.urlopen(url, urllib.urlencode(params))
+        response = mechanize.urlopen(url, urllib.urlencode(params))
+        print response.read()
         
     """
     def run(self):
@@ -457,8 +463,10 @@ class CopeacHandler(Handler):
         
     def run(self):
         soup = self.getSoup()
-        
-        for tr in soup.find('table', {'id': 'itemPlaceholderContainer'}).findAll('tr', {'valign': 'top'}):
+        table = soup.find('table', {'id': 'itemPlaceholderContainer'})
+        if not table:
+            return False
+        for tr in table.findAll('tr', {'valign': 'top'}):
             td = tr.findAll('td')
             offer = self.getOffer(td[0].a.string)
             if not offer:

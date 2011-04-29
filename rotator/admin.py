@@ -27,12 +27,18 @@ class AdvertiserAdmin(admin.ModelAdmin):
 
 class AccountAdmin(admin.ModelAdmin):
     model = Account
-    list_display = ('owner', 'network', 'username', 'last_checked', 'revenue',)
+    list_display = ('owner', 'network', 'username', 'last_checked', 'revenue', 'today_revenue',)
     list_display_links = ('owner', )
     list_filter = ('network',)
     
     def revenue(self, account):
-        return Earnings.objects.filter(offer__account=account).extra(select={'total': 'sum(revenue)'})[0].total
+        return Earnings.objects.filter(offer__account=account).extra(
+                    select={'total': 'sum(revenue)'})[0].total
+    
+    def today_revenue(self, account):
+        return Earnings.objects.filter(offer__account=account, 
+            date=datetime.date.today()).extra(
+                select={'total': 'sum(revenue)'})[0].total
 
 
 class OfferAdmin(admin.ModelAdmin):
@@ -48,7 +54,7 @@ class OfferAdmin(admin.ModelAdmin):
     search_fields = ['name', 'network__name', 'network__description',
                      'account__username', 'account__company__owner__name',
                      'advertiser__name', 'advertiser__description']
-    list_filter = ('network', 'account', 'status', )
+    list_filter = ('network', 'account', 'status', 'niche', )
 
     actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
                'add_clicks_capacity', 'substract_clicks_capacity',
