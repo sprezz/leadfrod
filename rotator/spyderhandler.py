@@ -159,8 +159,11 @@ class AffiliateComHandler(Handler):
    
     def run(self):       
         soup = self.getSoup()
-
-        for tr in soup.find('table', {'class': 'recordTable'}).findAll('tr'):
+        table = soup.find('table', {'class': 'recordTable'})
+        if not table:
+            return False
+        
+        for tr in table.findAll('tr'):
             td = tr.findAll('td')
             if not td[1].b:
                 continue
