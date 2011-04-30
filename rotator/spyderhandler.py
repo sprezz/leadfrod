@@ -132,7 +132,7 @@ class GetAdsHandler(Handler):
             
             aprovedCTRblock = td[12].span if td[12].span else td[12]             
             
-            self.checkEarnings(offer)               
+            self.checkEarnings(offer)            
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
@@ -147,7 +147,7 @@ class GetAdsHandler(Handler):
                 aprovedCTR=aprovedCTRblock.string[:-2],
                 eCPM=td[13].string[1:],
                 EPC=td[14].string[1:],
-                revenue=td[15].string[1:]
+                revenue=decimal.Decimal(td[15].string[1:])
             )
             earnings.save()
             self.today_revenue +=  earnings.revenue
@@ -196,7 +196,7 @@ class AffiliateComHandler(Handler):
                 clicks=td[3].string,
                 CTR=td[5].string[:-1],
                 EPC=0 if td[10].string == 'N/A' else td[10].string[1:],
-                revenue=block[block.find('$') + 1 : block.find('a') - 1]
+                revenue=decimal.Decimal(block[block.find('$') + 1 : block.find('a') - 1])
             )
             earnings.save()
             self.today_revenue += earnings.revenue
@@ -232,7 +232,7 @@ class HydraHandler(Handler):
                 payout=td[5].string.strip()[1:],
                 clicks=td[2].string,
                 EPC=td[6].string.strip()[1:],
-                revenue=td[7].string.strip()[1:]
+                revenue=decimal.Decimal(td[7].string.strip()[1:])
             )
             earnings.save()
             self.today_revenue += earnings.revenue
@@ -312,7 +312,7 @@ class APIHandler(Handler):
                 payout=i.price.string,
                 clicks=i.clicks.string,
                 impressions=i.impressions.string,
-                revenue=i.revenue.string,
+                revenue=decimal.Decimal(i.revenue.string),
                 EPC=i.epc.string
             )
             earnings.save()
@@ -390,7 +390,7 @@ class AdscendHandler(Handler):
                 payout=td[5].a.string[1:],
                 EPC=td[3].string[1:],
                 clicks=td[1].string,
-                revenue=td[6].string[1:]
+                revenue=decimal.Decimal(td[6].string[1:])
             )
             earnings.save()
             self.today_revenue += earnings.revenue
@@ -499,7 +499,7 @@ class CopeacHandler(Handler):
                 clicks=td[2].a.string,
                 payout=decimal.Decimal(str(offer.payout)),
                 EPC=td[6].a.string[1:],
-                revenue=td[5].a.string[1:]
+                revenue=decimal.Decimal(td[5].a.string[1:])
             )
             earnings.save()
             self.today_revenue += earnings.revenue
