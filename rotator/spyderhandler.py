@@ -13,6 +13,7 @@ PROXIES = [
 class Handler:
     
     def __init__(self, now, account):
+        self.today_revenue = 0
         self.account = account
         self.now = now
         self.loginurl = self.account.network.url
@@ -26,6 +27,10 @@ class Handler:
         self.br.set_debug_redirects(True)
         self.br.set_handle_robots(False)
         
+    @property    
+    def revenue(self):
+        return self.today_revenue
+      
     def getOffer(self, offer_num):
         offers = Offer.objects.filter(offer_num=offer_num,
                     account=self.account, network=self.account.network)
@@ -128,7 +133,7 @@ class GetAdsHandler(Handler):
             aprovedCTRblock = td[12].span if td[12].span else td[12]             
             
             self.checkEarnings(offer)               
-            Earnings(
+            earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
                 campaign=campaign,
@@ -143,7 +148,9 @@ class GetAdsHandler(Handler):
                 eCPM=td[13].string[1:],
                 EPC=td[14].string[1:],
                 revenue=td[15].string[1:]
-            ).save()
+            )
+            earnings.save()
+            self.today_revenue +=  earnings.revenue
         return True
 
 
@@ -179,7 +186,7 @@ class AffiliateComHandler(Handler):
             block = str(td[12].b)
         
             self.checkEarnings(offer)
-            Earnings(
+            earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
                 campaign=link.string,
@@ -190,7 +197,9 @@ class AffiliateComHandler(Handler):
                 CTR=td[5].string[:-1],
                 EPC=0 if td[10].string == 'N/A' else td[10].string[1:],
                 revenue=block[block.find('$') + 1 : block.find('a') - 1]
-            ).save()
+            )
+            earnings.save()
+            self.today_revenue += earnings.revenue
         return True
 
 
@@ -216,7 +225,7 @@ class HydraHandler(Handler):
                 continue            
             
             self.checkEarnings(offer)
-            Earnings(
+            earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
                 campaign=td[1].a.string,
@@ -224,7 +233,9 @@ class HydraHandler(Handler):
                 clicks=td[2].string,
                 EPC=td[6].string.strip()[1:],
                 revenue=td[7].string.strip()[1:]
-            ).save()
+            )
+            earnings.save()
+            self.today_revenue += earnings.revenue
         return True
   
 
@@ -259,7 +270,7 @@ class ACPAffiliatesHandler(Handler):
             clicks = int(td[2].string)
 
             self.checkEarnings(offer)
-            Earnings(
+            earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
                 campaign=link[link.find('-') + 2 : len(link) if b == -1 else b - 1 ],
@@ -267,7 +278,9 @@ class ACPAffiliatesHandler(Handler):
                 clicks=clicks,
                 impressions=td[1].string,
                 revenue=float(td[5].string[1:]) * clicks
-            ).save()
+            )
+            earnings.save()
+            self.today_revenue += earnings.revenue
         return True
        
 
@@ -292,7 +305,7 @@ class APIHandler(Handler):
                 continue
             
             self.checkEarnings(offer)
-            Earnings(
+            earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
                 campaign=i.vertical_name.string,
@@ -301,7 +314,9 @@ class APIHandler(Handler):
                 impressions=i.impressions.string,
                 revenue=i.revenue.string,
                 EPC=i.epc.string
-            ).save()
+            )
+            earnings.save()
+            self.today_revenue += earnings.revenue
         return True
             
 
@@ -324,7 +339,7 @@ class Ads4DoughHandler(Handler):
                     continue
                 
                 self.checkEarnings(offer)               
-                Earnings(
+                earnings = Earnings(
                     offer=offer, 
                     network=self.account.network,
                     campaign=name[name.find(')')+1:],
@@ -332,7 +347,9 @@ class Ads4DoughHandler(Handler):
                     clicks=int(td[3].a.string),
                     revenue=decimal.Decimal(td[7].div.string[1:]),
                     EPC=decimal.Decimal(td[6].string[1:])
-                ).save()                          
+                )
+                earnings.save()
+                self.today_revenue += earnings.revenue                  
                 
         soup = self.getSoup()
         table = soup.find('table', {'class': 'reportinner'})
@@ -366,7 +383,7 @@ class AdscendHandler(Handler):
                 continue            
 
             self.checkEarnings(offer)
-            Earnings(
+            earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
                 campaign=campaign,
@@ -374,7 +391,9 @@ class AdscendHandler(Handler):
                 EPC=td[3].string[1:],
                 clicks=td[1].string,
                 revenue=td[6].string[1:]
-            ).save()
+            )
+            earnings.save()
+            self.today_revenue += earnings.revenue
         return True
 
 
@@ -473,7 +492,7 @@ class CopeacHandler(Handler):
                 continue            
 
             self.checkEarnings(offer)
-            Earnings(
+            earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
                 campaign=td[1].a.string,
@@ -481,6 +500,8 @@ class CopeacHandler(Handler):
                 payout=decimal.Decimal(str(offer.payout)),
                 EPC=td[6].a.string[1:],
                 revenue=td[5].a.string[1:]
-            ).save()
+            )
+            earnings.save()
+            self.today_revenue += earnings.revenue
         return True
         

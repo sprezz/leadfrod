@@ -408,8 +408,6 @@ class WorkManager(models.Model):
                 lead, nextLead = self.work_strategy.nextLead(csv_file)
                 logging.debug('Lead instance %s' % lead)
                 
-            logging.info('nextLead instance %s' % nextLead)
-                
             if lead and nextLead: 
                 if not lead.is_locked:
                     logging.debug('locking the lead')
@@ -907,6 +905,7 @@ class Account(models.Model):
                              default='active')
     description = models.CharField(max_length=255, null=True, blank=True)
     last_checked = models.DateTimeField(null=True, blank=True)
+    today_revenue = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     primary = models.BooleanField(default=True)   
 
     def owner(self):
@@ -918,6 +917,10 @@ class Account(models.Model):
     
     def checked(self):
         self.last_checked = datetime.datetime.now()
+        self.save()
+    
+    def setRevenue(self, revenue):
+        self.today_revenue = revenue
         self.save()
         
     class Meta:

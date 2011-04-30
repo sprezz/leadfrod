@@ -24,8 +24,11 @@ class Command(BaseCommand):
         #networks = { 'http://emt.copeac.com/forms/login.aspx': CopeacHandler}
         
         for account in Account.objects.all():
-            if account.network.url in networks:                
-                if(networks[account.network.url](now, account).run()):
+            if account.network.url in networks:  
+                current_spyder = networks[account.network.url](now, account)              
+                if(current_spyder.run()):
                     account.checked()
-  
+                    account.setRevenue(current_spyder.revenue)
+                else:
+                    account.setRevenue(None)
         print "Finished."
