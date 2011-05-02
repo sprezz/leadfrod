@@ -14,7 +14,7 @@ HOST = 'http://leadfrod.billsforless.net/'
 
 class SeleniumServer(multiprocessing.Process):
     def run(self):
-        os.system('java -jar ./selenium-server-standalone-2.0b2.jar')
+        os.system('java -jar %s/selenium-server-standalone-2.0b2.jar' % os.path.dirname(__file__))
         
 class Scraper:    
     def __init__(self, account):
@@ -32,19 +32,26 @@ class Scraper:
         print "Wait %d seconds ..." % seconds
         sleep(seconds)
            
+    def save(self, value):
+        print self.saveurl + urllib.urlencode(value) 
+        response = urllib2.urlopen(self.saveurl + urllib.urlencode(value))
+        print "result %s" % str(response.read())
+               
     def extract(self):
         sel = self.selenium
         sel.open(self.loginurl)  
-        self.sleep(3)      
+        self.sleep(4)      
         sel.type('login_name', self.account['username'])
         sel.type('login_password', self.account['password'])
         sel.click("submit")
-        self.sleep(3)    
+        self.sleep(4)    
         sel.open(self.dataurl)
         
         soup = BeautifulSoup(sel.get_html_source())
         table = soup.find('table', {'id': 'query_result_table'})
         if not table:
+            self.save({'account': self.account['id']})
+            print "No Offers"
             return False       
         
         today_revenue = 0
@@ -71,15 +78,13 @@ class Scraper:
             if key == 0:
                 print "set today revenue"
                 value['today_revenue'] = today_revenue
-            print self.saveurl + urllib.urlencode(value) 
-            response = urllib2.urlopen(self.saveurl + urllib.urlencode(value))
-            print "result %s" % str(response.read())
+            self.save(value)    
         return True 
                                    
     def run(self):
         self.server.start()
         print "run selenium server"
-        self.sleep(4)
+        self.sleep(6)
         print "run selenium client"
         self.selenium.start()
         result = self.extract()               

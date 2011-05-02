@@ -416,6 +416,8 @@ class AzoogleHandler(Handler):
             return False
         
         self.account.checked()
+        if 'offer_num' not in self.data:
+             return False
         offer = self.getOffer(self.data['offer_num'])
         if not offer:
             print "no offer %s" % self.data['offer_num']
