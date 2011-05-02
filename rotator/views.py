@@ -12,6 +12,7 @@ import simplejson
 from models import *
 from rotator.trafficholder import TrafficHolder
 from trafficholder import UnknownOrderException
+from spyderhandler import AzoogleHandler
 
 
 #@login_required
@@ -200,6 +201,18 @@ def trafficholder_callback(request, owner):
         except UnknownOrderException:
             raise Http404
 
+
+def azoogleAccounts(request):
+    
+    result = [ {'id': account.id, 'username': account.user_id, 'password': account.password} 
+              for account in Account.objects.filter(
+                        network__url='http://www.epicdirectnetwork.com/')]
+    
+    return HttpResponse(str(result))
+
+
+def azoogleEarningsSave(request):
+    return HttpResponse(str(AzoogleHandler(request.GET).run()))
 
 # Original functions
 def show_login():

@@ -27,7 +27,10 @@ urlpatterns = patterns('',
      (r'^sentry/', include('sentry.urls')),
      (r'^revenue/month/$', 'rotator.views.month_revenue'),
      (r'^manualqueue/create/$', 'rotator.views.manualQueueCreate'),
-     (r'^manualqueue/go/?$', 'rotator.views.manualQueueGo'),
+     (r'^manualqueue/go/$', 'rotator.views.manualQueueGo'),     
+     (r'^azoogle/accounts/$', 'rotator.views.azoogleAccounts'),
+     (r'^azoogle/earnings/save/$', 'rotator.views.azoogleEarningsSave'),
+     
      url(r'^offer/(?P<offer_id>\d+)/changestatus/', 'rotator.views.offer_changestatus', name="changeOfferStatus"),
     # Uncomment the next line to enable the admin:
      (r'^admin/', include(admin.site.urls)),

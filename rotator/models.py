@@ -398,7 +398,9 @@ class WorkManager(models.Model):
         logging.debug('Founded %d csv files' % len(csv_files))
         
         for csv_file in csv_files:
-            if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file): 
+            if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file):
+                exceptionMessage = "wrong cheking CSV File %s" % csv_file
+                logging.debug(exceptionMessage) 
                 continue
             
             if lead:
@@ -905,7 +907,7 @@ class Account(models.Model):
                              default='active')
     description = models.CharField(max_length=255, null=True, blank=True)
     last_checked = models.DateTimeField(null=True, blank=True)
-    today_revenue = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    today_revenue = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     primary = models.BooleanField(default=True)   
 
     def owner(self):

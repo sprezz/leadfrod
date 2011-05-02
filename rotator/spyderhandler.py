@@ -1,14 +1,17 @@
 import mechanize
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
-from rotator.models import Earnings, Offer, UnknownOffer
+from rotator.models import Earnings, Offer, UnknownOffer, Account
 import urllib2, urllib
 import decimal
+import datetime
+
 
 PROXIES = [
     '148.122.38.202:8080', # good
     '95.65.26.94:8080', # good
     '84.88.67.196:80', # slowly
 ]
+  
   
 class Handler:
     
@@ -399,61 +402,40 @@ class AdscendHandler(Handler):
 
 class AzoogleHandler(Handler):
     
-    def __init__(self, now, account):
-        Handler.__init__(self, now, account)
-        self.loginurl = "https://login.azoogleads.com/affiliate/login/"
-        self.url = "https://login.azoogleads.com/affiliate/offer/show_search_results?advanced_statustype=active_offers&range=7&offer_per_page=50&category_select_id=0&region_select_id=&availability=ALL&page=0&view_type=list&order_direction=3&traffic_types%5B1%5D=1&traffic_types%5B2%5D=2&traffic_types%5B3%5D=3&traffic_types%5B6%5D=6&traffic_types%5B16%5D=16&traffic_types%5B17%5D=17&traffic_types%5B18%5D=18&order_by=open_date"
-        self.username_field = 'login_name'
-        self.password_field = 'login_password'
-    
+    def __init__(self, data):
+        self.now = datetime.datetime.now()
+        try:
+            self.account = Account.objects.get(id=data['account'])
+        except:
+            print "no such account"
+            self.account = None    
+        self.data = data
+        
     def run(self):
+        if not self.account:
+            return False
         
-        url = 'https://login.azoogleads.com/affiliate/affiliatestats/stats_data'
-        params = {
-            'RandomKey': '315946231083.7238',
-            '_': '',    
-            'clicks_revenue_only': False,
-            'eac_advertisers': 0,
-            'exclude': '',    
-            'htmlstat[currency]': 0,
-            'htmlstat[exclude_offer_ids]': False,
-            'htmlstat[lower_date]': '04/28/2011',
-            'htmlstat[upper_date]': '04/28/2011',
-            'range': 11,
-            'report': 'OfferReport',
-            'sales_only': False,
-            'session_key': 1944640460,
-            'window_number': 1,
-        }
-        response = mechanize.urlopen(url, urllib.urlencode(params))
-        print response.read()
+        self.account.checked()
+        offer = self.getOffer(self.data['offer_num'])
+        if not offer:
+            print "no offer %s" % self.data['offer_num']
+            return False
         
-    """
-    def run(self):
-        soup = self.getSoup()
-        
-        for tr in soup.find('table', {'class': 'resultset offerlist'}).findAll('tr'):
-            td = tr.findAll('td')
-            if not td:
-                continue
-                        
-            if td[4].string != self.now.strftime('%m/%d/%Y'):
-                break 
-            
-            offer = self.getOffer(td[2].string)
-            if not offer:
-                continue            
+        self.checkEarnings(offer)
+        earnings = Earnings(
+            offer=offer, 
+            network=self.account.network,
+            campaign=str(self.data['campaign']),
+            clicks=int(self.data['clicks']),
+            payout=decimal.Decimal(str(offer.payout)),
+            revenue=decimal.Decimal(self.data['revenue'])
+        )
+        earnings.save()
 
-            self.checkEarnings(offer)
-            Earnings(
-                offer=offer, 
-                network=self.account.network,
-                campaign=td[3].a.string,
-                payout=decimal.Decimal(str(offer.payout)),
-                revenue=td[6].string[1:]
-            ).save()
+        if 'today_revenue' in self.data['today_revenue']:
+            self.account.setRevenue(self.data['today_revenue'])
         return True
-    """     
+   
             
 class CopeacHandler(Handler):
     
