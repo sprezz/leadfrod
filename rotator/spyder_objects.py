@@ -42,16 +42,15 @@ from rotator.models import Earnings, Account, Offer, UnknownOffer
                     'password_key':'txtPassword',
                     'login_form_selector':{'name':'form1'},
                   },
-              
-              "http://www.clickbooth.com":{
+"""
+NETWORKS_MAP={
+                "http://www.clickbooth.com":{
                     "login_url":'https://publishers.clickbooth.com/',
                     "data_url":'https://publishers.clickbooth.com/partners/reports/performance.html?program_menu_type=0&program_id=0&period=today&start_date_day=%s&end_date_day=%s&report_type=html',
                     "login_key":'DL_AUTH_USERNAME',
                     'password_key':'DL_AUTH_PASSWORD',
                     'login_form_selector':{'nr':0},
-                  },
-"""
-NETWORKS_MAP={
+                },
                 "http://clickbooth.com/":{
                     "login_url":'https://publishers.clickbooth.com/',
                     "data_url":'https://publishers.clickbooth.com/partners/reports/performance.html?program_menu_type=0&program_id=0&period=today&start_date_day=%s&end_date_day=%s&report_type=html',
