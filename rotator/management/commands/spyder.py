@@ -21,7 +21,7 @@ class Command(BaseCommand):
             'https://adscendmedia.com/': AdscendHandler,
             'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
         }
-        #networks = { 'http://emt.copeac.com/forms/login.aspx': CopeacHandler}
+        #networks = { 'http://www.c2mtrax.com/': APIHandler}
         
         for account in Account.objects.all():
             if account.network.url in networks:  

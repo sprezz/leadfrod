@@ -11,7 +11,7 @@ PROXIES = [
     '95.65.26.94:8080', # good
     '84.88.67.196:80', # slowly
 ]
-  
+
   
 class Handler:
     
@@ -294,9 +294,12 @@ class APIHandler(Handler):
             print "Warning! Add api for account %s" % self.account
             return False
 
-        date = "%s/%s/%s" % (self.now.month, self.now.day, self.now.year)
+        yesterday = self.now - datetime.timedelta(days=1)
+        yesterday = "%s/%s/%s" % (yesterday.month, yesterday.day, yesterday.year)
+        
         self.url = "%saffiliates/api/1/reports.asmx/CampaignSummary?affiliate_id=%s&api_key=%s&start_date=%s&end_date=%s" \
-            % (self.account.network.url, self.account.api.affiliate_id, self.account.api.api_key, date, date)
+            % (self.account.network.url, self.account.api.affiliate_id, self.account.api.api_key, 
+               yesterday, "%s/%s/%s" % (self.now.month, self.now.day, self.now.year))
         
         print 'extracting from ' + self.url
         
