@@ -2,7 +2,7 @@ import mechanize
 from BeautifulSoup import BeautifulSoup
 import datetime
 import re
-
+import logging
 
 SITES_MAP = {
     'jumptap.com': {
@@ -48,7 +48,7 @@ SITES_MAP = {
 
 class Displayer:
     def __init__(self, site):
-        self.params = SITES_MAP[site]
+        self.params = SITES_MAP[site].copy()
         self.br = mechanize.Browser()
         self.br.set_debug_responses(True)
         self.br.set_debug_redirects(True)
@@ -77,8 +77,6 @@ class AdmobDisplayer(Displayer):
     def __init__(self, site):
         Displayer.__init__(self, site)
         d = str(datetime.date.today().strftime("%Y-%m-%d"))
-        print self.params['url']
-        print d
         self.params['url'] = self.params['url'] % (d, d)
         
     def run(self):
@@ -122,15 +120,16 @@ class AdmobDisplayer(Displayer):
 
 
 class InmobiDisplayer(Displayer):
-    pass
+    def run(self):
+        soup = self.getSoup()
+        #self.br.select_form.
+        #pass
 
 
 class MoolahDisplayer(Displayer):
     def __init__(self, site):
         Displayer.__init__(self, site)
         d = str(datetime.date.today().strftime("%m/%d/%Y"))
-        print self.params['url']
-        print d
         self.params['url'] = self.params['url'] % (d, d)
         
         
