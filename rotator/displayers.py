@@ -3,6 +3,7 @@ from BeautifulSoup import BeautifulSoup
 import datetime
 import re
 
+
 SITES_MAP = {
     'jumptap.com': {
         'username_key': 'username',
@@ -10,7 +11,7 @@ SITES_MAP = {
         'username': 'benb24', 
         'password': 'busby123',
         'loginurl': 'https://www.jumptap.com/cas-1.0/login?service=https%3A%2F%2Fppc.jumptap.com%2Ftapmatch31%2Fj_spring_cas_security_check',
-        'login_form_selector': {'nr':0},
+        'login_form_selector': {'nr': 0},
         'url': 'https://ppc.jumptap.com/tapmatch31/listCampaign.html',        
         #table id="campaigns" class="tblManageList"
     },
@@ -20,7 +21,7 @@ SITES_MAP = {
         'username': 'Ryanwessels21@yahoo.com', 
         'password': 'proballer25',
         'loginurl': 'http://www.admob.com/',
-        'login_form_selector': {'nr':0},
+        'login_form_selector': {'nr': 0},
         'url': 'http://www.admob.com/campaigns/?start_date=%s&end_date=%s',
         #table class="altRowTable "
     },
@@ -30,11 +31,17 @@ SITES_MAP = {
         'username': 'benb24@gmail.com', 
         'password': 'busby123',
         'loginurl': 'https://www.inmobi.com/advertiser/Login.html',
-        'login_form_selector': {'name':'loginForm'},
+        'login_form_selector': {'name': 'loginForm'},
         'url': 'https://www.inmobi.com/advertiser/tablereports.html?page=1&rp=50&sortname=cost&sortorder=desc',
     },
     'moolah-media.com': {
-        
+        'username_key': 'mail',
+        'password_key': 'pass', 
+        'username': 'benb24@gmail.com',
+        'password': 'busby123',       
+        'loginurl': 'http://moolah-media.com/login.php',
+        'login_form_selector': {'name': 'form_'},
+        'url': 'http://publisher.moolah-media.com/xhr/affiliate.report.php?datefromtime=%s&datetotime=%s&unix_timestamp=0&link_id=all_links&sub_id=0'
     } 
 }
 
@@ -119,7 +126,15 @@ class InmobiDisplayer(Displayer):
 
 
 class MoolahDisplayer(Displayer):
-    pass
+    def __init__(self, site):
+        Displayer.__init__(self, site)
+        d = datetime.date.today().strftime("%m/%d/%Y")
+        print self.params['url']
+        print d
+        self.params['url'] = self.params['url'] % (d, d)
+        
+        
+        
 
       
     
