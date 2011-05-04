@@ -13,7 +13,7 @@ from models import *
 from rotator.trafficholder import TrafficHolder
 from trafficholder import UnknownOrderException
 from spyderhandler import AzoogleHandler
-
+from displayers import *
 
 #@login_required
 def index(request):
@@ -295,6 +295,22 @@ def offer_changestatus(request, offer_id):
         return HttpResponse('0')
 
 
+def spyder(request, site):    
+    SITES = {
+        'jumptap.com': JumptapDisplayer,
+        'admob.com': AdmobDisplayer,
+        'inmobi.com': InmobiDisplayer,
+        'moolah-media.com': MoolahDisplayer, 
+    }
+    
+    if site not in SITES:
+        return Http404
+    
+    return HttpResponse(str(SITES[site](site).run()))
+    
+    
+    
+    
 def release_lead():
     #set completed = true
     #set lock=false

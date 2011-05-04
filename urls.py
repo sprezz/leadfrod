@@ -31,6 +31,8 @@ urlpatterns = patterns('',
      (r'^azoogle/accounts/$', 'rotator.views.azoogleAccounts'),
      (r'^azoogle/earnings/save/$', 'rotator.views.azoogleEarningsSave'),
      
+     (r'^spyder/(?P<site>.+)?$', 'rotator.views.spyder'),
+     
      url(r'^offer/(?P<offer_id>\d+)/changestatus/', 'rotator.views.offer_changestatus', name="changeOfferStatus"),
     # Uncomment the next line to enable the admin:
      (r'^admin/', include(admin.site.urls)),
