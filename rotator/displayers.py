@@ -1,6 +1,7 @@
 import mechanize
 from BeautifulSoup import BeautifulSoup
-
+import datetime
+import re
 
 SITES_MAP = {
     'jumptap.com': {
@@ -20,7 +21,7 @@ SITES_MAP = {
         'password': 'proballer25',
         'loginurl': 'http://www.admob.com/',
         'login_form_selector': {'nr':0},
-        'url': 'http://www.admob.com/campaigns/',
+        'url': 'http://www.admob.com/campaigns/?start_date=%s&end_date=%s',
         #table class="altRowTable "
     },
     'inmobi.com': {
@@ -66,17 +67,50 @@ class JumptapDisplayer(Displayer):
 
 
 class AdmobDisplayer(Displayer):
+    def __init__(self, site):
+        Displayer.__init__(self, site)
+        d = datetime.date.today().strftime("%Y-%m-%d")
+        print self.params['url']
+        print d
+        self.params['url'] = self.params['url'] % (d, d)
+        
     def run(self):
         soup = self.getSoup()
-        content = ''
-        for link in soup.findAll('link'):
-            content += str(link)
-        content += str(soup.find('table', {'class':'altRowTable '}))
-        """
-        url = "http://www.admob.com/campaigns/view/ajax_stats?ids%5B%5D=a14db3791010f67&ids%5B%5D=a14db5eb624d120&ids%5B%5D=a14db65fa1d1063&ids%5B%5D=a14dbdd7b8e0cdf&ids%5B%5D=a14dbe00398890c"
-        response = self.br.open(url)
-        content = response.read()
-        """
+        table = soup.find('table', {'class':'altRowTable '})
+        offers  = {}
+        for tr in table.find('tbody').findAll('tr'):
+            td = tr.findAll('td')
+            s = str(tr)
+            m = re.compile(r'.*rel="(.*)" class.*').search(s)
+            if m:
+                key = m.groups()[0]
+                print td[3]
+                offers[key] = {
+                    'Campaign': td[1].strong.a.string,
+                    'Created': td[2].string,
+                    'Status': td[3].div['alt'],
+                    'Budget': td[4].string
+                }
+            
+        ids = offers.keys()
+        response = self.br.open("http://www.admob.com/campaigns/view/ajax_stats?ids[]=" + "&ids[]=".join(ids))
+        
+        data = eval(response.read())
+        
+        content = """<table width='100%' border='1'><tr><th>Campaign</th><th>Created</th><th>Status</th>
+            <th>Budget</th><th>Avg. CPC</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Cost</th></tr>"""
+        for id in ids:
+            offers[id]['Avg. CPC'] = data['s'][id][0]
+            offers[id]['Cost'] = data['s'][id][1]
+            offers[id]['Impressions'] = data['s'][id][4]
+            offers[id]['Clicks'] = data['s'][id][3]
+            offers[id]['CTR'] = data['s'][id][2]
+            content += """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
+                <td>%s</td><td>%s</td></tr>""" % (offers[id]['Campaign'], offers[id]['Created'], 
+                offers[id]['Status'], offers[id]['Budget'], offers[id]['Avg. CPC'], offers[id]['Impressions'],
+                offers[id]['Clicks'], offers[id]['CTR'], offers[id]['Cost'])
+        content += "</table>"    
+
         return content
 
 
