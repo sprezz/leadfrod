@@ -76,7 +76,7 @@ class JumptapDisplayer(Displayer):
 class AdmobDisplayer(Displayer):
     def __init__(self, site):
         Displayer.__init__(self, site)
-        d = datetime.date.today().strftime("%Y-%m-%d")
+        d = str(datetime.date.today().strftime("%Y-%m-%d"))
         print self.params['url']
         print d
         self.params['url'] = self.params['url'] % (d, d)
@@ -128,7 +128,7 @@ class InmobiDisplayer(Displayer):
 class MoolahDisplayer(Displayer):
     def __init__(self, site):
         Displayer.__init__(self, site)
-        d = datetime.date.today().strftime("%m/%d/%Y")
+        d = str(datetime.date.today().strftime("%m/%d/%Y"))
         print self.params['url']
         print d
         self.params['url'] = self.params['url'] % (d, d)
