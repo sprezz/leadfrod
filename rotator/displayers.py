@@ -23,7 +23,7 @@ SITES_MAP = {
         'loginurl': 'http://www.admob.com/',
         'login_form_selector': {'nr': 0},
         'url': 'http://www.admob.com/campaigns/?start_date=%s&end_date=%s',
-        #table class="altRowTable "
+        'ajax_url': 'http://www.admob.com/campaigns/view/ajax_stats?ids[]='
     },
     'inmobi.com': {
         'username_key': 'username',
@@ -32,7 +32,9 @@ SITES_MAP = {
         'password': 'busby123',
         'loginurl': 'https://www.inmobi.com/advertiser/Login.html',
         'login_form_selector': {'name': 'loginForm'},
-        'url': 'https://www.inmobi.com/advertiser/tablereports.html?page=1&rp=50&sortname=cost&sortorder=desc',
+        'url': 'https://www.inmobi.com/advertiser/reports.html',
+        'ajax_url': "https://www.inmobi.com/advertiser/tablereports.html?page=1&rp=1000&sortname=cost&sortorder=desc",
+        #'url': 'https://www.inmobi.com/advertiser/tablereports.html?page=1&rp=50&sortname=cost&sortorder=desc',
     },
     'moolah-media.com': {
         'username_key': 'mail',
@@ -98,7 +100,7 @@ class AdmobDisplayer(Displayer):
                 }
             
         ids = offers.keys()
-        response = self.br.open("http://www.admob.com/campaigns/view/ajax_stats?ids[]=" + "&ids[]=".join(ids))
+        response = self.br.open(self.params['ajax_url'] + "&ids[]=".join(ids))
         
         data = eval(response.read())
         
@@ -122,8 +124,12 @@ class AdmobDisplayer(Displayer):
 class InmobiDisplayer(Displayer):
     def run(self):
         soup = self.getSoup()
-        #self.br.select_form.
-        #pass
+        self.br.select_form(nr=1)
+        self.br.form.controls[3].readonly = False
+        self.br['timefilter'] = 'last3months'
+        response = self.br.submit()
+        #response = self.br.open(self.params['ajax_url'])
+        return str(response.read())
 
 
 class MoolahDisplayer(Displayer):
