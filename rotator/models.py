@@ -388,6 +388,38 @@ class WorkManager(models.Model):
         return True    
                     
     def nextWorkItem(self, worker):
+        def __nextWorkItem(lead, nextLead):
+            exceptionMessage = None
+            if not lead.is_locked:
+                logging.info('%s - locking the lead' % datetime.datetime.now())
+                lead.lock_for(worker)
+                lead.worker = worker
+                lead.save()
+            else:
+                exceptionMessage = "Locked by %s at %s" % (lead.locked_by, lead.locked_at)
+                logging.info("%s - %s" % (datetime.datetime.now(), exceptionMessage)) 
+                return exceptionMessage
+
+            wi = WorkItem(lead)
+            wi.worker = worker  
+            wi.nextLead = nextLead  
+            wi = self.work_strategy.getOffersForLead(wi)
+            logging.info('%s - found %s offers' % (datetime.datetime.now(), len(wi.offers))) 
+
+            if len(wi.offers) == 0:
+                logging.info('%s - unlock lead' % (datetime.datetime.now()))
+                lead.unlock_for(worker)
+                lead.worker = None
+                lead.save()  
+                exceptionMessage = "There are no offers with enough \
+                    capacity left for the leads in niche %s and no offer \
+                    after advertiser checking" % (lead.getNiche())
+                logging.info("%s - %s" % (datetime.datetime.now(), exceptionMessage)) 
+                return exceptionMessage 
+             
+            logging.info('%s - before result:: %s' % (datetime.datetime.now(), str(wi.__dict__)))
+            return wi 
+            
         if not worker.get_profile().now_online: 
             raise WorkerNotOnlineException()
         logging.debug('%s is online' % worker)
@@ -395,50 +427,37 @@ class WorkManager(models.Model):
         nextLead = None
         exceptionMessage = False
         csv_files = CSVFile.objects.filter(workers=worker).order_by('niche__priority')
-        logging.debug('Founded %d csv files' % len(csv_files))
+        logging.info('Founded %d csv files' % len(csv_files))
         
         for csv_file in csv_files:
             if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file):
                 exceptionMessage = "wrong cheking CSV File %s" % csv_file
-                logging.debug(exceptionMessage) 
+                logging.info('%s - %s' % (datetime.datetime.now(), exceptionMessage)) 
                 continue
             
             if lead:
                 nextLead = self.work_strategy.nextLead(csv_file)
             else:    
-                logging.debug('%s get csv' % csv_file)
+                logging.info('%s - %s get csv' % (datetime.datetime.now(),csv_file))
                 lead, nextLead = self.work_strategy.nextLead(csv_file)
-                logging.debug('Lead instance %s' % lead)
+                logging.info('%s - Lead instance %s' % (datetime.datetime.now(), lead))
                 
-            if lead and nextLead: 
-                if not lead.is_locked:
-                    logging.debug('locking the lead')
-                    lead.lock_for(worker)
-                    lead.worker = worker
-                    lead.save()
-                else:
-                    exceptionMessage = "Locked by %s at %s" % (lead.locked_by, lead.locked_at)
-                    logging.debug(exceptionMessage) 
+            if lead and nextLead:
+                wi  = __nextWorkItem(lead, nextLead, exceptionMessage)
+                if type(wi) == str:
                     continue
-
-                wi = WorkItem(lead)
-                wi.worker = worker  
-                wi.nextLead = nextLead  
-                wi = self.work_strategy.getOffersForLead(wi)
-                logging.debug('found %s offers' % len(wi.offers))  
-                if len(wi.offers) == 0:
-                    logging.debug('unlock lead')
-                    lead.unlock_for(worker)
-                    lead.worker = None
-                    lead.save()  
-                    exceptionMessage = "There are no offers with enough \
-                        capacity left for the leads in niche %s and no offer \
-                        after advertiser checking" % (lead.getNiche())
-                    logging.debug(exceptionMessage)      
-                    continue  
+                else:
+                    return wi
         
-                return wi 
-        
+        logging.info('%s - after loop :: %s' % (datetime.datetime.now(), exceptionMessage))
+        logging.info('%s - after loop lead:: %s' % (datetime.datetime.now(), lead))
+        if lead:
+            wi = __nextWorkItem(lead, nextLead)
+            if type(wi) == str:
+                raise NoWorkException(wi)
+            else: 
+                return wi
+            
         if not lead:
             raise NoWorkException("There are no active leads for your account \
                                                                     remaining")
