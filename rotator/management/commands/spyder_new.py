@@ -18,7 +18,7 @@ class Command(BaseCommand):
         networks = Network.objects.all()
         for net in networks:
             try:    
-                spy_class = getattr(spyder_objects, '%sSpyder' % (net.name[0].capitalize() + net.name[1:]))
+                spy_class = getattr(spyder_objects, '%sSpyder' % (net.name))
             except AttributeError:
                 continue
             else:

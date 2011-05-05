@@ -155,7 +155,7 @@ class Capacity(models.Model):
             return u'%s %s OFR: %s ADV: %s ACC: %s OWN: %s COM: %s' % (self.date,
                                              self.offer,
                                              self.offer.capacity,
-                                             advCapacity.capacity,
+                                             advCapacity.capacity if advCapacity else 0,
                                              self.account.capacity,
                                              self.owner.capacity,
                                              self.company.capacity) 
