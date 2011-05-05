@@ -5,7 +5,7 @@ from django.utils.importlib import import_module
 from rotator.models import Network
 from rotator import spyder_objects
 from rotator.spyder_objects import NETWORKS_MAP
-from string import capitalize
+
 
 class Command(BaseCommand):
 
@@ -17,14 +17,12 @@ class Command(BaseCommand):
     
         networks = Network.objects.all()
         for net in networks:
-            try:                
-                spy_class = getattr(spyder_objects, '%sSpyder' % (net.name))
+            try:    
+                spy_class = getattr(spyder_objects, '%sSpyder' % (net.name[0].capitalize() + net.name[1:]))
             except AttributeError:
                 continue
             else:
                 if net.url in NETWORKS_MAP:                
-                    spy = spy_class(net)
-                    spy.run_spyder()
-                
+                    spy_class(net).run_spyder()                
         
         print "Finished."
