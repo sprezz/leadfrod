@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    <head>
+    	<meta content="_c91016844-F9ED-C5E0-8C3D-3D2B81D91BB6_kEA44F9DA-8CC2-D3C0-3596-3C3D800B41A3" />
+        <!-- HTTP 1.1 -->
+        <meta http-equiv="Cache-Control" content="no-store"/>
+        <!-- HTTP 1.0 -->
+        <meta http-equiv="Pragma" content="no-cache"/>
+        <!-- Prevents caching at the Proxy Server -->
+        <meta http-equiv="Expires" content="0"/>
+
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta name="author" content="Jumptap, Inc."/>
+<title>JumpTap ~Login</title>
+		
+		<link rel="stylesheet" type="text/css" media="screen" href="/cas-1.0/styles/3.0/sIFR-screen.css;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33" />
+		<link rel="stylesheet" type="text/css" media="screen" href="/cas-1.0/styles/3.0/main.css;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33" />
+		<link rel="stylesheet" type="text/css" media="screen" href="/cas-1.0/styles/3.0/templateMain.css;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33" />
+		<link rel="stylesheet" type="text/css" media="screen" href="/cas-1.0/styles/3.0/topMenu.css;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33" />
+		<link rel="stylesheet" type="text/css" media="screen" href="/cas-1.0/styles/3.0/login.css;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33" />
+
+
+        <link rel="stylesheet" type="text/css" media="screen" href="/cas-1.0/styles/login.css;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33" />
+        <link rel="stylesheet" type="text/css" media="screen" href="/cas-1.0/styles/messages.css;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33" />
+
+        <script type="text/javascript" src="https://www.jumptap.com/js/sifr.js"></script>
+
+        <script type="text/javascript" src="/cas-1.0/scripts/prototype.js;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33"></script>
+        <script type="text/javascript" src="/cas-1.0/scripts/global.js;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33"></script>
+		<script type="text/javascript" src="/cas-1.0/scripts/forms.js;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33"></script>
+		<script type="text/javascript" src="/cas-1.0/scripts/tc_ajax.js;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33"></script>
+
+        <link rel="shortcut icon" href="https://www.jumptap.com/favicon.ico" />
+ 
+      
+    </head>
+
+    <body id="login">
+    <script type="text/javascript">
+
+
+function saveUsername(theForm) {
+    var expires = new Date();
+    expires.setTime(expires.getTime() + 24 * 30 * 60 * 60 * 1000); // sets it for approx 30 days.
+    setCookie("username",theForm.j_username.value,expires,"/cas-1.0/;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33",
+            false);
+}
+
+function validateForm(form) {
+	var missingFields = false;
+	$('requiredMessages').style.display = 'none';
+	$('usernameRequiredMessage').style.display = 'none';
+	$('passwordRequiredMessage').style.display = 'none';
+
+	if( $('j_username').value == '' ){
+		$('requiredMessages').style.display = 'block';
+		$('usernameRequiredMessage').style.display = 'block';
+		missingFields = true;
+	}
+	if( $('j_password').value == '' ){
+		$('requiredMessages').style.display = 'block';
+		$('passwordRequiredMessage').style.display = 'block';
+		missingFields = true;
+	}
+	
+	if( missingFields )
+		return false;
+	
+    return validateRequired(form); 
+} 
+
+function passwordHint() {
+    if (document.getElementById("j_username").value.length == 0) {
+        alert("Account Id is a required field to get the hint");
+        document.getElementById("j_username").focus();
+    } else {
+        location.href="https://pa.jumptap.com/pa/passwordHint.html?username=" + document.getElementById("j_username").value;     
+    }
+}
+</script>       
+    
+		<div id="adminBulkDiv">
+		</div>		
+	    <div id="headerContent">
+			<div id="logoLinkHome">
+    			<a href="http://www.jumptap.com/"><img title="JumpTap" src="https://www.jumptap.com/images/JumpTapLogo.png" alt="JumpTapLogo" /></a>
+			</div>
+	    </div>
+		
+		<div id="mainContent">
+
+		<div id="menuDiv">&nbsp;</div>
+
+		<!--Content-->
+		<div id="content">
+			<div id="imageTop">
+				<div class="imageTopCommon imageTopTokyo2">
+			        <div id="imageTopHeader">       
+			            <h1>Login</h1> 
+			        </div>
+				</div>
+			</div>
+                    
+            <div id="titleHead" class="'headNoSubTitleHead !important">
+            </div>          
+				
+            <div id="subContent">
+                <div id="ContentRight">
+                </div>
+                
+                <div id="infoContent">
+                    <div id="landingPage">
+                   
+				<p class="divLoginHeadingContent">Jumptap's pay-per-click advertising network.</p>
+                        <!-- Add Content Here -->
+				        <div id="loginContent" style="margin-top: 30px">
+                           <div class="divLoginShape">
+
+                                <div class="divSignUp">
+                                   <p class="advertiserTitle" > New Advertisers</p>
+                                <p class="contentSign"><strong>Target the right mobile consumers. Make the most of your advertising budget.</strong>
+                                </p>
+                                <p class="contentSign">Promote your business with pay-per-click advertising. Take advantage of advanced targeting on premium mobile sites and in applications. (i.e., iPhone apps). Control budgets and increase click-throughs and conversions with the award-winning Jumptap mobile ad network. Build your business and brand awareness today. </p>
+                                <span class="contentSign">Set up your account now. It's easy.</span><button id="signupButton" onclick="goToPage('https://ppc.jumptap.com/tapmatch31/app/flows/signup');">Get started now</button>
+	                                   
+	                            <p style="direction:rtl; margin-bottom:-10px;">
+					               <a href="http://www.jumptap.com/paid-search-sponsored-links-keywords" >...Learn more</a>
+					           </p>
+	                                   <br/><br/>
+	                            <p class="advertiserTitle" > New Publishers</p>
+                                <p class="contentSign"><strong>Maximize the revenue of your mobile website or application. Display targeted ads from leading brands.</strong>
+                                </p>
+                                <p class="contentSign">Join the award-winning Jumptap performance advertising network. Advanced targeting delivers highly relevant ads to your users...and achieves some of the highest effective CPMs in the mobile industry. <ul><li>Easily set up your site or application for mobile ads</li><li>Control the type of ads that appear on your property</li><li>Review your revenue results with performance reports</li></ul> </p>
+                                
+								<br/>
+                                <span class="contentSign">Grow your mobile revenue today. It's simple to get started.</span><button id="signupButtonPA" onclick="goToPage('https://pa.jumptap.com/pa/signupPA.html');">Get started now</button>
+								<p style="direction:rtl; margin-bottom:-10px;">
+					               <a href="http://www.jumptap.com/mobile-web-publishers-and-iphone-developers     ">...Learn more</a>
+					           </p>	                            
+                                   </div>
+
+                               <div class="divLogin" style="padding:10px;">
+                                   <p class="advertiserTitle" style="margin-left:6px;margin-top:-10px;" > Existing Accounts</p>
+                                    <p class="advertiserTitle" style="margin-left:-4px;"> Login</p>
+                                   <span style="margin-left:2px;"><strong>to your Jumptap account</strong></span>
+                                   <br/>
+                                   <div style="padding:10px; ">
+                                   
+                                  <form id="fm1" action="/cas-1.0/login;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33?password=busby123&amp;username=benb24" method="post" onsubmit="saveUsername(this)"><label for="j_username" class="required">
+	                                                     Account ID:
+	                                            </label>
+	                                           <br/>
+	                                            <input id="j_username" name="username" class="textinput" style="width: 100px;" tabindex="1" type="text" value=""/><br/><br/>
+	                                               <label for="j_password" class="required">
+	                                                     Password:
+	                                               </label>
+	                                           <br/>
+	                                            <input id="j_password" name="password" class="textinput" style="width: 100px;" tabindex="2" type="password" value=""/><!-- for Resin -->
+	                                            <input type="hidden" name="j_uri" value="" />
+	                                            <input type="hidden" name="lt" id="lt" value="_c91016844-F9ED-C5E0-8C3D-3D2B81D91BB6_kEA44F9DA-8CC2-D3C0-3596-3C3D800B41A3" />
+												<input type="hidden" name="_eventId" value="submit" />
+												<br/><br/>
+												<!-- 
+	                                               <input type="checkbox" class="checkbox" name="rememberMe" id="rememberMe" value="true" tabindex="3"/>
+	                                               <label for="rememberMe" class="normal">Remember Me</label>
+	                                               
+												<br/><br/>
+												 -->                                           
+	                                                <input type="submit" name="login" value="Sign In" style="width:75px"/>
+	                                              <br/>
+	                                             <p >
+	                                                <a class="a_login" style="" href="?" onmouseover="window.status='Have your password hint sent to you.'; return true" onmouseout="window.status=''; return true" title="Have your password hint sent to you." onclick="passwordHint(); return false">Forgot your password?</a></p>
+                                           </form><script type="text/javascript">
+		                               var action=document.forms['fm1'].action;
+	                               	document.forms['fm1'].action=action.replace('ph=true&','');
+	                               	document.forms['fm1'].action=action.replace('ph=false&','');
+	                               </script>
+	                               </div>
+                               </div>
+                               
+                              
+                               
+			               </div>		
+			               
+                           <form method="get" id="localeForm" action="/cas-1.0/login.jsp;jsessionid=0B2C34B847B4A79655594D49D528B6BD.web33">                    
+                               </form>
+			               		               
+			            </div>
+			        </div>       
+                </div>
+
+		       <div id="loginFooter" style="clear:both;">
+		          
+		       </div>		
+	    </div>      
+    </div>
+</div>
+
+<br/>
+<br/>
+
+<!-- Web Page Footer -->
+<div id="footerDiv">
+	<div id="footerMenuDiv">
+		<div id="footerMenuLeft"></div>
+		<div id="footerMenuCenter">
+			<ul id="footerMenu">
+				<li id="copyrightJumpTap">
+    				<a class="footerLinks" href="http://www.jumptap.com/">&copy; Copyright Jumptap, Inc. All rights reserved</a>               <br>
+				</li>
+				<li id="footerMenuSiteMap">
+    				<a class="footerLinks" href="http://www.jumptap.com/site-map">Site Map</a>
+				</li>
+				<li id="footerMenuAboutJumptap">
+    				<a class="footerLinks" href="http://www.jumptap.com/about-jumptap">Company</a>
+				</li>
+				<li id="footerMenuCareers">
+    				<a class="footerLinks" href="http://www.jumptap.com/careers">Careers</a>
+				</li>
+				<li id="footerMenuContact">
+    				<a class="footerLinks" href="http://www.jumptap.com/contact">Contact</a>
+				</li>
+			</ul>
+		</div>
+		<div id="footerMenuRight"></div>
+	</div>
+	<tiles:insert definition="ClickyTracking" flush="true"/>
+</div>
+
+
+<!-- *************** -->
+<script type="text/javascript">
+document.getElementById("j_username").focus();
+if (getCookie("username") != null) {
+	document.getElementById('j_username').value = getCookie('username');
+	document.getElementById('j_password').focus();
+}
+    if(typeof sIFR == "function"){
+        sIFR.replaceElement(named({sSelector:"#contactFormHeader h2", sFlashSrc:"https://www.jumptap.com/flash/BauhausMedium.swf",
+    sColor:"#2A377E",sLinkColor:"#000000", sWmode:"transparent",
+    sBgColor:"#FFFFFF", sHoverColor:"#CCCCCC", sFlashVars:"textalign=center&amp;offsetTop=0"}));
+        sIFR.replaceElement(named({sSelector:"#imageTop h1", sFlashSrc:"https://www.jumptap.com/flash/BauhausMedium.swf",
+    sColor:"#2A377E",sLinkColor:"#000000", sWmode:"transparent",
+    sBgColor:"#E2EDF1", sHoverColor:"#CCCCCC", sFlashVars:"textalign=left&amp;offsetTop=0"}));
+        sIFR.replaceElement(named({sSelector:".sectionHeader h2", sFlashSrc:"https://www.jumptap.com/flash/BauhausMedium.swf",
+    sColor:"#F3C516",sLinkColor:"#000000", sWmode:"transparent",
+    sBgColor:"#FFFFFF", sHoverColor:"#CCCCCC", sFlashVars:"textalign=left&amp;offsetTop=0"}));
+        sIFR.replaceElement(named({sSelector:".landingPageInfo h2", sFlashSrc:"https://www.jumptap.com/flash/BauhausMedium.swf",
+    sColor:"#F3C516",sLinkColor:"#000000", sWmode:"transparent",
+    sBgColor:"#FFFFFF", sHoverColor:"#CCCCCC", sFlashVars:"textalign=left&amp;offsetTop=0"}));
+        
+};
+
+
+</script>
+
+    </body>
+</html>

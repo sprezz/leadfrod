@@ -20,8 +20,9 @@ class Command(BaseCommand):
             #'http://www.ads4dough.com/': Ads4DoughHandler,
             'https://adscendmedia.com/': AdscendHandler,
             'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
+            'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler,
         }
-        #networks = { 'http://www.c2mtrax.com/': APIHandler}
+        #networks = { "http://getads.com/": GetAdsHandler}
         
         for account in Account.objects.all():
             if account.network.url in networks:  
