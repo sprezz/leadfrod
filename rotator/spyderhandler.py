@@ -261,48 +261,7 @@ class APIHandler(Handler):
             earnings.save()
             self.today_revenue += earnings.revenue
         return True
-            
-
-class Ads4DoughHandler(Handler):
-    
-    def __init__(self, now, account):
-        Handler.__init__(self, now, account)
-        self.url = "https://affiliate.a4dtracker.com/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
-            (now.month, now.day, now.year, now.month, now.day, now.year) 
-        self.loginform = 'login' 
-
-    def run(self):        
-        def saveEarnings(trs):
-            for tr in trs:               
-                td = tr.findAll('td')
-                if not td[1].nobr:
-                    continue
-                name = td[1].nobr.string
-                offer = self.getOffer(name[1:name.find(')')])
-                if not offer:
-                    continue
-                
-                self.checkEarnings(offer)               
-                earnings = Earnings(
-                    offer=offer, 
-                    network=self.account.network,
-                    campaign=name[name.find(')')+1:],
-                    payout=decimal.Decimal(str(offer.payout)),
-                    clicks=int(td[3].a.string),
-                    revenue=decimal.Decimal(td[7].div.string[1:]),
-                    EPC=decimal.Decimal(td[6].string[1:])
-                )
-                earnings.save()
-                self.today_revenue += earnings.revenue                  
-                
-        soup = self.getSoup()
-        table = soup.find('table', {'class': 'reportinner'})
-        if not table:
-            return False
-        saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt1'}))
-        saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt2'}))
-        return True
-            
+               
 
 class AdscendHandler(Handler):
     
@@ -431,6 +390,57 @@ class CopeacHandler(Handler):
         return True
 
 
+class TrackerHandler(Handler):
+    def run(self):        
+        def saveEarnings(trs):
+            for tr in trs:               
+                td = tr.findAll('td')
+                if not td[1].nobr:
+                    continue
+                name = td[1].nobr.string
+                offer = self.getOffer(name[1:name.find(')')])
+                if not offer:
+                    continue
+                
+                self.checkEarnings(offer)               
+                earnings = Earnings(
+                    offer=offer, 
+                    network=self.account.network,
+                    campaign=name[name.find(')')+1:],
+                    payout=decimal.Decimal(str(offer.payout)),
+                    clicks=int(td[3].a.string),
+                    revenue=decimal.Decimal(td[7].div.string[1:]),
+                    EPC=decimal.Decimal(td[6].string[1:])
+                )
+                earnings.save()
+                self.today_revenue += earnings.revenue                  
+                
+        soup = self.getSoup()
+        table = soup.find('table', {'class': 'reportinner'})
+        if not table:
+            return False
+        saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt1'}))
+        saveEarnings(table.findAll('tr', {'class': 'regularTextSmallCopy  rpt2'}))
+        return True
+
+
+class Ads4DoughHandler(TrackerHandler):
+    
+    def __init__(self, now, account):
+        TrackerHandler.__init__(self, now, account)
+        self.url = "https://affiliate.a4dtracker.com/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
+            (now.month, now.day, now.year, now.month, now.day, now.year) 
+        self.loginform = 'login' 
+
+
+class GlobalizerHandler(TrackerHandler):  
+    def __init__(self, now, account):
+        TrackerHandler.__init__(self, now, account)
+        self.loginurl = "http://affiliate.glbtracker.com/index.php?pgid="
+        self.url = "http://affiliate.glbtracker.com/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
+            (now.month, now.day, now.year, now.month, now.day, now.year) 
+  
+  
 class ReportHandler(Handler):
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
