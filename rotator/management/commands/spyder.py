@@ -10,7 +10,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):   
         now = datetime.datetime.now()   
         print now 
-        networks = {            
+        networks = {     
+            'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler,
+            'http://affiliate.triadmedia.com/Welcome/LogInAndSignUp.aspx': TriadMediahandler,       
             "http://getads.com/": GetAdsHandler, 
             "http://affiliate.com/": AffiliateComHandler, 
             "https://network.hydranetwork.com/login": HydraHandler,
@@ -20,8 +22,6 @@ class Command(BaseCommand):
             'http://www.ads4dough.com/': Ads4DoughHandler,
             'https://adscendmedia.com/': AdscendHandler,
             'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
-            'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler,
-            'http://affiliate.triadmedia.com/Welcome/LogInAndSignUp.aspx': TriadMediahandler,
         }
         
         for account in Account.objects.all():
