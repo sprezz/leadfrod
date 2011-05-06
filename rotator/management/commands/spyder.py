@@ -21,8 +21,8 @@ class Command(BaseCommand):
             'https://adscendmedia.com/': AdscendHandler,
             'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
             'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler,
+            'http://affiliate.triadmedia.com/Welcome/LogInAndSignUp.aspx': TriadMediahandler,
         }
-        #networks = { 'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler}
         
         for account in Account.objects.all():
             if account.network.url in networks:  

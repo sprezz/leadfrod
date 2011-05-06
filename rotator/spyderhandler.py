@@ -6,6 +6,10 @@ import decimal
 import datetime
 
 
+"""
+proxy:
+http://tools.rosinstrument.com/proxy/
+"""
 PROXIES = [
     '148.122.38.202:8080', # good
     '95.65.26.94:8080', # good
@@ -88,72 +92,6 @@ class Handler:
             return self.changeProxy()
         print "opening %s ..." % self.url
         return BeautifulSoup(self.br.open(self.url).read())
-
-
-class ReportHandler(Handler):
-    def run(self):        
-        soup = self.getSoup()
-        if not soup:
-            return False
-        div = soup.find('div', {'id': 'ctl00_ContentPlaceHolder1_divReportData'})
-        if not div:
-            return True                      
-         
-        for tr in div.findAll('table')[1].findAll('tr'):
-            td = tr.findAll('td')
-
-            if len(td) == 1 or not td[2].find('img', {'title': 'Daily Breakout'}):
-                continue         
-           
-            offer = self.getOffer(td[3].string)
-            if not offer:
-                continue
-            
-            if td[4].span:
-                span = td[4].span['onmouseover'][5:]
-                campaign = span[:span.find("'")]
-            else:
-                campaign = td[4].string
-            
-            aprovedCTRblock = td[12].span if td[12].span else td[12]             
-            
-            self.checkEarnings(offer)            
-            earnings = Earnings(
-                offer=offer, 
-                network=self.account.network,
-                campaign=campaign,
-                status=td[5].span.string,
-                payout="%.2f" % float(td[6].string[1:]),
-                impressions=int(td[7].string),
-                clicks=int(td[8].string),
-                qualified_transactions=int(td[9].string),
-                aproved=int(td[10].string),
-                CTR=td[11].string[:-2],
-                aprovedCTR=aprovedCTRblock.string[:-2],
-                eCPM=td[13].string[1:],
-                EPC=td[14].string[1:],
-                revenue=decimal.Decimal(td[15].string[1:])
-            )
-            earnings.save()
-            self.today_revenue +=  earnings.revenue
-        return True
-
-
-class GetAdsHandler(ReportHandler): 
-  
-    def __init__(self, now, account):
-        Handler.__init__(self, now, account)
-        self.loginurl = 'http://publisher.getads.com/Welcome/LogInAndSignUp.aspx'
-        self.br.set_proxies({"http": PROXIES[self.chance]})
-        """
-        proxy:
-        http://tools.rosinstrument.com/proxy/
-        """
-        self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
-        self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
-        self.loginform = 'aspnetForm'
-        
-        self.url = 'http://publisher.getads.com/RptCampaignPerformance.aspx' 
 
 
 class AffiliateComHandler(Handler):
@@ -493,12 +431,78 @@ class CopeacHandler(Handler):
         return True
 
 
-class CPAFlashHandler(ReportHandler):
+class ReportHandler(Handler):
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
         self.loginform = 'aspnetForm'
+        
+    def run(self):        
+        soup = self.getSoup()
+        if not soup:
+            return False
+        div = soup.find('div', {'id': 'ctl00_ContentPlaceHolder1_divReportData'})
+        if not div:
+            return True                      
+         
+        for tr in div.findAll('table')[1].findAll('tr'):
+            td = tr.findAll('td')
+
+            if len(td) == 1 or not td[2].find('img', {'title': 'Daily Breakout'}):
+                continue         
+           
+            offer = self.getOffer(td[3].string)
+            if not offer:
+                continue
+            
+            if td[4].span:
+                span = td[4].span['onmouseover'][5:]
+                campaign = span[:span.find("'")]
+            else:
+                campaign = td[4].string
+            
+            aprovedCTRblock = td[12].span if td[12].span else td[12]             
+            
+            self.checkEarnings(offer)            
+            earnings = Earnings(
+                offer=offer, 
+                network=self.account.network,
+                campaign=campaign,
+                status=td[5].span.string,
+                payout="%.2f" % float(td[6].string[1:]),
+                impressions=int(td[7].string),
+                clicks=int(td[8].string),
+                qualified_transactions=int(td[9].string),
+                aproved=int(td[10].string),
+                CTR=td[11].string[:-2],
+                aprovedCTR=aprovedCTRblock.string[:-2],
+                eCPM=td[13].string[1:],
+                EPC=td[14].string[1:],
+                revenue=decimal.Decimal(td[15].string[1:])
+            )
+            earnings.save()
+            self.today_revenue +=  earnings.revenue
+        return True
+
+
+class GetAdsHandler(ReportHandler): 
+  
+    def __init__(self, now, account):
+        ReportHandler.__init__(self, now, account)
+        self.loginurl = 'http://publisher.getads.com/Welcome/LogInAndSignUp.aspx'
+        self.br.set_proxies({"http": PROXIES[self.chance]})      
+        self.url = 'http://publisher.getads.com/RptCampaignPerformance.aspx' 
+        
+        
+class CPAFlashHandler(ReportHandler):
+    def __init__(self, now, account):
+        ReportHandler.__init__(self, now, account)
         self.url = "http://affiliate.cpaflash.com/RptCampaignPerformance.aspx"
         
         
+class TriadMediahandler(ReportHandler):
+    def __init__(self, now, account):
+        ReportHandler.__init__(self, now, account)
+        self.url = "http://affiliate.triadmedia.com/RptCampaignPerformance.aspx"
+
