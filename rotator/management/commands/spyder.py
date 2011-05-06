@@ -3,11 +3,12 @@ from rotator.models import Account
 from rotator.spyderhandler import *
 
 import datetime
-
+import time
 
 class Command(BaseCommand):
 
-    def handle(self, *args, **options):   
+    def handle(self, *args, **options): 
+        start_time = time.time()  
         now = datetime.datetime.now()   
         print now 
         networks = {                   
@@ -24,7 +25,7 @@ class Command(BaseCommand):
             'http://affiliate.triadmedia.com/Welcome/LogInAndSignUp.aspx': TriadMediahandler,
             'http://www.globalizernetwork.com': GlobalizerHandler,
         }
-        networks = {'http://www.globalizernetwork.com': GlobalizerHandler, }
+        #networks = {'http://www.globalizernetwork.com': GlobalizerHandler, }
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](now, account)              
@@ -33,4 +34,4 @@ class Command(BaseCommand):
                     account.setRevenue(current_spyder.revenue)
                 else:
                     account.setRevenue(None)
-        print "Finished."
+        print "Finished. Done in %d seconds" % (time.time() - start_time)
