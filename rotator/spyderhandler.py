@@ -196,9 +196,9 @@ class AffiliateComHandler(Handler):
                 payout=td[11].a.string[1:-5],
                 impressions=td[2].string,
                 clicks=td[3].string,
-                CTR=td[5].string[:-1],
+                CTR=td[5].string[:-1].replace(',', ''),
                 EPC=0 if td[10].string == 'N/A' else td[10].string[1:],
-                revenue=decimal.Decimal((block[block.find('$') + 1 : block.find('a') - 1]).replace(',', ''))
+                revenue=decimal.Decimal((block[block.find('$') + 1 : block.find('a') - 1]))
             )
             earnings.save()
             self.today_revenue += earnings.revenue
