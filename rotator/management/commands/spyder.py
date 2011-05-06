@@ -17,12 +17,12 @@ class Command(BaseCommand):
             'http://acpaffiliates.com/Publishers': ACPAffiliatesHandler,
             'http://www.c2mtrax.com/': APIHandler,
             'http://www.ecoretrax.com/': APIHandler,
-            #'http://www.ads4dough.com/': Ads4DoughHandler,
+            'http://www.ads4dough.com/': Ads4DoughHandler,
             'https://adscendmedia.com/': AdscendHandler,
             'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
             'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler,
         }
-        #networks = { "http://getads.com/": GetAdsHandler}
+        #networks = { 'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler}
         
         for account in Account.objects.all():
             if account.network.url in networks:  

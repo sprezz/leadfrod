@@ -154,55 +154,7 @@ class GetAdsHandler(ReportHandler):
         self.loginform = 'aspnetForm'
         
         self.url = 'http://publisher.getads.com/RptCampaignPerformance.aspx' 
-    
-    """
-    def run(self):        
-        soup = self.getSoup()
-        if not soup:
-            return False
-        div = soup.find('div', {'id': 'ctl00_ContentPlaceHolder1_divReportData'})
-        if not div:
-            return True                      
-         
-        for tr in div.findAll('table')[1].findAll('tr'):
-            td = tr.findAll('td')
 
-            if len(td) == 1 or not td[2].find('img', {'title': 'Daily Breakout'}):
-                continue         
-           
-            offer = self.getOffer(td[3].string)
-            if not offer:
-                continue
-            
-            if td[4].span:
-                span = td[4].span['onmouseover'][5:]
-                campaign = span[:span.find("'")]
-            else:
-                campaign = td[4].string
-            
-            aprovedCTRblock = td[12].span if td[12].span else td[12]             
-            
-            self.checkEarnings(offer)            
-            earnings = Earnings(
-                offer=offer, 
-                network=self.account.network,
-                campaign=campaign,
-                status=td[5].span.string,
-                payout="%.2f" % float(td[6].string[1:]),
-                impressions=int(td[7].string),
-                clicks=int(td[8].string),
-                qualified_transactions=int(td[9].string),
-                aproved=int(td[10].string),
-                CTR=td[11].string[:-2],
-                aprovedCTR=aprovedCTRblock.string[:-2],
-                eCPM=td[13].string[1:],
-                EPC=td[14].string[1:],
-                revenue=decimal.Decimal(td[15].string[1:])
-            )
-            earnings.save()
-            self.today_revenue +=  earnings.revenue
-        return True
-    """
 
 class AffiliateComHandler(Handler):
     
@@ -377,7 +329,8 @@ class Ads4DoughHandler(Handler):
     
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
-        self.url = "https://affiliate.a4dtracker.com/logged.php?pgid=22" 
+        self.url = "https://affiliate.a4dtracker.com/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
+            (now.month, now.day, now.year, now.month, now.day, now.year) 
         self.loginform = 'login' 
 
     def run(self):        
