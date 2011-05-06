@@ -443,7 +443,7 @@ class WorkManager(models.Model):
                 logging.info('%s - Lead instance %s' % (datetime.datetime.now(), lead))
                 
             if lead and nextLead:
-                wi  = __nextWorkItem(lead, nextLead, exceptionMessage)
+                wi  = __nextWorkItem(lead, nextLead)
                 if type(wi) == str:
                     continue
                 else:
