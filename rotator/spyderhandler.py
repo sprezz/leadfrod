@@ -26,6 +26,7 @@ class Handler:
         self.chance = 0
         self.url = 'set url'
         self.loginform = False
+        self.useproxy = False
         self.username_field = 'username'
         self.password_field = 'password'
         self.br = mechanize.Browser()
@@ -75,7 +76,7 @@ class Handler:
         try:
             self.br.open(self.loginurl)      
         except:
-            return self.changeProxy()
+            return self.changeProxy() if self.useproxy else False
         
         if self.loginform:  
             self.br.select_form(name=self.loginform)
@@ -88,7 +89,7 @@ class Handler:
         try:
             self.br.submit()
         except:
-            return self.changeProxy()
+            return self.changeProxy() if self.useproxy else False
         print "opening %s ..." % self.url
         return BeautifulSoup(self.br.open(self.url).read())
 
@@ -104,6 +105,8 @@ class AffiliateComHandler(Handler):
    
     def run(self):       
         soup = self.getSoup()
+        if not soup:
+            return False
         table = soup.find('table', {'class': 'recordTable'})
         if not table:
             return False
@@ -149,7 +152,9 @@ class HydraHandler(Handler):
         self.loginform = 'login_form'
                       
     def run(self):       
-        soup =  self.getSoup()        
+        soup =  self.getSoup() 
+        if not soup:
+            return False       
         div = soup.find('div', {'class': 'table-data-div'})
         if not div:
             return False
@@ -196,7 +201,8 @@ class APIHandler(Handler):
         print 'extracting from ' + self.url
         
         soup = BeautifulStoneSoup(urllib2.urlopen(self.url))
-        
+        if not soup:
+            return False
         for i in soup.findAll('campaign'):
             offer = self.getOffer(i.offer_id.string)
             if not offer:
@@ -228,7 +234,8 @@ class AdscendHandler(Handler):
         
     def run(self):    
         soup = self.getSoup()
-       
+        if not soup:
+            return False
         for tr in soup.find('div', {'id': 'content'}).find('table', {'class': 'bordered'}).findAll('tr'):
             td = tr.findAll('td')
             if not td[0].a: 
@@ -323,6 +330,8 @@ class CopeacHandler(Handler):
         
     def run(self):
         soup = self.getSoup()
+        if not soup:
+            return False
         table = soup.find('table', {'id': 'itemPlaceholderContainer'})
         if not table:
             return False
@@ -351,7 +360,7 @@ class CopeacHandler(Handler):
     TrackerHandler: Ads4Dough, Globalizer
 """
 class TrackerHandler(Handler):
-    def __init(self, now, account, domain):
+    def __init__(self, now, account, domain):
         Handler.__init__(self, now, account)
         self.url = "https://%s/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
             (domain, now.month, now.day, now.year, now.month, now.day, now.year) 
@@ -381,6 +390,8 @@ class TrackerHandler(Handler):
                 self.today_revenue += earnings.revenue                  
                 
         soup = self.getSoup()
+        if not soup:
+            return False
         table = soup.find('table', {'class': 'reportinner'})
         if not table:
             return False
@@ -462,6 +473,7 @@ class ReportHandler(Handler):
 class GetAdsHandler(ReportHandler):  
     def __init__(self, now, account):
         ReportHandler.__init__(self, now, account, "publisher.getads.com")
+        self.useproxy = True
         self.br.set_proxies({"http": PROXIES[self.chance]})      
         
         
@@ -485,7 +497,8 @@ class StatsHandler(Handler):
     
     def run(self):
         soup = self.getSoup()
-
+        if not soup:
+            return False
         block = soup.find('tbody', {'id': 'pagingBody'})
         if not block:
             return True
