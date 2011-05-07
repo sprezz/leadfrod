@@ -17,8 +17,7 @@ PROXIES = [
 ]
 
   
-class Handler:
-    
+class Handler:    
     def __init__(self, now, account):
         self.today_revenue = 0
         self.account = account
@@ -94,8 +93,7 @@ class Handler:
         return BeautifulSoup(self.br.open(self.url).read())
 
 
-class AffiliateComHandler(Handler):
-    
+class AffiliateComHandler(Handler):    
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
         self.url = "https://login.tracking101.com/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
@@ -143,8 +141,7 @@ class AffiliateComHandler(Handler):
         return True
 
 
-class HydraHandler(Handler):
-    
+class HydraHandler(Handler):    
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
         self.url = "https://network.hydranetwork.com/load_component/MyCampaigns/sort_by-Campaign/sort_order-asc/date_range-Today"
@@ -179,51 +176,9 @@ class HydraHandler(Handler):
         return True
   
 
-class ACPAffiliatesHandler(Handler):
-    
-    def __init__(self, now, account):
-        Handler.__init__(self, now, account)
-        self.loginurl = "http://www.acpaffiliates.com/"
-        self.url = "http://publisher.affiliatecashpile.com/stats/index/offers" 
-        self.username_field = 'data[User][email]'
-        self.password_field = 'data[User][password]'
-        self.loginform = 'loginform'        
-    
-    def run(self):
-        soup = self.getSoup()
-
-        block = soup.find('tbody', {'id': 'pagingBody'})
-        if not block:
-            return True
-        for tr in block.findAll('tr'):
-            td = tr.findAll('td')
-            
-            href = td[0].a['href']
-            offer_num = href[ href.rfind('/') + 1 : ]
-    
-            offer = self.getOffer(offer_num)
-            if not offer:
-                continue
-            
-            link = td[0].a.string
-            b = link.find('(')
-            clicks = int(td[2].string)
-
-            self.checkEarnings(offer)
-            earnings = Earnings(
-                offer=offer, 
-                network=self.account.network,
-                campaign=link[link.find('-') + 2 : len(link) if b == -1 else b - 1 ],
-                payout=td[4].string[1:],
-                clicks=clicks,
-                impressions=td[1].string,
-                revenue=float(td[5].string[1:]) * clicks
-            )
-            earnings.save()
-            self.today_revenue += earnings.revenue
-        return True
-       
-
+"""
+    APIHandler: Convert2media, EncoreAds
+"""
 class APIHandler(Handler):
     
     def run(self):
@@ -300,6 +255,9 @@ class AdscendHandler(Handler):
         return True
 
 
+"""
+    AzoogleHandler - handler running with selenium
+"""
 class AzoogleHandler(Handler):
     
     def __init__(self, data):
@@ -339,8 +297,7 @@ class AzoogleHandler(Handler):
         return True
    
             
-class CopeacHandler(Handler):
-    
+class CopeacHandler(Handler):    
     def __init__(self, now, account):
         Handler.__init__(self, now, account)
         self.username_field = 'txtUserName'
@@ -390,7 +347,15 @@ class CopeacHandler(Handler):
         return True
 
 
+""" 
+    TrackerHandler: Ads4Dough, Globalizer
+"""
 class TrackerHandler(Handler):
+    def __init(self, now, account, domain):
+        Handler.__init__(self, now, account)
+        self.url = "https://%s/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
+            (domain, now.month, now.day, now.year, now.month, now.day, now.year) 
+    
     def run(self):        
         def saveEarnings(trs):
             for tr in trs:               
@@ -424,26 +389,24 @@ class TrackerHandler(Handler):
         return True
 
 
-class Ads4DoughHandler(TrackerHandler):
-    
+class Ads4DoughHandler(TrackerHandler):    
     def __init__(self, now, account):
-        TrackerHandler.__init__(self, now, account)
-        self.url = "https://affiliate.a4dtracker.com/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
-            (now.month, now.day, now.year, now.month, now.day, now.year) 
+        TrackerHandler.__init__(self, now, account, "affiliate.a4dtracker.com")
         self.loginform = 'login' 
 
 
 class GlobalizerHandler(TrackerHandler):  
     def __init__(self, now, account):
-        TrackerHandler.__init__(self, now, account)
-        self.loginurl = "http://affiliate.glbtracker.com/index.php?pgid="
-        self.url = "http://affiliate.glbtracker.com/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
-            (now.month, now.day, now.year, now.month, now.day, now.year) 
+        TrackerHandler.__init__(self, now, account, "affiliate.glbtracker.com")
   
-  
+
+"""
+    ReportHandler: GetAds, CPAFlash, TriadMedia
+"""
 class ReportHandler(Handler):
-    def __init__(self, now, account):
+    def __init__(self, now, account, domain):
         Handler.__init__(self, now, account)
+        self.url = "http://%s/RptCampaignPerformance.aspx" % domain
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
         self.loginform = 'aspnetForm'
@@ -496,23 +459,74 @@ class ReportHandler(Handler):
         return True
 
 
-class GetAdsHandler(ReportHandler): 
-  
+class GetAdsHandler(ReportHandler):  
     def __init__(self, now, account):
-        ReportHandler.__init__(self, now, account)
-        self.loginurl = 'http://publisher.getads.com/Welcome/LogInAndSignUp.aspx'
+        ReportHandler.__init__(self, now, account, "publisher.getads.com")
         self.br.set_proxies({"http": PROXIES[self.chance]})      
-        self.url = 'http://publisher.getads.com/RptCampaignPerformance.aspx' 
         
         
 class CPAFlashHandler(ReportHandler):
     def __init__(self, now, account):
-        ReportHandler.__init__(self, now, account)
-        self.url = "http://affiliate.cpaflash.com/RptCampaignPerformance.aspx"
+        ReportHandler.__init__(self, now, account, "affiliate.cpaflash.com")
         
         
 class TriadMediahandler(ReportHandler):
     def __init__(self, now, account):
-        ReportHandler.__init__(self, now, account)
-        self.url = "http://affiliate.triadmedia.com/RptCampaignPerformance.aspx"
+        ReportHandler.__init__(self, now, account, "affiliate.triadmedia.com")
+
+
+"""
+    StatsHadler: AdAngels, ACPAffiliates
+"""
+class StatsHandler(Handler):
+    def __init__(self, now, account, domain):
+        Handler.__init__(self, now, account)
+        self.url = "http://%s/stats/index/offers" % domain
+    
+    def run(self):
+        soup = self.getSoup()
+
+        block = soup.find('tbody', {'id': 'pagingBody'})
+        if not block:
+            return True
+        for tr in block.findAll('tr'):
+            td = tr.findAll('td')
+            
+            href = td[0].a['href']
+            offer_num = href[ href.rfind('/') + 1 : ]
+    
+            offer = self.getOffer(offer_num)
+            if not offer:
+                continue
+            
+            link = td[0].a.string
+            b = link.find('(')
+            clicks = int(td[2].string)
+
+            self.checkEarnings(offer)
+            earnings = Earnings(
+                offer=offer, 
+                network=self.account.network,
+                campaign=link[link.find('-') + 2 : len(link) if b == -1 else b - 1 ],
+                payout=td[4].string[1:],
+                clicks=clicks,
+                impressions=td[1].string,
+                revenue=float(td[5].string[1:]) * clicks
+            )
+            earnings.save()
+            self.today_revenue += earnings.revenue
+        return True
+
+
+class AdAnglerHandler(StatsHandler):
+    def __init__(self, now, account):
+        StatsHandler.__init__(self, now, account, "affiliate.adanglers.com")
+
+
+class ACPAffiliatesHandler(StatsHandler):    
+    def __init__(self, now, account):
+        StatsHandler.__init__(self, now, account, "publisher.affiliatecashpile.com")
+        self.username_field = 'data[User][email]'
+        self.password_field = 'data[User][password]'
+        self.loginform = 'loginform'  
 
