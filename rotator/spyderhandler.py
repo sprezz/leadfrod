@@ -102,15 +102,15 @@ class Handler:
         return BeautifulSoup(self.br.open(self.url).read())
 
 
-class AffiliateComHandler(Handler):    
-    def __init__(self, now, account):
+class PartnerHandler(Handler):
+    def __init__(self, now, account, domain):
         Handler.__init__(self, now, account)
-        self.url = "https://login.tracking101.com/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
-            % (int(self.now.month), int(self.now.day), int(self.now.year), int(self.now.month), 
+        self.url = "https://%s/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
+            % (domain, int(self.now.month), int(self.now.day), int(self.now.year), int(self.now.month), 
                int(self.now.day), int(self.now.year))
         self.username_field = 'DL_AUTH_USERNAME'
-        self.password_field = 'DL_AUTH_PASSWORD'    
-   
+        self.password_field = 'DL_AUTH_PASSWORD'  
+    
     def run(self):       
         soup = self.getSoup()
         if not soup:
@@ -150,6 +150,17 @@ class AffiliateComHandler(Handler):
             earnings.save()
             self.today_revenue += earnings.revenue
         return True
+
+  
+class AffiliateComHandler(PartnerHandler):    
+    def __init__(self, now, account):
+        PartnerHandler.__init__(self, now, account, 'login.tracking101.com')  
+
+
+class ClickBoothHandler(PartnerHandler):
+    def __init__(self, now, account):
+        PartnerHandler.__init__(self, now, account, 'publishers.clickbooth.com') 
+
 
 
 class HydraHandler(Handler):    

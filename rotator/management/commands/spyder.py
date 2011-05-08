@@ -25,9 +25,10 @@ class Command(BaseCommand):
             'http://affiliate.triadmedia.com/Welcome/LogInAndSignUp.aspx': TriadMediahandler,
             'http://affiliate.glbtracker.com/index.php?pgid=': GlobalizerHandler,            
             'http://www.adangler.com/login.php': AdAnglerHandler,
+            'https://publishers.clickbooth.com/': ClickBoothHandler,
             
         }
-        #networks = { 'http://affiliate.triadmedia.com/Welcome/LogInAndSignUp.aspx': TriadMediahandler, }
+        networks = {'https://publishers.clickbooth.com/': ClickBoothHandler, }
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](now, account)              
