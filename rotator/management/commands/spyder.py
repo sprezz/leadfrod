@@ -12,7 +12,7 @@ class Command(BaseCommand):
         now = datetime.datetime.now()   
         print now 
         networks = {                   
-            "http://getads.com/": GetAdsHandler, 
+            "http://publisher.getads.com/Welcome/LogInAndSignUp.aspx": GetAdsHandler, 
             "http://affiliate.com/": AffiliateComHandler, 
             "https://network.hydranetwork.com/login": HydraHandler,
             'http://acpaffiliates.com/Publishers': ACPAffiliatesHandler,
@@ -23,11 +23,15 @@ class Command(BaseCommand):
             'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
             'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler,
             'http://affiliate.triadmedia.com/Welcome/LogInAndSignUp.aspx': TriadMediahandler,
-            'http://www.globalizernetwork.com': GlobalizerHandler,
+            'http://affiliate.glbtracker.com/index.php?pgid=': GlobalizerHandler,            
             'http://www.adangler.com/login.php': AdAnglerHandler,
             
         }
-        #networks = {'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler}
+        networks = {
+            "http://publisher.getads.com/Welcome/LogInAndSignUp.aspx": GetAdsHandler,
+            'http://affiliate.glbtracker.com/index.php?pgid=': GlobalizerHandler,
+            'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler,
+        }
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](now, account)              
