@@ -28,7 +28,7 @@ class Command(BaseCommand):
             'https://publishers.clickbooth.com/': ClickBoothHandler,
             
         }
-        networks = {'https://publishers.clickbooth.com/': ClickBoothHandler, }
+        #networks = {'https://publishers.clickbooth.com/': ClickBoothHandler, }
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](now, account)              
