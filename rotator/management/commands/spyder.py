@@ -27,11 +27,7 @@ class Command(BaseCommand):
             'http://www.adangler.com/login.php': AdAnglerHandler,
             
         }
-        networks = {
-            "http://publisher.getads.com/Welcome/LogInAndSignUp.aspx": GetAdsHandler,
-            'http://affiliate.glbtracker.com/index.php?pgid=': GlobalizerHandler,
-            'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler,
-        }
+        #networks = { 'http://affiliate.triadmedia.com/Welcome/LogInAndSignUp.aspx': TriadMediahandler, }
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](now, account)              

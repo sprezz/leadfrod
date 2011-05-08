@@ -11,7 +11,15 @@ proxy:
 http://tools.rosinstrument.com/proxy/
 """
 PROXIES = [
-    '148.122.38.202:8080', # good
+    'elink.pst.lt:8080',
+    '93.88.226.74:8080',
+    '213.197.81.50:3128'
+    '79.174.50.225:8080',    
+    'sd-16395.dedibox.fr:3128'
+    '217.196.164.34:3128',
+    '45.61.broadband15.iol.cz:8080',
+    '88-119-152-34.static.zebra.lt:8080',
+    #'148.122.38.202:8080', # good
     '95.65.26.94:8080', # good
     '84.88.67.196:80', # slowly
 ]
@@ -421,8 +429,9 @@ class ReportHandler(Handler):
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
         self.loginform = 'aspnetForm'
-        #self.useproxy = True
-        #self.br.set_proxies({"http": PROXIES[self.chance]})  
+        self.useproxy = True
+        print PROXIES[self.chance]
+        self.br.set_proxies({"http": PROXIES[self.chance]})  
         
     def run(self):        
         soup = self.getSoup()
