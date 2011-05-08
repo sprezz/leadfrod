@@ -26,12 +26,14 @@ class Command(BaseCommand):
             'http://affiliate.glbtracker.com/index.php?pgid=': GlobalizerHandler,            
             'http://www.adangler.com/login.php': AdAnglerHandler,
             'https://publishers.clickbooth.com/': ClickBoothHandler,
-            
+            'http://affiliates.3cpa.com/': ThreeCPAHandler,
+            'http://affiliates.theedunetwork.com/': EduHandler,        
         }
-        #networks = {'https://publishers.clickbooth.com/': ClickBoothHandler, }
+        #networks = {'http://affiliates.theedunetwork.com/': EduHandler  }
         for account in Account.objects.all():
+            print account.network.url
             if account.network.url in networks:  
-                current_spyder = networks[account.network.url](now, account)              
+                current_spyder = networks[account.network.url](account)              
                 if(current_spyder.run()):
                     account.checked()
                     account.setRevenue(current_spyder.revenue)

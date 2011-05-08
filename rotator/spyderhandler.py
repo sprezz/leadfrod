@@ -26,10 +26,10 @@ PROXIES = [
 
   
 class Handler:    
-    def __init__(self, now, account):
+    def __init__(self, account):
         self.today_revenue = 0
         self.account = account
-        self.now = now
+        self.now = datetime.datetime.now()
         self.loginurl = self.account.network.url
         self.chance = 0
         self.url = 'set url'
@@ -102,70 +102,9 @@ class Handler:
         return BeautifulSoup(self.br.open(self.url).read())
 
 
-class PartnerHandler(Handler):
-    def __init__(self, now, account, domain):
-        Handler.__init__(self, now, account)
-        self.url = "https://%s/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
-            % (domain, int(self.now.month), int(self.now.day), int(self.now.year), int(self.now.month), 
-               int(self.now.day), int(self.now.year))
-        self.username_field = 'DL_AUTH_USERNAME'
-        self.password_field = 'DL_AUTH_PASSWORD'  
-    
-    def run(self):       
-        soup = self.getSoup()
-        if not soup:
-            return False
-        table = soup.find('table', {'class': 'recordTable'})
-        if not table:
-            return False
-        
-        for tr in table.findAll('tr'):
-            td = tr.findAll('td')
-            if not td[1].b:
-                continue
-            link = td[1].b.a
-            if not link or not link.string:
-                continue
-            
-            offer_num = link['href'][ link['href'].find('=') + 1 : link['href'].find('&') ]
-            offer = self.getOffer(offer_num)
-            if not offer:
-                continue
-            
-            block = str(td[12].b)
-        
-            self.checkEarnings(offer)
-            earnings = Earnings(
-                offer=offer, 
-                network=self.account.network,
-                campaign=link.string,
-                status=td[13].string.lower(),
-                payout=td[11].a.string[1:-5],
-                impressions=td[2].string,
-                clicks=td[3].string,
-                CTR=td[5].string[:-1].replace(',', ''),
-                EPC=0 if td[10].string == 'N/A' else td[10].string[1:],
-                revenue=decimal.Decimal((block[block.find('$') + 1 : block.find('a') - 1]))
-            )
-            earnings.save()
-            self.today_revenue += earnings.revenue
-        return True
-
-  
-class AffiliateComHandler(PartnerHandler):    
-    def __init__(self, now, account):
-        PartnerHandler.__init__(self, now, account, 'login.tracking101.com')  
-
-
-class ClickBoothHandler(PartnerHandler):
-    def __init__(self, now, account):
-        PartnerHandler.__init__(self, now, account, 'publishers.clickbooth.com') 
-
-
-
 class HydraHandler(Handler):    
-    def __init__(self, now, account):
-        Handler.__init__(self, now, account)
+    def __init__(self, account):
+        Handler.__init__(self, account)
         self.url = "https://network.hydranetwork.com/load_component/MyCampaigns/sort_by-Campaign/sort_order-asc/date_range-Today"
         self.username_field = 'email_address'
         self.loginform = 'login_form'
@@ -243,10 +182,9 @@ class APIHandler(Handler):
         return True
                
 
-class AdscendHandler(Handler):
-    
-    def __init__(self, now, account):
-        Handler.__init__(self, now, account)
+class AdscendHandler(Handler):    
+    def __init__(self, account):
+        Handler.__init__(self, account)
         self.url = "https://adscendmedia.com/campstats.php"
         #self.url += "?start_m=1&start_d=13&start_y=2011&end_m=4&end_d=13&end_y=2011&country=&camps[]="
         self.username_field = 'email'
@@ -324,8 +262,8 @@ class AzoogleHandler(Handler):
    
             
 class CopeacHandler(Handler):    
-    def __init__(self, now, account):
-        Handler.__init__(self, now, account)
+    def __init__(self, account):
+        Handler.__init__(self, account)
         self.username_field = 'txtUserName'
         self.password_field = 'txtPassword'
         self.loginform = 'form1'
@@ -379,10 +317,10 @@ class CopeacHandler(Handler):
     TrackerHandler: Ads4Dough, Globalizer
 """
 class TrackerHandler(Handler):
-    def __init__(self, now, account, domain):
-        Handler.__init__(self, now, account)
+    def __init__(self, account, domain):
+        Handler.__init__(self, account)
         self.url = "https://%s/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
-            (domain, now.month, now.day, now.year, now.month, now.day, now.year) 
+            (domain, self.now.month, self.now.day, self.now.year, self.now.month, self.now.day, self.now.year) 
     
     def run(self):        
         def saveEarnings(trs):
@@ -420,22 +358,22 @@ class TrackerHandler(Handler):
 
 
 class Ads4DoughHandler(TrackerHandler):    
-    def __init__(self, now, account):
-        TrackerHandler.__init__(self, now, account, "affiliate.a4dtracker.com")
+    def __init__(self, account):
+        TrackerHandler.__init__(self, account, "affiliate.a4dtracker.com")
         self.loginform = 'login' 
 
 
 class GlobalizerHandler(TrackerHandler):  
-    def __init__(self, now, account):
-        TrackerHandler.__init__(self, now, account, "affiliate.glbtracker.com")
+    def __init__(self, account):
+        TrackerHandler.__init__(self, account, "affiliate.glbtracker.com")
   
 
 """
     ReportHandler: GetAds, CPAFlash, TriadMedia
 """
 class ReportHandler(Handler):
-    def __init__(self, now, account, domain):
-        Handler.__init__(self, now, account)
+    def __init__(self, account, domain):
+        Handler.__init__(self, account)
         self.url = "http://%s/RptCampaignPerformance.aspx" % domain
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
@@ -493,28 +431,30 @@ class ReportHandler(Handler):
 
 
 class GetAdsHandler(ReportHandler):  
-    def __init__(self, now, account):
-        ReportHandler.__init__(self, now, account, "publisher.getads.com")    
+    def __init__(self, account):
+        ReportHandler.__init__(self, account, "publisher.getads.com")    
         
         
 class CPAFlashHandler(ReportHandler):
-    def __init__(self, now, account):
-        ReportHandler.__init__(self, now, account, "affiliate.cpaflash.com")
+    def __init__(self, account):
+        ReportHandler.__init__(self, account, "affiliate.cpaflash.com")
         
         
 class TriadMediahandler(ReportHandler):
-    def __init__(self, now, account):
-        ReportHandler.__init__(self, now, account, "affiliate.triadmedia.com")
+    def __init__(self, account):
+        ReportHandler.__init__(self, account, "affiliate.triadmedia.com")
 
 
 """
-    StatsHadler: AdAngels, ACPAffiliates
+    StatsHadler: AdAngels, ACPAffiliates, 3CPA, TheEdu
 """
 class StatsHandler(Handler):
-    def __init__(self, now, account, domain):
-        Handler.__init__(self, now, account)
+    def __init__(self, account, domain):
+        Handler.__init__(self, account)
         self.url = "http://%s/stats/index/offers" % domain
-    
+        self.username_field = 'data[User][email]'
+        self.password_field = 'data[User][password]'
+        
     def run(self):
         soup = self.getSoup()
         if not soup:
@@ -552,14 +492,87 @@ class StatsHandler(Handler):
 
 
 class AdAnglerHandler(StatsHandler):
-    def __init__(self, now, account):
-        StatsHandler.__init__(self, now, account, "affiliate.adanglers.com")
+    def __init__(self, account):
+        StatsHandler.__init__(self, account, "affiliate.adanglers.com")
+        self.username_field = 'username'
+        self.password_field = 'password'
 
 
 class ACPAffiliatesHandler(StatsHandler):    
-    def __init__(self, now, account):
-        StatsHandler.__init__(self, now, account, "publisher.affiliatecashpile.com")
-        self.username_field = 'data[User][email]'
-        self.password_field = 'data[User][password]'
-        self.loginform = 'loginform'  
+    def __init__(self, account):
+        StatsHandler.__init__(self, account, "publisher.affiliatecashpile.com")
+        self.loginform = 'loginform'
+
+  
+class ThreeCPAHandler(StatsHandler):
+    def __init__(self, account):
+        StatsHandler.__init__(self, account, "affiliates.3cpa.com")
+        
+
+class EduHandler(StatsHandler):
+    def __init__(self, account):
+        StatsHandler.__init__(self, account, "affiliates.theedunetwork.com")
+
+
+"""
+    PartnerHandler: Affiliate, clickbooth
+"""
+class PartnerHandler(Handler):
+    def __init__(self, account, domain):
+        Handler.__init__(self, account)
+        self.url = "https://%s/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
+            % (domain, int(self.now.month), int(self.now.day), int(self.now.year), int(self.now.month), 
+               int(self.now.day), int(self.now.year))
+        self.username_field = 'DL_AUTH_USERNAME'
+        self.password_field = 'DL_AUTH_PASSWORD'  
+    
+    def run(self):       
+        soup = self.getSoup()
+        if not soup:
+            return False
+        table = soup.find('table', {'class': 'recordTable'})
+        if not table:
+            return False
+        
+        for tr in table.findAll('tr'):
+            td = tr.findAll('td')
+            if not td[1].b:
+                continue
+            link = td[1].b.a
+            if not link or not link.string:
+                continue
+            
+            offer_num = link['href'][ link['href'].find('=') + 1 : link['href'].find('&') ]
+            offer = self.getOffer(offer_num)
+            if not offer:
+                continue
+            
+            block = str(td[12].b)
+        
+            self.checkEarnings(offer)
+            earnings = Earnings(
+                offer=offer, 
+                network=self.account.network,
+                campaign=link.string,
+                status=td[13].string.lower(),
+                payout=td[11].a.string[1:-5],
+                impressions=td[2].string,
+                clicks=td[3].string,
+                CTR=td[5].string[:-1].replace(',', ''),
+                EPC=0 if td[10].string == 'N/A' else td[10].string[1:],
+                revenue=decimal.Decimal((block[block.find('$') + 1 : block.find('a') - 1]))
+            )
+            earnings.save()
+            self.today_revenue += earnings.revenue
+        return True
+
+  
+class AffiliateComHandler(PartnerHandler):    
+    def __init__(self, account):
+        PartnerHandler.__init__(self, account, 'login.tracking101.com')  
+
+
+class ClickBoothHandler(PartnerHandler):
+    def __init__(self, account):
+        PartnerHandler.__init__(self, account, 'publishers.clickbooth.com') 
 
