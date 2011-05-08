@@ -421,6 +421,8 @@ class ReportHandler(Handler):
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
         self.loginform = 'aspnetForm'
+        self.useproxy = True
+        self.br.set_proxies({"http": PROXIES[self.chance]})  
         
     def run(self):        
         soup = self.getSoup()
@@ -472,9 +474,7 @@ class ReportHandler(Handler):
 
 class GetAdsHandler(ReportHandler):  
     def __init__(self, now, account):
-        ReportHandler.__init__(self, now, account, "publisher.getads.com")
-        self.useproxy = True
-        self.br.set_proxies({"http": PROXIES[self.chance]})      
+        ReportHandler.__init__(self, now, account, "publisher.getads.com")    
         
         
 class CPAFlashHandler(ReportHandler):
