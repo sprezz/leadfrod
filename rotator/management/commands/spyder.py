@@ -27,11 +27,11 @@ class Command(BaseCommand):
             'http://www.adangler.com/login.php': AdAnglerHandler,
             'https://publishers.clickbooth.com/': ClickBoothHandler,
             'http://affiliates.3cpa.com/': ThreeCPAHandler,
-            'http://affiliates.theedunetwork.com/': EduHandler,        
+            'http://affiliates.theedunetwork.com/': EduHandler,
+            #'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler,        
         }
-        #networks = {'http://affiliates.theedunetwork.com/': EduHandler  }
+        #networks = { 'https://publishers.clickbooth.com/': ClickBoothHandler,  "http://affiliate.com/": AffiliateComHandler,}
         for account in Account.objects.all():
-            print account.network.url
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](account)              
                 if(current_spyder.run()):

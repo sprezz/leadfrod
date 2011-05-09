@@ -41,6 +41,8 @@ class Handler:
         self.br.set_debug_responses(True)
         self.br.set_debug_redirects(True)
         self.br.set_handle_robots(False)
+        self.br.addheaders = [('User-agent', 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.0.6')]
+
         
     @property    
     def revenue(self):
@@ -102,6 +104,18 @@ class Handler:
         return BeautifulSoup(self.br.open(self.url).read())
 
 
+class CXDigital(Handler):
+    def __init__(self, account):
+        Handler.__init__(self, account)
+        self.username_field = 'username'
+        self.password_field = 'pwd'
+        self.url = "http://www.cxdigitalmedia.com/agents/reports"
+        #POST /agents/reports/trafficresults?type=traffic&freshData=1&sRange=2011%2F05%2F09&eRange=2011%2F05%2F09&cRange=&groupBy=campaign
+    
+    def run(self):
+        soup = self.getSoup()
+        
+    
 class HydraHandler(Handler):    
     def __init__(self, account):
         Handler.__init__(self, account)
@@ -520,12 +534,14 @@ class EduHandler(StatsHandler):
 class PartnerHandler(Handler):
     def __init__(self, account, domain):
         Handler.__init__(self, account)
+        #https://publishers.clickbooth.com/partners/monthly_affiliate_stats.html?campaign_type=all_campaigns&affiliate_stats_start_month=5&affiliate_stats_start_day=9&affiliate_stats_start_year=2011&affiliate_stats_end_month=5&affiliate_stats_end_day=9&affiliate_stats_end_year=2011&breakdown=cumulative
         self.url = "https://%s/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
             % (domain, int(self.now.month), int(self.now.day), int(self.now.year), int(self.now.month), 
                int(self.now.day), int(self.now.year))
         self.username_field = 'DL_AUTH_USERNAME'
         self.password_field = 'DL_AUTH_PASSWORD'  
-    
+        self.inc = 1
+        
     def run(self):       
         soup = self.getSoup()
         if not soup:
@@ -542,25 +558,28 @@ class PartnerHandler(Handler):
             if not link or not link.string:
                 continue
             
-            offer_num = link['href'][ link['href'].find('=') + 1 : link['href'].find('&') ]
+            end = link['href'].find('&')
+            if end == -1:
+                end = len(link['href'])
+            offer_num = link['href'][ link['href'].find('=') + 1 : end]
             offer = self.getOffer(offer_num)
             if not offer:
                 continue
             
             block = str(td[12].b)
-        
             self.checkEarnings(offer)
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
                 campaign=link.string,
-                status=td[13].string.lower(),
-                payout=td[11].a.string[1:-5],
+                status=td[12 + self.inc].string.lower(),
+                payout=td[10 + self.inc].a.string[1:-5],
                 impressions=td[2].string,
                 clicks=td[3].string,
                 CTR=td[5].string[:-1].replace(',', ''),
-                EPC=0 if td[10].string == 'N/A' else td[10].string[1:],
-                revenue=decimal.Decimal((block[block.find('$') + 1 : block.find('a') - 1]))
+                EPC=0 if td[9 + self.inc].string == 'N/A' else td[9 + self.inc].string[1:],
+                revenue=decimal.Decimal(block[block.find('$') + 1 : block.find('a') - 1] if self.inc else td[11].b.string[1:])
+                #decimal.Decimal((block[block.find('$') + 1 : block.find('a') - 1]))
             )
             earnings.save()
             self.today_revenue += earnings.revenue
@@ -570,9 +589,10 @@ class PartnerHandler(Handler):
 class AffiliateComHandler(PartnerHandler):    
     def __init__(self, account):
         PartnerHandler.__init__(self, account, 'login.tracking101.com')  
-
+        
 
 class ClickBoothHandler(PartnerHandler):
     def __init__(self, account):
-        PartnerHandler.__init__(self, account, 'publishers.clickbooth.com') 
+        PartnerHandler.__init__(self, account, 'publishers.clickbooth.com')
+        self.inc = 0 
 
