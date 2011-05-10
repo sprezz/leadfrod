@@ -84,7 +84,7 @@ class Scraper:
     def run(self):
         self.server.start()
         print "run selenium server"
-        self.sleep(8)
+        self.sleep(10)
         print "run selenium client"
         self.selenium.start()
         result = self.extract()               

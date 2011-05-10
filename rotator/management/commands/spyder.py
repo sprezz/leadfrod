@@ -18,6 +18,7 @@ class Command(BaseCommand):
             'http://acpaffiliates.com/Publishers': ACPAffiliatesHandler,
             'http://www.c2mtrax.com/': APIHandler,
             'http://www.ecoretrax.com/': APIHandler,
+            'http://www.freshadsaffiliates.com/': APIHandler,
             'http://www.ads4dough.com/': Ads4DoughHandler,
             'https://adscendmedia.com/': AdscendHandler,
             'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
@@ -28,9 +29,10 @@ class Command(BaseCommand):
             'https://publishers.clickbooth.com/': ClickBoothHandler,
             'http://affiliates.3cpa.com/': ThreeCPAHandler,
             'http://affiliates.theedunetwork.com/': EduHandler,
+            
             #'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler,        
         }
-        #networks = { 'https://publishers.clickbooth.com/': ClickBoothHandler,  "http://affiliate.com/": AffiliateComHandler,}
+        #networks = {  'http://www.freshadsaffiliates.com/': APIHandler,}
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](account)              
