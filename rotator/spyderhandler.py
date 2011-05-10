@@ -146,7 +146,7 @@ class CXDigitalHandler(Handler):
                 clicks=tr.find('td', {'class': 'td_clicks cl'}).string,
                 payout=decimal.Decimal(str(offer.payout)),
                 EPC= tr.find('td', {'class': 'td_ECPC'}).string[1:],
-                revenue=decimal.Deciamal(tr.find('td', {'class': 'td_revenue'}).string[1:]),
+                revenue=decimal.Decimal(tr.find('td', {'class': 'td_revenue'}).string[1:]),
             )
             earnings.save()
             self.today_revenue += earnings.revenue        
