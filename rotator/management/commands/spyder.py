@@ -28,11 +28,10 @@ class Command(BaseCommand):
             'http://www.adangler.com/login.php': AdAnglerHandler,
             'https://publishers.clickbooth.com/': ClickBoothHandler,
             'http://affiliates.3cpa.com/': ThreeCPAHandler,
-            'http://affiliates.theedunetwork.com/': EduHandler,
-            
-            #'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler,        
+            'http://affiliates.theedunetwork.com/': EduHandler,            
+            'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler,        
         }
-        #networks = {  'http://www.freshadsaffiliates.com/': APIHandler,}
+        #networks = {'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler}
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](account)              

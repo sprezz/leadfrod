@@ -1,7 +1,9 @@
 import mechanize
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 from rotator.models import Earnings, Offer, UnknownOffer, Account
-import urllib2, urllib
+import urllib2
+import urllib
+from cookielib import CookieJar
 import decimal
 import datetime
 
@@ -104,16 +106,50 @@ class Handler:
         return BeautifulSoup(self.br.open(self.url).read())
 
 
-class CXDigital(Handler):
+class CXDigitalHandler(Handler):
     def __init__(self, account):
         Handler.__init__(self, account)
-        self.username_field = 'username'
+        self.username_field = 'login'
         self.password_field = 'pwd'
-        self.url = "http://www.cxdigitalmedia.com/agents/reports"
-        #POST /agents/reports/trafficresults?type=traffic&freshData=1&sRange=2011%2F05%2F09&eRange=2011%2F05%2F09&cRange=&groupBy=campaign
-    
+        self.url = "http://www.cxdigitalmedia.com/agents/reports/trafficresults?type=traffic&freshData=1"
+
     def run(self):
-        soup = self.getSoup()
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(CookieJar()))
+        print "opening %s " % self.loginurl
+        print "login %s %s ... " % (self.account.user_id, self.account.password)
+        response = opener.open(self.loginurl, urllib.urlencode({
+            self.username_field: self.account.user_id, 
+            self.password_field: self.account.password
+        })) 
+        
+        today = "%s/%s/%s" % (self.now.year, self.now.month, self.now.day)
+        print "opening %s ..." % self.url
+        print "params: %s " % "sRange=%s&eRange=%s&cRange=&groupBy=campaign" % (today, today)
+        
+        data = "sRange=%s&eRange=%s&cRange=&groupBy=campaign" % (today, today)
+        soup = BeautifulSoup(opener.open(self.url, data).read())
+        
+        table = soup.find('table', {'id': 'table_mytraffic'})
+        if not table:
+            return False
+        records = []
+        for tr in table.tbody.findAll('tr'):
+            offer = self.getOffer(tr.find('td', {'class': 'td_camp_id'}).string)
+            if not offer:
+                continue
+            
+            self.checkEarnings(offer)
+            earnings = Earnings(
+                offer=offer, 
+                network=self.account.network,
+                campaign=tr.find('td', {'class': 'td_camp_title'}).a.string,
+                clicks=tr.find('td', {'class': 'td_clicks cl'}).string,
+                EPC= tr.find('td', {'class': 'td_ECPC'}).string[1:],
+                revenue=tr.find('td', {'class': 'td_revenue'}).string[1:],
+            )
+            earnings.save()
+            self.today_revenue += earnings.revenue        
+        return True
         
     
 class HydraHandler(Handler):    
