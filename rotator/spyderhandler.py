@@ -144,6 +144,7 @@ class CXDigitalHandler(Handler):
                 network=self.account.network,
                 campaign=tr.find('td', {'class': 'td_camp_title'}).a.string,
                 clicks=tr.find('td', {'class': 'td_clicks cl'}).string,
+                payout=decimal.Decimal(str(offer.payout)),
                 EPC= tr.find('td', {'class': 'td_ECPC'}).string[1:],
                 revenue=tr.find('td', {'class': 'td_revenue'}).string[1:],
             )
