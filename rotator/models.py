@@ -848,11 +848,12 @@ class Offer(models.Model):
             name = '%s %s' % (self.name, self.offer_num)
         return u'Offer %s at %s payout: %s capacity: %s/%s' % (name, self.url, self.payout, self.capacity, self.daily_cap)  
 
-
+"""
 class OfferMessage(models.Model):
     message = models.CharField(max_length=255)
     posibility = models.DecimalField(max_digits=5, decimal_places=2)
-    
+"""
+ 
 class Owner(models.Model):
     name = models.CharField(max_length=30)
     daily_cap = models.FloatField(default=0)
