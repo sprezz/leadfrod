@@ -31,7 +31,7 @@ class Command(BaseCommand):
             'http://affiliates.theedunetwork.com/': EduHandler,            
             'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler,        
         }
-        #networks = {'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler}
+        #networks = {'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler,}
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](account)              

@@ -128,10 +128,9 @@ class CXDigitalHandler(Handler):
         
         data = "sRange=%s&eRange=%s&cRange=&groupBy=campaign" % (today, today)
         soup = BeautifulSoup(opener.open(self.url, data).read())
-        
         table = soup.find('table', {'id': 'table_mytraffic'})
         if not table:
-            return False
+            return True
         records = []
         for tr in table.tbody.findAll('tr'):
             offer = self.getOffer(tr.find('td', {'class': 'td_camp_id'}).string)
