@@ -207,8 +207,10 @@ class APIHandler(Handler):
                yesterday, "%s/%s/%s" % (self.now.month, self.now.day, self.now.year))
         
         print 'extracting from ' + self.url
-        
-        soup = BeautifulStoneSoup(urllib2.urlopen(self.url))
+        try:
+            soup = BeautifulStoneSoup(urllib2.urlopen(self.url))
+        except:
+            return False
         if not soup:
             return False
         for i in soup.findAll('campaign'):
@@ -558,6 +560,21 @@ class ThreeCPAHandler(StatsHandler):
     def __init__(self, account):
         StatsHandler.__init__(self, account, "affiliates.3cpa.com")
         
+
+class YeahCPAHandler(StatsHandler):
+    def __init__(self, account):
+        StatsHandler.__init__(self, account, "yeahcpa.hasoffers.com")
+
+       
+class VanceadHandler(StatsHandler):
+    def __init__(self, account):
+        StatsHandler.__init__(self, account, "publishers.vancead.com")
+
+
+class GoOffersHandler(StatsHandler):
+    def __init__(self, account):
+        StatsHandler.__init__(self, account, "affiliate.gooffers.net")    
+
 
 class EduHandler(StatsHandler):
     def __init__(self, account):
