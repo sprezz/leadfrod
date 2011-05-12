@@ -17,7 +17,6 @@ $(function(){
 {% endblock %}
 
 {% block content %}
-<p style="color:red">{{ randomMessage }}</p>
 <div>{%if message %}<p style="color:red"><strong>{{message}}</strong></p>{%endif%}</div>
 <div>Remaining leads: {{ remaining_leads }}</div>
 <div>Next lead: {{ wi.nextLead }}</div>
@@ -31,6 +30,7 @@ $(function(){
 </div>
 
 <div style="display: block; float:left;width:50%;">
+<h2 style="color:red">{{ randomMessage }}</h2>
 <h2>Offers</h2>
 {% for offer in wi.offers %}
 	<h3>Offer {{offer.offer_num}}</h3>
