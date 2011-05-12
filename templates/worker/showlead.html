@@ -17,6 +17,7 @@ $(function(){
 {% endblock %}
 
 {% block content %}
+<div font="red">{{ randomMessage }}</div>
 <div>{%if message %}<p style="color:red"><strong>{{message}}</strong></p>{%endif%}</div>
 <div>Remaining leads: {{ remaining_leads }}</div>
 <div>Next lead: {{ wi.nextLead }}</div>

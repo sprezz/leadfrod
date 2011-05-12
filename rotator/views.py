@@ -14,6 +14,8 @@ from rotator.trafficholder import TrafficHolder
 from trafficholder import UnknownOrderException
 from spyderhandler import AzoogleHandler
 from displayers import *
+import random
+
 
 #@login_required
 def index(request):
@@ -43,6 +45,18 @@ def submit_workitem(request):
             return HttpResponseRedirect('/next')
 
 
+def randomMessage():
+    x = random.random()
+    if x <= 0.04:
+        message = "do NOT click thank you page"
+    elif x <=0.2:
+        message = "Fill out the lead on the thank you page"
+    else:
+        message = "Click on the thank you page"
+         
+    return message
+
+        
 @login_required
 def next_workitem(request):
     "Responds with lead and appropriate offers"
@@ -71,8 +85,12 @@ def next_workitem(request):
             if 'msg' in request.session:
                 msg = request.session['msg']
                 del request.session['msg']
+            
+            
+                    
             return render_to_response('worker/showlead.html',
                     {
+                        'randomMessage': randomMessage(),
                         'user':request.user,'wi':wi, 
                         'message':msg, 
                         'remaining_leads': wi.get_remaining_leads()
