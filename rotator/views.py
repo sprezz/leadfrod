@@ -48,9 +48,9 @@ def submit_workitem(request):
 def randomMessage():
     x = random.random()
     if x <= 0.04:
-        message = "Click on the thank you page"
+        message = "Fill out the lead on the thank you page" 
     elif x <= 0.24:
-        message = "Fill out the lead on the thank you page"
+        message = "Click on the thank you page"
     else:
         message = "do NOT click thank you page"
          
