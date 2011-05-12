@@ -52,7 +52,7 @@ def randomMessage():
     elif x <= 0.24:
         message = "Fill out the lead on the thank you page"
     else:
-        message = "do NOT click thank you page" "Click on the thank you page"
+        message = "do NOT click thank you page"
          
     return message
 
