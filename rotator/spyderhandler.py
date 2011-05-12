@@ -498,7 +498,7 @@ class TriadMediahandler(ReportHandler):
 
 
 """
-    StatsHadler: AdAngels, ACPAffiliates, 3CPA, TheEdu
+    StatsHadler: AdAngels, ACPAffiliates, 3CPA, TheEdu, YeahCPA, Vancead, GoOffers
 """
 class StatsHandler(Handler):
     def __init__(self, account, domain):

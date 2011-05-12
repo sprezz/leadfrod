@@ -31,15 +31,17 @@ class Command(BaseCommand):
             'http://affiliates.theedunetwork.com/': EduHandler,            
             'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler, 
             'http://yeahcpa.hasoffers.com/': YeahCPAHandler,
-            'http://publishers.vancead.com/': VanceadHandler,
+            #'http://publishers.vancead.com/': VanceadHandler,
             'http://affiliate.gooffers.net/': GoOffersHandler,     
         }
+        """
         networks = {
             'http://www.ecoretrax.com/': APIHandler, 
             'http://yeahcpa.hasoffers.com/': YeahCPAHandler,
             'http://publishers.vancead.com/': VanceadHandler,
             'http://affiliate.gooffers.net/': GoOffersHandler,
         }
+        """
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](account)              
