@@ -9,6 +9,7 @@ import logging
 import settings
 import csv
 import os
+import re
 #VERSION 2
 
 STATUS_LIST = (
@@ -173,6 +174,7 @@ class WorkItem(object):
         self.worker = None
         self.nextLead = None
         self.lead = workLead
+        self.pattern = re.compile(r',|;')
         if workOffers is None:
             self.offers = []
         else:
@@ -183,10 +185,10 @@ class WorkItem(object):
         return count - 1 if count > 0 else 0
         
     def get_header(self):
-        return self.lead.csv.csv_headers.split(',')        
+        return self.pattern.split(self.lead.csv.csv_headers)#.split(',')        
     
     def get_data(self):
-        return self.lead.lead_data.split(',')
+        return self.pattern.split(self.lead.lead_data)#.split(',')
         
     def get_fields(self):
         fields = []

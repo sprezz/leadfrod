@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title%} {{user.username}}'s backlog {% endblock %}
+{% block scripts%}
+<script type="text/javascript" src="/media/ext/jquery.form.js"></script> 
+<script>
+$(function(){
+	$(".form_changestaus").submit(function(){
+		var self = $(this)
+		self.ajaxSubmit(function(o) {
+			if(o == '1')
+				self.parent().html('Status was changed successfully!')	
+		})
+		return false
+	})
+})
+</script>
+{% endblock %}
+
+{% block content %}
+<div>{%if message %}<p style="color:red"><strong>{{message}}</strong></p>{%endif%}</div>
+<div>Remaining leads: {{ remaining_leads }}</div>
+<div>Next lead: {{ wi.nextLead }}</div>
+<div style="display: block; float:left; width:49%;">
+<h2>Lead</h2>
+<table>
+	{% for f,v in wi.get_fields %}
+		<tr><td>{{f}}</td><td>{{v}}</td></tr>
+	{% endfor %}
+</table>
+</div>
+
+<div style="display: block; float:left;width:50%;">
+<h2 style="color:red">{{ randomMessage }}</h2>
+<h2>Offers</h2>
+{% for offer in wi.offers %}
+	<h3>Offer {{offer.offer_num}}</h3>
+	<table border="1">
+		<tr><td>Name</td><td>{{offer.name}}</td></tr>
+		<tr><td>Url</td><td><a target="_blank" href="http://referer.us/{{offer.url}}">http://referer.us/{{offer.url}}</a></td></tr>
+		<tr><td>Network</td><td>{{offer.network.name}}</td></tr>
+		<tr><td>Account</td><td>{{offer.account.username}}</td></tr>		
+		<tr><td>Description</td><td>{{ offer.description }}</td></tr>
+	</table>
+	<div>
+		<form method="post" class="form_changestaus" action="{% url changeOfferStatus offer.id %}" >
+			Active: <input type="radio" value="active" {% if offer.status != 'suspicious'%}checked="checked"{% endif %} name="status"/>
+			Suspicious: <input type="radio" value="suspicious" name="status" {% if offer.status == 'suspicious'%}checked="checked"{% endif %} />
+			<input type="submit" value="Change status" />
+		</form>
+	</div>
+	
+{% endfor %}
+</div> 
+</br>
+<div style="clear:both; display:block; height:1px; width:100%; overflow:hidden;"></div>
+<div>
+	<form method="post" action="/submit">
+		{% csrf_token %}
+	<div style="background:#ccc; display:block; padding:10px; margin-top:20px; height:20px; width:80%">
+		<input style="float:left;" type="submit" name="user_action" value="Cancel"/>
+		<input style="float:right;" type="submit" name="user_action" value="Next"/>
+	</div>
+	</form>
+</div>
+{% endblock %}

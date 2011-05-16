@@ -84,10 +84,8 @@ def next_workitem(request):
             msg = None
             if 'msg' in request.session:
                 msg = request.session['msg']
-                del request.session['msg']
+                del request.session['msg']  
             
-            
-                    
             return render_to_response('worker/showlead.html',
                     {
                         'randomMessage': randomMessage(),
