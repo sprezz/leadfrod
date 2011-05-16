@@ -195,9 +195,12 @@ class WorkItem(object):
     
     def get_fields(self):
         fields = []
-        data = self.get_data()
+        data = self.get_data()       
         for idx, f in enumerate(self.get_header()):
-            fields.append((self.format(f), self.format(data[idx])))
+            try:
+                fields.append((self.format(f), self.format(data[idx])))
+            except:
+                logging.warning("data with key %d is not exit:" % idx)
         return fields     
     
     def addOffer(self, anOffer):
