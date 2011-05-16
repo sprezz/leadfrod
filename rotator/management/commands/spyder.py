@@ -32,16 +32,13 @@ class Command(BaseCommand):
             'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler, 
             'http://yeahcpa.hasoffers.com/': YeahCPAHandler,
             #'http://publishers.vancead.com/': VanceadHandler,
-            'http://affiliate.gooffers.net/': GoOffersHandler,     
+            'http://affiliate.gooffers.net/': GoOffersHandler, 
+            'http://affiliate.tvmtracker.com/index.php': TrouveMediaHandler,    
         }
-        """
+
         networks = {
-            'http://www.ecoretrax.com/': APIHandler, 
-            'http://yeahcpa.hasoffers.com/': YeahCPAHandler,
-            'http://publishers.vancead.com/': VanceadHandler,
-            'http://affiliate.gooffers.net/': GoOffersHandler,
+             'http://affiliate.tvmtracker.com/index.php': TrouveMediaHandler, 
         }
-        """
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](account)              

@@ -366,7 +366,7 @@ class CopeacHandler(Handler):
 
 
 """ 
-    TrackerHandler: Ads4Dough, Globalizer
+    TrackerHandler: Ads4Dough, Globalizer, TrouveMedia
 """
 class TrackerHandler(Handler):
     def __init__(self, account, domain):
@@ -420,6 +420,11 @@ class GlobalizerHandler(TrackerHandler):
         TrackerHandler.__init__(self, account, "affiliate.glbtracker.com")
   
 
+class TrouveMediaHandler(TrackerHandler):
+    def __init__(self, account):
+        TrackerHandler.__init__(self, account, "affiliate.tvmtracker.com")
+        
+        
 """
     ReportHandler: GetAds, CPAFlash, TriadMedia
 """
