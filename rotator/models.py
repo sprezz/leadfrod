@@ -190,11 +190,14 @@ class WorkItem(object):
     def get_data(self):
         return self.pattern.split(self.lead.lead_data)#.split(',')
         
+    def format(self, s):
+        return s.replace('"', '')
+    
     def get_fields(self):
         fields = []
         data = self.get_data()
         for idx, f in enumerate(self.get_header()):
-            fields.append((f, data[idx]))
+            fields.append((self.format(f), self.format(data[idx])))
         return fields     
     
     def addOffer(self, anOffer):
