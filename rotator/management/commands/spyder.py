@@ -36,9 +36,8 @@ class Command(BaseCommand):
             'http://affiliate.tvmtracker.com/index.php': TrouveMediaHandler,    
         }
 
-        networks = {
-             'http://affiliate.tvmtracker.com/index.php': TrouveMediaHandler, 
-        }
+        #networks = { 'http://affiliate.tvmtracker.com/index.php': TrouveMediaHandler, }
+        
         for account in Account.objects.all():
             if account.network.url in networks:  
                 current_spyder = networks[account.network.url](account)              
