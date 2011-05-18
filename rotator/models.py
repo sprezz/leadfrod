@@ -1013,7 +1013,7 @@ class TrafficHolderOrder(models.Model):
     owner = models.ForeignKey(Owner, related_name='orders')
     order_id = models.CharField(max_length=30)
     username = models.CharField(max_length=30)
-    password = models.CharField(max_length=30, null=True, blank=True)
+    password = models.CharField(max_length=36, null=True, blank=True)
     hourly_rate = models.IntegerField(blank=True, null=True)
     clicks_received = models.IntegerField(default=0)
     clicks_total = models.IntegerField (default=1000000)
