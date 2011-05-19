@@ -60,6 +60,8 @@ class TrafficHolder(object):
         cmd = {'do':'stop', 'order':order}
         self._send(cmd)
     def editOrderId(self, order, total, hour):
+        # DO NOT USE changing hour
+        return
         cmd = {'do':'edit', 'order':order, 'total':total, 'hour':hour}
         self._send(cmd)
         

@@ -1146,3 +1146,9 @@ class ManualQueue(models.Model):
         if self.size > 0:
             self.size -=1
             self.save()
+
+"""
+class ProxyServer(models.Model):
+    host =  models.CharField(max_length=300)
+    exception = models.IntegerField(default=0)
+"""
