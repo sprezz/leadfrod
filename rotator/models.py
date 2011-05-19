@@ -1147,8 +1147,11 @@ class ManualQueue(models.Model):
             self.size -=1
             self.save()
 
-"""
+
 class ProxyServer(models.Model):
     host =  models.CharField(max_length=300)
-    exception = models.IntegerField(default=0)
-"""
+    exceptions = models.IntegerField(default=0)
+
+    def catchException(self):
+        self.exceptions += 1
+        self.save()

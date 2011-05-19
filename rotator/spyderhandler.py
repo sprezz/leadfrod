@@ -1,6 +1,6 @@
 import mechanize
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
-from rotator.models import Earnings, Offer, UnknownOffer, Account
+from rotator.models import Earnings, Offer, UnknownOffer, Account, ProxyServer
 import urllib2
 import urllib
 from cookielib import CookieJar
@@ -24,6 +24,14 @@ PROXIES = [
     #'148.122.38.202:8080', # good
     '95.65.26.94:8080', # good
     '84.88.67.196:80', # slowly
+    
+    'm91-187-70-199.andorpac.ad:8080',
+    '213-0-88-085.rad.tsai.es:8080',
+    'alpha.grkhosting.net:8080',
+    '193.87.164.120:8080',
+    '86.127.119.110:3128',
+    '109.230.217.103:808',
+    '184.107.50.230:8000'
 ]
 
   
@@ -36,7 +44,8 @@ class Handler:
         self.chance = 0
         self.url = 'set url'
         self.loginform = False
-        self.useproxy = False
+        self.proxies = False
+        
         self.username_field = 'username'
         self.password_field = 'password'
         self.br = mechanize.Browser()
@@ -76,9 +85,10 @@ class Handler:
 
     def changeProxy(self):
         print "<-Exception"
+        self.proxies[self.chance].catchException()
         self.chance += 1
-        if self.chance < len(PROXIES):
-            self.br.set_proxies({"http": PROXIES[self.chance]})
+        if self.chance < len(self.proxies):
+            self.br.set_proxies({"http": self.proxies[self.chance].host})
             return self.getSoup()
         
         return False
@@ -88,7 +98,7 @@ class Handler:
         try:
             self.br.open(self.loginurl)      
         except:
-            return self.changeProxy() if self.useproxy else False
+            return self.changeProxy() if self.proxies else False
         
         if self.loginform:  
             self.br.select_form(name=self.loginform)
@@ -101,9 +111,15 @@ class Handler:
         try:
             self.br.submit()
         except:
-            return self.changeProxy() if self.useproxy else False
+            return self.changeProxy() if self.proxies else False
         print "opening %s ..." % self.url
-        return BeautifulSoup(self.br.open(self.url).read())
+        
+        try:
+            response = self.br.open(self.url)
+        except:
+            return self.changeProxy() if self.proxies else False  
+          
+        return BeautifulSoup(response.read())
 
 
 class CXDigitalHandler(Handler):
@@ -435,9 +451,10 @@ class ReportHandler(Handler):
         self.username_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtUserName'
         self.password_field = 'ctl00$ContentPlaceHolder1$lcLogin$txtPassword'
         self.loginform = 'aspnetForm'
-        self.useproxy = True
-        print PROXIES[self.chance]
-        self.br.set_proxies({"http": PROXIES[self.chance]})  
+        self.proxies = ProxyServer.objects.order_by('exceptions')
+        print self.proxies[self.chance].host
+        
+        self.br.set_proxies({"http": self.proxies[self.chance].host})  
         
     def run(self):        
         soup = self.getSoup()

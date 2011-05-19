@@ -306,18 +306,14 @@ class CSVFileAdmin(admin.ModelAdmin):
 class ManualQueueAdmin(admin.ModelAdmin):
     model = ManualQueue
     list_display = ('url', 'size', 'createdDate')
-#class LeadInline(admin.TabularInline):
-#    model = Lead
-#class CSVFileAdmin(admin.ModelAdmin):
-#    inlines = [LeadInline]
+    
+    
+class ProxyServerAdmin(admin.ModelAdmin):
+    model = ProxyServer
+    list_display = ('host', 'exceptions')
+        
 
-#class OfferInline(admin.TabularInline):
-#    model = Offer
-#
-#class CapacityAdmin(admin.ModelAdmin):
-#    inlines = [OfferInline]
-#admin.site.register(Capacity,CapacityAdmin)
-
+admin.site.register(ProxyServer, ProxyServerAdmin)
 admin.site.register(ManualQueue, ManualQueueAdmin)
 admin.site.register(AccountAPI, AccountAPIAdmin)
 admin.site.register(Niche, NicheAdmin)
