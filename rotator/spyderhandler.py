@@ -12,27 +12,6 @@ import datetime
 proxy:
 http://tools.rosinstrument.com/proxy/
 """
-PROXIES = [
-    'elink.pst.lt:8080',
-    '93.88.226.74:8080',
-    '213.197.81.50:3128'
-    '79.174.50.225:8080',    
-    'sd-16395.dedibox.fr:3128'
-    '217.196.164.34:3128',
-    '45.61.broadband15.iol.cz:8080',
-    '88-119-152-34.static.zebra.lt:8080',
-    #'148.122.38.202:8080', # good
-    '95.65.26.94:8080', # good
-    '84.88.67.196:80', # slowly
-    
-    'm91-187-70-199.andorpac.ad:8080',
-    '213-0-88-085.rad.tsai.es:8080',
-    'alpha.grkhosting.net:8080',
-    '193.87.164.120:8080',
-    '86.127.119.110:3128',
-    '109.230.217.103:808',
-    '184.107.50.230:8000'
-]
 
   
 class Handler:    
@@ -53,7 +32,6 @@ class Handler:
         self.br.set_debug_redirects(True)
         self.br.set_handle_robots(False)
         self.br.addheaders = [('User-agent', 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.0.6')]
-
         
     @property    
     def revenue(self):
@@ -88,6 +66,7 @@ class Handler:
         self.proxies[self.chance].catchException()
         self.chance += 1
         if self.chance < len(self.proxies):
+            print "Set proxy: %s" % self.proxies[self.chance].host
             self.br.set_proxies({"http": self.proxies[self.chance].host})
             return self.getSoup()
         

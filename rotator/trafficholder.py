@@ -81,8 +81,12 @@ class TrafficHolder(object):
                 logging.debug('Start traffic holder ')
                 self.start ( offerQueue.order.order_id )
             else:
-#                offerQueue = OfferQueue.objects.get(offer = offer, order=order)
                 offerQueue = offer_q[0]
+                
+                if offerQueue.size == 0: 
+                    logging.debug('Start traffic holder ')
+                    self.start ( offerQueue.order.order_id )
+                
                 offerQueue.size += random_clicks
                 logging.debug('Updating queue. New size is %d ' % offerQueue.size)
                 offerQueue.save()
