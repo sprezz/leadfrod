@@ -730,7 +730,7 @@ class Offer(models.Model):
     
     def conv(self):
         today = datetime.date.today()
-        earnings = Earnigs.objects.filter(offer=self, date__month=today.month, 
+        earnings = Earnings.objects.filter(offer=self, date__month=today.month, 
             date__day=today.day, date__year=today.year)
         if not earnings:
             return 0
