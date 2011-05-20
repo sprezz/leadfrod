@@ -40,6 +40,7 @@ $(function(){
 		<tr><td>Network</td><td>{{offer.network.name}}</td></tr>
 		<tr><td>Account</td><td>{{offer.account.username}}</td></tr>		
 		<tr><td>Description</td><td>{{ offer.description }}</td></tr>
+		<tr><td>Conversion</td><td>{{ offer.conv }}</td></tr>
 	</table>
 	<div>
 		<form method="post" class="form_changestaus" action="{% url changeOfferStatus offer.id %}" >

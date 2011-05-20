@@ -728,6 +728,14 @@ class Offer(models.Model):
     submits_today = models.IntegerField(default=0)
     submits_total = models.IntegerField(default=0)
     
+    def conv(self):
+        today = datetime.date.today()
+        earnings = Earnigs.objects.filter(offer=self, date__month=today.month, 
+            date__day=today.day, date__year=today.year)
+        if not earnings:
+            return 0
+        return earnings[0].conv()    
+ 
     def asd(self):
         print self.description
         print self.id, self.offer_num 
@@ -856,11 +864,6 @@ class Offer(models.Model):
             name = '%s %s' % (self.name, self.offer_num)
         return u'Offer %s at %s payout: %s capacity: %s/%s' % (name, self.url, self.payout, self.capacity, self.daily_cap)  
 
-"""
-class OfferMessage(models.Model):
-    message = models.CharField(max_length=255)
-    posibility = models.DecimalField(max_digits=5, decimal_places=2)
-"""
  
 class Owner(models.Model):
     name = models.CharField(max_length=30)
