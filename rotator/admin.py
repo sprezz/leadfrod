@@ -181,14 +181,14 @@ class EarningsAdmin(admin.ModelAdmin):
     list_display = ('network', 'account', 'offer_name', 'offer_num', 'date',
         'campaign', 'payout', 'clicks', 'pps', 'mpps', 'revenue', 
         'submits_today', 'conv')
-    list_filter = ('date', 'status', 'network', )
+    list_filter = ('date', 'niche', 'status', 'network',)
     
     list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks', 
                     'conv']    
     
     actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
                'add_clicks_capacity', 'substract_clicks_capacity',
-               'activate', 'paused',]
+               'activate', 'paused',]    
     
     def activate(self, request, queryset):
         for q in queryset:

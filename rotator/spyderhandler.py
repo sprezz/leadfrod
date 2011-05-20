@@ -136,6 +136,7 @@ class CXDigitalHandler(Handler):
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
+                niche=offer.niche,
                 campaign=tr.find('td', {'class': 'td_camp_title'}).a.string,
                 clicks=tr.find('td', {'class': 'td_clicks cl'}).string,
                 payout=decimal.Decimal(str(offer.payout)),
@@ -173,6 +174,7 @@ class HydraHandler(Handler):
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
+                niche=offer.niche,
                 campaign=td[1].a.string,
                 payout=td[5].string.strip()[1:],
                 clicks=td[2].string,
@@ -217,6 +219,7 @@ class APIHandler(Handler):
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
+                niche=offer.niche,
                 campaign=i.vertical_name.string,
                 payout=i.price.string,
                 clicks=i.clicks.string,
@@ -255,6 +258,7 @@ class AdscendHandler(Handler):
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
+                niche=offer.niche,
                 campaign=campaign,
                 payout=td[5].a.string[1:],
                 EPC=td[3].string[1:],
@@ -296,6 +300,7 @@ class AzoogleHandler(Handler):
         earnings = Earnings(
             offer=offer, 
             network=self.account.network,
+            niche=offer.niche,
             campaign=str(self.data['campaign']),
             clicks=int(self.data['clicks']),
             payout=decimal.Decimal(str(offer.payout)),
@@ -349,6 +354,7 @@ class CopeacHandler(Handler):
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
+                niche=offer.niche,
                 campaign=td[1].a.string,
                 clicks=td[2].a.string,
                 payout=decimal.Decimal(str(offer.payout)),
@@ -384,6 +390,7 @@ class TrackerHandler(Handler):
                 earnings = Earnings(
                     offer=offer, 
                     network=self.account.network,
+                    niche=offer.niche,
                     campaign=name[name.find(')')+1:],
                     payout=decimal.Decimal(str(offer.payout)),
                     clicks=int(td[3].a.string),
@@ -465,6 +472,7 @@ class ReportHandler(Handler):
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
+                niche=offer.niche,
                 campaign=campaign,
                 status=td[5].span.string,
                 payout="%.2f" % float(td[6].string[1:]),
@@ -533,6 +541,7 @@ class StatsHandler(Handler):
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
+                niche=offer.niche,
                 campaign=link[link.find('-') + 2 : len(link) if b == -1 else b - 1 ],
                 payout=td[4].string[1:],
                 clicks=clicks,
@@ -625,6 +634,7 @@ class PartnerHandler(Handler):
             earnings = Earnings(
                 offer=offer, 
                 network=self.account.network,
+                niche=offer.niche,
                 campaign=link.string,
                 status=td[12 + self.inc].string.lower(),
                 payout=td[10 + self.inc].a.string[1:-5],

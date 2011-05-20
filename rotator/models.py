@@ -1081,10 +1081,10 @@ class DailyCap(models.Model):
     worker_list = models.CharField(max_length=30)
 
 
-
 class Earnings(models.Model):
     offer = models.ForeignKey(Offer)
     network = models.ForeignKey(Network)
+    niche = models.ForeignKey(Niche)
     date = models.DateTimeField(default=datetime.datetime.now())
     campaign = models.CharField(max_length=255)
     status = models.CharField(max_length=255, null=True)
