@@ -547,7 +547,7 @@ class CSVFile(models.Model):
     description = models.CharField(max_length=255, null=True, blank=True)
     csv_files = models.FileField (upload_to=settings.LEAD_FILE_DIR,
                     help_text='Make sure your CSV file has Excel format\
-                             (fields are separated with a <tt>comma</tt>)')
+                             (fields are separated with a <tt>comma</tt>)', unique=True)
     has_header = models.BooleanField(default=True,
                             help_text='Whether uploading file has the first\
                                          row as a header')
