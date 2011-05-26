@@ -536,8 +536,8 @@ class CSVFile(models.Model):
     date_time = models.DateTimeField(default=datetime.datetime.now())
     uploaded_by = models.CharField(max_length=30)
     cost = models.FloatField(default=0)
-#    revenue = models.FloatField(default = 0) to be calculated
-#    percent_completed = models.FloatField(default = 0) to be calculated
+#   revenue = models.FloatField(default = 0) to be calculated
+#   percent_completed = models.FloatField(default = 0) to be calculated
     workers = models.ManyToManyField(User, null=True, blank=True,
                                      related_name='assignments')
     max_offers = models.FloatField(default=1)

@@ -1,0 +1,12 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+
+{{ block.super }}
+<script type="text/javascript" src="/media/admin/js/jquery.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	document.getElementById('id_lead_source').options[1].setAttribute('selected', 'selected')
+})
+</script>	
+{% endblock %}
