@@ -155,8 +155,11 @@ class HydraHandler(Handler):
         self.username_field = 'email_address'
         self.loginform = 'login_form'
                       
-    def run(self):       
-        soup =  self.getSoup() 
+    def run(self):   
+        try:    
+            soup =  self.getSoup() 
+        except:
+            return False
         if not soup:
             return False       
         div = soup.find('div', {'class': 'table-data-div'})

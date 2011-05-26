@@ -532,7 +532,7 @@ class Niche(models.Model):
 class CSVFile(models.Model):
     lead_source = models.ForeignKey(LeadSource)
     niche = models.ForeignKey(Niche)
-    filename = models.CharField(max_length=255, null=True, blank=True)
+    filename = models.CharField(max_length=255, null=True, blank=True, unique=True)
     date_time = models.DateTimeField(default=datetime.datetime.now())
     uploaded_by = models.CharField(max_length=30)
     cost = models.FloatField(default=0)
@@ -540,7 +540,7 @@ class CSVFile(models.Model):
 #    percent_completed = models.FloatField(default = 0) to be calculated
     workers = models.ManyToManyField(User, null=True, blank=True,
                                      related_name='assignments')
-    max_offers = models.FloatField(default=5)
+    max_offers = models.FloatField(default=1)
     csv_headers = models.TextField(null=False, blank=True)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
                              default='active')

@@ -36,7 +36,7 @@ class Command(BaseCommand):
             'http://affiliate.tvmtracker.com/index.php': TrouveMediaHandler,    
         }
 
-        #networks = { 'http://affiliate.tvmtracker.com/index.php': TrouveMediaHandler, }
+        networks = { "https://network.hydranetwork.com/login": HydraHandler, }
         
         for account in Account.objects.all():
             if account.network.url in networks:  
