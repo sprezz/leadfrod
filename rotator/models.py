@@ -735,7 +735,11 @@ class Offer(models.Model):
         if not earnings:
             return 0
         return earnings[0].conv()    
- 
+    
+    def size(self):
+        queues = self.queues.all()
+        return queues[0].size if queues else 0
+        
     def asd(self):
         print self.description
         print self.id, self.offer_num 
