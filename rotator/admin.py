@@ -295,7 +295,7 @@ class CSVFileAdminForm(forms.ModelForm):
 
     def clean(self):
         data = self.cleaned_data
-        if 'csv_files' in data:
+        if 'csv_files' in data and not data['filesize']: # only for creating
             str = ''
             for chunk in data['csv_files'].chunks():
                 str += chunk
