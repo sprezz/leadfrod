@@ -3,6 +3,7 @@ from rotator.models import *
 from django.db.models import Sum
 from locking.admin import LockableAdmin
 from django.contrib.admin.views.main import ChangeList
+from django import forms
 
 
 class NicheAdmin(admin.ModelAdmin):
@@ -289,10 +290,36 @@ class AccountAPIAdmin(admin.ModelAdmin):
     list_display = ('account', 'affiliate_id', 'api_key',)
     
 
+class CSVFileAdminForm(forms.ModelForm):
+    model = CSVFile
+
+    def clean(self):
+        data = self.cleaned_data
+        if 'csv_files' in data:
+            str = ''
+            for chunk in data['csv_files'].chunks():
+                str += chunk
+            print len(str)
+            data['filesize'] = len(str)
+    
+            if CSVFile.objects.filter(filesize=data['filesize']).count():
+                raise forms.ValidationError("File %s was uploaded earlierly. Please download new file." % data['csv_files'].name)
+        
+        return data
+ 
+ 
 class CSVFileAdmin(admin.ModelAdmin):
     model = CSVFile
+    form = CSVFileAdminForm
     list_display = ('filename', 'niche', 'status', 'uploaded_by', 'active_leads', 'completed_leads', 'leads', )
+    fieldsets = [
+        (None, {'fields': [
+                'lead_source', 'niche', 'uploaded_by', 'cost', 'max_offers', 'csv_headers', 
+                'status', 'description', 'csv_files', 'has_header', 'filesize'
+                ]}),
 
+    ]  
+        
     def leads(self, csv):
         return csv.leads.count()
     

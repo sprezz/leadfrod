@@ -533,6 +533,7 @@ class CSVFile(models.Model):
     lead_source = models.ForeignKey(LeadSource)
     niche = models.ForeignKey(Niche)
     filename = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    filesize = models.IntegerField(default=0)
     date_time = models.DateTimeField(default=datetime.datetime.now())
     uploaded_by = models.CharField(max_length=30)
     cost = models.FloatField(default=0)
@@ -590,7 +591,7 @@ class CSVFile(models.Model):
         if self.leads.count() == 0: return 0 
         return self.leads.offers_completed.count() / self.leads.count()*100  
      
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs): 
         super(CSVFile, self).save(*args, **kwargs)
         self.hasLeads()
         super(CSVFile, self).save(*args, **kwargs)
