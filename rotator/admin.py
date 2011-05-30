@@ -314,7 +314,7 @@ class CSVFileAdmin(admin.ModelAdmin):
     list_display = ('filename', 'niche', 'status', 'uploaded_by', 'active_leads', 'completed_leads', 'leads', )
     fieldsets = [
         (None, {'fields': [
-                'lead_source', 'niche', 'uploaded_by', 'cost', 'max_offers', 'csv_headers', 
+                'lead_source', 'niche', 'uploaded_by', 'filename', 'cost', 'max_offers', 'csv_headers', 
                 'status', 'description', 'csv_files', 'workers', 'has_header', 'filesize'
                 ]}),
 
