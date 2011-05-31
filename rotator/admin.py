@@ -311,7 +311,7 @@ class CSVFileAdminForm(forms.ModelForm):
 class CSVFileAdmin(admin.ModelAdmin):
     model = CSVFile
     form = CSVFileAdminForm
-    list_display = ('filename', 'niche', 'status', 'uploaded_by', 'filesize', 'active_leads', 'completed_leads', 'leads', )
+    list_display = ('date_time', 'filename', 'niche', 'status', 'uploaded_by', 'filesize', 'active_leads', 'completed_leads', 'leads', )
     fieldsets = [
         (None, {'fields': [
                 'lead_source', 'niche', 'uploaded_by', 'filename', 'cost', 'max_offers', 'csv_headers', 
