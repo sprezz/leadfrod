@@ -299,10 +299,9 @@ class CSVFileAdminForm(forms.ModelForm):
             str = ''
             for chunk in data['csv_files'].chunks():
                 str += chunk
-            print len(str)
+            
             data['filesize'] = len(str)
-    
-            if CSVFile.objects.filter(filesize=data['filesize']).count():
+            if CSVFile.objects.filter(filesize=data['filesize'], filename='rotator/csvfiles/%s' % data['csv_files'].name).count():
                 raise forms.ValidationError("File %s was uploaded earlierly. Please download new file." % data['csv_files'].name)
         
         return data
