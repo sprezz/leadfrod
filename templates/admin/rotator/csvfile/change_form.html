@@ -6,12 +6,15 @@
 <script type="text/javascript" src="/media/admin/js/jquery.min.js"></script>
 <script type="text/javascript">
 $(function(){
-	function add_zero(val){
-		return (val + '').length == 1 ? '0' + val : val	
+	if(document.location.href.substr(-4) == 'add/'){
+		function add_zero(val){
+			return (val + '').length == 1 ? '0' + val : val	
+		}
+		document.getElementById('id_lead_source').options[1].setAttribute('selected', 'selected')
+		var date = new Date()
+		$('#id_date_time_1').val(add_zero(date.getHours()) 
+			+ ':' + add_zero(date.getMinutes()) + ':' + add_zero(date.getSeconds()))		
 	}
-	document.getElementById('id_lead_source').options[1].setAttribute('selected', 'selected')
-	var date = new Date()
-	$('#id_date_time_1').val(add_zero(date.getHours()) + ':' + add_zero(date.getMinutes()) + ':' + add_zero(date.getSeconds()))
 })
 </script>	
 {% endblock %}
