@@ -807,7 +807,7 @@ class Offer(models.Model):
         "Gets capacity object for today. If one does not exists, creates it"
         today = datetime.date.today()
         if not self.dailycap_capacity.filter(date=today).exists(): self.initCapacity()
-        return self.dailycap_capacity.get(date=today)
+        return self.dailycap_capacity.filter(date=today)[0]
     
  
     def checkCapacity(self):
