@@ -5,7 +5,7 @@
 .red_span{
 	color:red;
 	font-weight:bold;
-	font-weight:20px;
+	font-weight:21px;
 }
 
 </style>
@@ -49,7 +49,7 @@ $(function(){
 		<tr><td>Account</td><td>{{offer.account.username}}</td></tr>		
 		<tr><td>Description</td><td>{{ offer.description }}</td></tr>
 		<tr><td>Conversion</td><td><span {% if offer.conv gt 0.3 %}class="red_span"{% endif %} >{{ offer.conv }}</span></td></tr>
-		<tr><td>Size</td><td>{{ offer.size }}</td></tr>
+		<tr><td>Size</td><td><span {% if offer.size gt 100 %}class="red_span"{% endif %} >{{ offer.size }}</span></td></tr>
 	</table>
 	<div>
 		<form method="post" class="form_changestaus" action="{% url changeOfferStatus offer.id %}" >
