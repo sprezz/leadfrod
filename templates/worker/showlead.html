@@ -48,7 +48,7 @@ $(function(){
 		<tr><td>Network</td><td>{{offer.network.name}}</td></tr>
 		<tr><td>Account</td><td>{{offer.account.username}}</td></tr>		
 		<tr><td>Description</td><td>{{ offer.description }}</td></tr>
-		<tr><td>Conversion</td><td><span {% if offer.conv|floatformat > 0.3|floatformat %}class="red_span"{% endif %}>{{ offer.conv }}</span></td></tr>
+		<tr><td>Conversion</td><td><span {% if offer.conv|floatformat:2 > 0.3|floatformat:2 %}class="red_span"{% endif %}>{{ offer.conv }}</span></td></tr>
 		<tr><td>Size</td><td><span {% if offer.size > 100 %}class="red_span"{% endif %}>{{ offer.size }}</span></td></tr>
 	</table>
 	<div>
