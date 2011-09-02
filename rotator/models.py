@@ -845,6 +845,7 @@ class Offer(models.Model):
         
     def restoreDailyCapCapacity(self):
         "Reset capacity to dailycap value"
+        print "Reset capacity for offer num =%s" % self.offer_num
         daily_capacity = self.get_capacity_today
         daily_capacity.restoreOfferDailyCapCapacity()
         if self.hasAdvertiser():
