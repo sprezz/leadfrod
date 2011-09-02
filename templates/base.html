@@ -9,7 +9,7 @@
 {% block scripts%} {% endblock %}
 </head>
 <body>
-<h1>-{% if '0.04'|floatformat > 0.01|floatformat %}YES{% else %}NO{% endif %}-  +{% block title%}+ {% endblock %}</h1>
+<h1>{% block title%} {% endblock %}</h1>
 <p><a href="/logout">Logout</a></p>
 {% block content %}
 {% endblock %}
