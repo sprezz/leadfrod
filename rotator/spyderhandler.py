@@ -520,7 +520,11 @@ class StatsHandler(Handler):
         self.password_field = 'data[User][password]'
         
     def run(self):
-        soup = self.getSoup()
+        try:
+            soup = self.getSoup()
+        except:
+            return False
+            
         if not soup:
             return False
         block = soup.find('tbody', {'id': 'pagingBody'})
