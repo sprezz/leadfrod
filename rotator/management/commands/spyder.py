@@ -15,24 +15,24 @@ class Command(BaseCommand):
             "http://publisher.getads.com/Welcome/LogInAndSignUp.aspx": GetAdsHandler, 
             "http://affiliate.com/": AffiliateComHandler, 
             "https://network.hydranetwork.com/login": HydraHandler,
-            #'http://acpaffiliates.com/Publishers': ACPAffiliatesHandler,
+            'http://acpaffiliates.com/Publishers': ACPAffiliatesHandler,#
             'http://www.c2mtrax.com/': APIHandler,
-            #'http://www.ecoretrax.com/': APIHandler,
+            'http://www.ecoretrax.com/': APIHandler,#
             'http://www.freshadsaffiliates.com/': APIHandler,
             'http://www.ads4dough.com/': Ads4DoughHandler,
-            #'https://adscendmedia.com/': AdscendHandler,
-            #'http://emt.copeac.com/forms/login.aspx': CopeacHandler,
+            'https://adscendmedia.com/': AdscendHandler,#
+            'http://emt.copeac.com/forms/login.aspx': CopeacHandler,#
             'http://affiliate.cpaflash.com/Welcome/LogInAndSignUp.aspx': CPAFlashHandler,
             'http://affiliate.triadmedia.com/Welcome/LogInAndSignUp.aspx': TriadMediahandler,
             'http://affiliate.glbtracker.com/index.php?pgid=': GlobalizerHandler,            
-            #'http://www.adangler.com/login.php': AdAnglerHandler,
+            'http://www.adangler.com/login.php': AdAnglerHandler,#
             'https://publishers.clickbooth.com/': ClickBoothHandler,
-            #'http://affiliates.3cpa.com/': ThreeCPAHandler,
+            'http://affiliates.3cpa.com/': ThreeCPAHandler,#
             'http://affiliates.theedunetwork.com/': EduHandler,            
             'http://www.cxdigitalmedia.com/agents/login/sign_in': CXDigitalHandler, 
             'http://yeahcpa.hasoffers.com/': YeahCPAHandler,
-            #'http://publishers.vancead.com/': VanceadHandler,
-            #'http://affiliate.gooffers.net/': GoOffersHandler, 
+            'http://publishers.vancead.com/': VanceadHandler,#
+            'http://affiliate.gooffers.net/': GoOffersHandler,# 
             'http://affiliate.tvmtracker.com/index.php': TrouveMediaHandler,    
         }
 
