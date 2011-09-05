@@ -184,8 +184,7 @@ class EarningsAdmin(admin.ModelAdmin):
         'submits_today', 'conv')
     list_filter = ('date', 'niche', 'status', 'network',)
     
-    list_summary = ['pps', 'mpps', 'submits_today', 'revenue', 'clicks', 
-                    'conv']    
+    list_summary = ['pps', 'submits_today', 'revenue', 'clicks']    
     
     actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
                'add_clicks_capacity', 'substract_clicks_capacity',
@@ -247,12 +246,21 @@ class EarningsAdmin(admin.ModelAdmin):
     pps.admin_order_field = 'admin_pps'
     
     def conv(self, earning):        
-        return earning.conv()        
+        result = earning.conv()
+        if result >= 0.3:
+            result = '<span style="color:red">' + result + '</b>'
+        return result        
     conv.admin_order_field = 'admin_conv'
+    conv.allow_tags = True
     
     def mpps(self, earning):
-        return earning.mpps()
+        result = earning.mpps()
+        if result <= 0.3:
+            result = '<span style="color:red">' + result + '</b>'
+        return result
+    
     mpps.admin_order_field = 'admin_mpps'
+    mpps.allow_tags = True
     
     def get_changelist(self, request, **kwargs):
         """
