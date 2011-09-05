@@ -247,7 +247,7 @@ class EarningsAdmin(admin.ModelAdmin):
     
     def conv(self, earning):        
         result = earning.conv()
-        if result >= 0.3:
+        if float(result) >= 0.3:
             result = '<span style="color:red">' + result + '</b>'
         return result        
     conv.admin_order_field = 'admin_conv'
@@ -255,7 +255,7 @@ class EarningsAdmin(admin.ModelAdmin):
     
     def mpps(self, earning):
         result = earning.mpps()
-        if result <= 0.3:
+        if float(result) <= 0.3:
             result = '<span style="color:red">' + result + '</b>'
         return result
     
