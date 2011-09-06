@@ -702,6 +702,7 @@ class Lead(locking.LockableModel):
 class OfferManager(models.Manager):
     
     def clear_submits_today(self):
+        print "clear submits today"
         self.filter(submits_today__gte=0).update(submits_today=0)     
 
 
@@ -845,7 +846,8 @@ class Offer(models.Model):
         
     def restoreDailyCapCapacity(self):
         "Reset capacity to dailycap value"
-        print "Reset capacity for offer num =%s" % self.offer_num
+        now = datetime.datetime.now()
+        print "%s: Reset capacity for offer num = %s" % (now, self.offer_num)
         daily_capacity = self.get_capacity_today
         daily_capacity.restoreOfferDailyCapCapacity()
         if self.hasAdvertiser():

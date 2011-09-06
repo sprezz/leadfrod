@@ -3,8 +3,7 @@ from rotator.models import Offer
 
 
 class Job(DailyJob):
-    help = "Resets all the capacities daily."
-    
+    help = "Resets all the capacities daily."    
     
     def execute(self):
         for offer in Offer.objects.all():

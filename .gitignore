@@ -5,3 +5,4 @@ csvfiles.tar
 dump.sql
 .settings
 .pydevproject
+.tmp_*
