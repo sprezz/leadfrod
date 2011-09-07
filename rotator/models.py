@@ -275,10 +275,16 @@ class WorkManager(models.Model):
             offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('submits_today')
             logging.info('Found %d offers in niche %s' % (len(offers), leadNiche))
             offer_names = []
+            networks = [] # for each lead only one network
+            inetworks = Network.objects.filter(single=False)
             i = 0             
             for offer in offers:                
                 if offer.name in offer_names:
                     continue
+                
+                if offer.network in networks and offer.network not in inetworks:
+                    continue
+                
                 i += 1
                 check_capacity = offer.checkCapacity()
                 #logging.info('offer checking capacity=%d in offer %d: %s' % (int(check_capacity), i, offer.offer_num))
@@ -303,6 +309,7 @@ class WorkManager(models.Model):
                 offer.increase_submits()
                 offer.reduce_capacity()
                 offer_names.append(offer.name)
+                networks.append(offer.network)
                 
                 if len(wi.offers) == wi.lead.csv.max_offers: 
                     break
@@ -987,6 +994,7 @@ class AccountAPI(models.Model):
 class Network(models.Model):
     name = models.CharField(max_length=30)
     url = models.CharField(max_length=100)
+    single = models.BooleanField(default=True)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
                              default='active')
     description = models.CharField(max_length=30, null=True, blank=True)

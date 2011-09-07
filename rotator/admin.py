@@ -347,6 +347,20 @@ class ProxyServerAdmin(admin.ModelAdmin):
     list_display = ('host', 'exceptions')
         
 
+class NetworkAdmin(admin.ModelAdmin):
+    model = Network
+    list_display = ('name', 'can_single', 'url', 'status')
+    actions = ['activate_single', 'set_single_false',]
+    
+    def activate_single(self, request, queryset):
+        queryset.update(single=True)
+    activate_single.short_description = "Activate single" 
+    
+    def set_single_false(self, request, queryset):
+        queryset.update(single=False)
+    set_single_false.short_description = "Set single False" 
+    
+    
 admin.site.register(ProxyServer, ProxyServerAdmin)
 admin.site.register(ManualQueue, ManualQueueAdmin)
 admin.site.register(AccountAPI, AccountAPIAdmin)
@@ -356,7 +370,7 @@ admin.site.register(CSVFile, CSVFileAdmin)
 admin.site.register(WorkManager)
 admin.site.register(Owner)
 admin.site.register(Company)
-admin.site.register(Network)
+admin.site.register(Network, NetworkAdmin)
 admin.site.register(AdvertiserAccountCapacity)
 admin.site.register(Advertiser,AdvertiserAdmin)
 admin.site.register(Account, AccountAdmin)
