@@ -349,7 +349,7 @@ class ProxyServerAdmin(admin.ModelAdmin):
 
 class NetworkAdmin(admin.ModelAdmin):
     model = Network
-    list_display = ('name', 'can_single', 'url', 'status')
+    list_display = ('name', 'single', 'url', 'status')
     actions = ['activate_single', 'set_single_false',]
     
     def activate_single(self, request, queryset):
