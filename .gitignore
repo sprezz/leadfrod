@@ -6,3 +6,7 @@ dump.sql
 .settings
 .pydevproject
 .tmp_*
+.settings
+.project
+.pydevproject
+.idea

@@ -92,18 +92,18 @@ TEMPLATE_DIRS = (
 
 LEAD_FILE_DIR='rotator/csvfiles' 
 
-import logging
-from sentry.client.handlers import SentryHandler
-
-logger = logging.getLogger()
-# ensure we havent already registered the handler
-if SentryHandler not in map(lambda x: x.__class__, logger.handlers):
-    logger.addHandler(SentryHandler())
-
-    # Add StreamHandler to sentry's default so you can catch missed exceptions
-    logger = logging.getLogger('sentry.errors')
-    logger.propagate = False
-    logger.addHandler(logging.StreamHandler())
+# import logging
+# from sentry.client.handlers import SentryHandler
+#
+# logger = logging.getLogger()
+# # ensure we havent already registered the handler
+# if SentryHandler not in map(lambda x: x.__class__, logger.handlers):
+#     logger.addHandler(SentryHandler())
+#
+#     # Add StreamHandler to sentry's default so you can catch missed exceptions
+#     logger = logging.getLogger('sentry.errors')
+#     logger.propagate = False
+#     logger.addHandler(logging.StreamHandler())
 
 INSTALLED_APPS = (
 #    "staticfiles",
@@ -118,17 +118,14 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'locking',
     'rotator',
-    'indexer',
-    'paging',
-    'sentry',
-    'sentry.client',
-    'django_extensions',
+    # 'indexer',
+    # 'paging',
+    # 'sentry',
+    # 'sentry.client',
+    # 'django_extensions',
     #'django_extensions',
     # always in the end
     # 'south',
 )
 
-try:
-    from local_settings import *
-except:
-    pass    
+from settings_local import *
