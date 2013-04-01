@@ -259,7 +259,8 @@ class WorkManager(models.Model):
 
         def getOffersForLead(self, wi):
             """
-                abudarevsky: how I understood (mayy be wrong) - each Lead goes to advertiser sooner or later but untill it is accepted by an Advertiser it can proposed for different Offers. So once
+                abudarevsky: how I understood (mayy be wrong) - each Lead goes to advertiser sooner or
+                 later but untill it is accepted by an Advertiser it can proposed for different Offers. So once
                  we give the Lead to Advertiser we have to lock Lead not to show for others Offers
                 [3:28:48 MSD] rovin.v: so an offer may have an advertiser, at most 1 advertiser
                 [3:28:59 MSD] rovin.v: an offer may have 0 or 1 advertisers
