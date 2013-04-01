@@ -8,21 +8,20 @@ from rotator.spyder_objects import NETWORKS_MAP
 
 
 class Command(BaseCommand):
-
     """ Custom command for importing data from external networks """
-    
-    def handle(self, *args, **options):   
+
+    def handle(self, *args, **options):
         """ This method should run every spyder to get all data from networks 
         """
-    
+
         networks = Network.objects.all()
         for net in networks:
-            try:    
+            try:
                 spy_class = getattr(spyder_objects, '%sSpyder' % (net.name))
             except AttributeError:
                 continue
             else:
-                if net.url in NETWORKS_MAP:                
-                    spy_class(net).run_spyder()                
-        
+                if net.url in NETWORKS_MAP:
+                    spy_class(net).run_spyder()
+
         print "Finished."

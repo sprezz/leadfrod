@@ -3,7 +3,7 @@
 {% block title %} Thank you! {% endblock %}
 
 {% block content %}
-<p>
-Dear {%if user.first_name%} {{ user.first_name }} {%else%} {{ user.username }} {%endif%}! {{ message }}! Take a break.
+    <p>
+Dear {% if user.first_name %} {{ user.first_name }} {% else %} {{ user.username }} {% endif %}! {{ message }}! Take a break.
 </p>
 {% endblock %}

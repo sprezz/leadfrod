@@ -13,8 +13,8 @@ proxy:
 http://tools.rosinstrument.com/proxy/
 """
 
-  
-class Handler:    
+
+class Handler:
     def __init__(self, account):
         self.today_revenue = 0
         self.account = account
@@ -24,7 +24,7 @@ class Handler:
         self.url = 'set url'
         self.loginform = False
         self.proxies = False
-        
+
         self.username_field = 'username'
         self.password_field = 'password'
         self.br = mechanize.Browser()
@@ -32,34 +32,34 @@ class Handler:
         self.br.set_debug_redirects(True)
         self.br.set_handle_robots(False)
         self.br.addheaders = [('User-agent', 'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.0.6')]
-        
-    @property    
+
+    @property
     def revenue(self):
         return self.today_revenue
-      
+
     def getOffer(self, offer_num):
         offers = Offer.objects.filter(offer_num=offer_num,
-                    account=self.account, network=self.account.network)
+                                      account=self.account, network=self.account.network)
         if not offers.count():
             existUnknown = UnknownOffer.objects.filter(offer_num=offer_num,
-                account=self.account, network=self.account.network) 
+                                                       account=self.account, network=self.account.network)
             if existUnknown.count():
                 existUnknown.delete()
             UnknownOffer(offer_num=offer_num,
-                account=self.account, network=self.account.network).save()
+                         account=self.account, network=self.account.network).save()
             print "WARNING: Please add offer with offer_num=%s" % offer_num
             return False
-        
+
         return offers[0]
-    
+
     def checkEarnings(self, offer):
         exist_earnings = Earnings.objects.filter(offer=offer,
-            date__month=self.now.month, date__year=self.now.year, 
-            date__day=self.now.day)
+                                                 date__month=self.now.month, date__year=self.now.year,
+                                                 date__day=self.now.day)
         if exist_earnings.count():
             exist_earnings.delete()
-        
-        print "save offer %s .." % offer.offer_num    
+
+        print "save offer %s .." % offer.offer_num
 
     def changeProxy(self):
         print "<-Exception"
@@ -69,35 +69,35 @@ class Handler:
             print "Set proxy: %s" % self.proxies[self.chance].host
             self.br.set_proxies({"http": self.proxies[self.chance].host})
             return self.getSoup()
-        
+
         return False
-        
+
     def getSoup(self):
         print "opening %s ..." % self.loginurl
         try:
-            self.br.open(self.loginurl)      
+            self.br.open(self.loginurl)
         except:
             return self.changeProxy() if self.proxies else False
-        
-        if self.loginform:  
+
+        if self.loginform:
             self.br.select_form(name=self.loginform)
         else:
             self.br.select_form(nr=0)
         self.br[self.username_field] = self.account.user_id
         self.br[self.password_field] = self.account.password
-                
+
         print "login %s %s ... " % (self.account.user_id, self.account.password)
         try:
             self.br.submit()
         except:
             return self.changeProxy() if self.proxies else False
         print "opening %s ..." % self.url
-        
+
         try:
             response = self.br.open(self.url)
         except:
-            return self.changeProxy() if self.proxies else False  
-          
+            return self.changeProxy() if self.proxies else False
+
         return BeautifulSoup(response.read())
 
 
@@ -113,14 +113,14 @@ class CXDigitalHandler(Handler):
         print "opening %s " % self.loginurl
         print "login %s %s ... " % (self.account.user_id, self.account.password)
         response = opener.open(self.loginurl, urllib.urlencode({
-            self.username_field: self.account.user_id, 
+            self.username_field: self.account.user_id,
             self.password_field: self.account.password
-        })) 
-        
+        }))
+
         today = "%s/%s/%s" % (self.now.year, self.now.month, self.now.day)
         print "opening %s ..." % self.url
         print "params: %s " % "sRange=%s&eRange=%s&cRange=&groupBy=campaign" % (today, today)
-        
+
         data = "sRange=%s&eRange=%s&cRange=&groupBy=campaign" % (today, today)
         soup = BeautifulSoup(opener.open(self.url, data).read())
         table = soup.find('table', {'id': 'table_mytraffic'})
@@ -131,51 +131,51 @@ class CXDigitalHandler(Handler):
             offer = self.getOffer(tr.find('td', {'class': 'td_camp_id'}).string)
             if not offer:
                 continue
-            
+
             self.checkEarnings(offer)
             earnings = Earnings(
-                offer=offer, 
+                offer=offer,
                 network=self.account.network,
                 niche=offer.niche,
                 campaign=tr.find('td', {'class': 'td_camp_title'}).a.string,
                 clicks=tr.find('td', {'class': 'td_clicks cl'}).string,
                 payout=decimal.Decimal(str(offer.payout)),
-                EPC= tr.find('td', {'class': 'td_ECPC'}).string[1:],
+                EPC=tr.find('td', {'class': 'td_ECPC'}).string[1:],
                 revenue=decimal.Decimal(tr.find('td', {'class': 'td_revenue'}).string[1:]),
             )
             earnings.save()
-            self.today_revenue += earnings.revenue        
+            self.today_revenue += earnings.revenue
         return True
-        
-    
-class HydraHandler(Handler):    
+
+
+class HydraHandler(Handler):
     def __init__(self, account):
         Handler.__init__(self, account)
         self.url = "https://network.hydranetwork.com/load_component/MyCampaigns/sort_by-Campaign/sort_order-asc/date_range-Today"
         self.username_field = 'email_address'
         self.loginform = 'login_form'
-                      
-    def run(self):   
-        try:    
-            soup =  self.getSoup() 
+
+    def run(self):
+        try:
+            soup = self.getSoup()
         except:
             return False
         if not soup:
-            return False       
+            return False
         div = soup.find('div', {'class': 'table-data-div'})
         if not div:
             return False
-        
+
         for tr in div.findAll('tr'):
             td = tr.findAll('td')
-            
+
             offer = self.getOffer(td[0].a.string)
             if not offer:
-                continue            
-            
+                continue
+
             self.checkEarnings(offer)
             earnings = Earnings(
-                offer=offer, 
+                offer=offer,
                 network=self.account.network,
                 niche=offer.niche,
                 campaign=td[1].a.string,
@@ -187,13 +187,14 @@ class HydraHandler(Handler):
             earnings.save()
             self.today_revenue += earnings.revenue
         return True
-  
+
 
 """
     APIHandler: Convert2media, EncoreAds
 """
+
+
 class APIHandler(Handler):
-    
     def run(self):
         if not hasattr(self.account, 'api'):
             print "Warning! Add api for account %s" % self.account
@@ -201,11 +202,11 @@ class APIHandler(Handler):
 
         yesterday = self.now - datetime.timedelta(days=1)
         yesterday = "%s/%s/%s" % (yesterday.month, yesterday.day, yesterday.year)
-        
+
         self.url = "%saffiliates/api/1/reports.asmx/CampaignSummary?affiliate_id=%s&api_key=%s&start_date=%s&end_date=%s" \
-            % (self.account.network.url, self.account.api.affiliate_id, self.account.api.api_key, 
-               yesterday, "%s/%s/%s" % (self.now.month, self.now.day, self.now.year))
-        
+                   % (self.account.network.url, self.account.api.affiliate_id, self.account.api.api_key,
+                      yesterday, "%s/%s/%s" % (self.now.month, self.now.day, self.now.year))
+
         print 'extracting from ' + self.url
         try:
             soup = BeautifulStoneSoup(urllib2.urlopen(self.url))
@@ -217,10 +218,10 @@ class APIHandler(Handler):
             offer = self.getOffer(i.offer_id.string)
             if not offer:
                 continue
-            
+
             self.checkEarnings(offer)
             earnings = Earnings(
-                offer=offer, 
+                offer=offer,
                 network=self.account.network,
                 niche=offer.niche,
                 campaign=i.vertical_name.string,
@@ -233,33 +234,33 @@ class APIHandler(Handler):
             earnings.save()
             self.today_revenue += earnings.revenue
         return True
-               
 
-class AdscendHandler(Handler):    
+
+class AdscendHandler(Handler):
     def __init__(self, account):
         Handler.__init__(self, account)
         self.url = "https://adscendmedia.com/campstats.php"
         #self.url += "?start_m=1&start_d=13&start_y=2011&end_m=4&end_d=13&end_y=2011&country=&camps[]="
         self.username_field = 'email'
-        
-    def run(self):    
+
+    def run(self):
         soup = self.getSoup()
         if not soup:
             return False
         for tr in soup.find('div', {'id': 'content'}).find('table', {'class': 'bordered'}).findAll('tr'):
             td = tr.findAll('td')
-            if not td[0].a: 
+            if not td[0].a:
                 continue
-        
+
             campaign = td[0].a.string
-            try:    
-                offer = Offer.objects.get(name=campaign, account=self.account, network=self.account.network)  
+            try:
+                offer = Offer.objects.get(name=campaign, account=self.account, network=self.account.network)
             except:
-                continue            
+                continue
 
             self.checkEarnings(offer)
             earnings = Earnings(
-                offer=offer, 
+                offer=offer,
                 network=self.account.network,
                 niche=offer.niche,
                 campaign=campaign,
@@ -276,32 +277,33 @@ class AdscendHandler(Handler):
 """
     AzoogleHandler - handler running with selenium
 """
+
+
 class AzoogleHandler(Handler):
-    
     def __init__(self, data):
         self.now = datetime.datetime.now()
         try:
             self.account = Account.objects.get(id=data['account'])
         except:
             print "no such account"
-            self.account = None    
+            self.account = None
         self.data = data
-        
+
     def run(self):
         if not self.account:
             return False
-        
+
         self.account.checked()
         if 'offer_num' not in self.data:
-             return False
+            return False
         offer = self.getOffer(self.data['offer_num'])
         if not offer:
             print "no offer %s" % self.data['offer_num']
             return False
-        
+
         self.checkEarnings(offer)
         earnings = Earnings(
-            offer=offer, 
+            offer=offer,
             network=self.account.network,
             niche=offer.niche,
             campaign=str(self.data['campaign']),
@@ -314,21 +316,21 @@ class AzoogleHandler(Handler):
         if 'today_revenue' in self.data['today_revenue']:
             self.account.setRevenue(self.data['today_revenue'])
         return True
-   
-            
-class CopeacHandler(Handler):    
+
+
+class CopeacHandler(Handler):
     def __init__(self, account):
         Handler.__init__(self, account)
         self.username_field = 'txtUserName'
         self.password_field = 'txtPassword'
         self.loginform = 'form1'
-        
+
     def getSoup(self):
         self.br.set_handle_redirect(True)
         self.br.set_handle_referer(True)
-        
-        self.br.open(self.loginurl)     
-        print "login to copeac..."   
+
+        self.br.open(self.loginurl)
+        print "login to copeac..."
         print self.loginurl
         self.br.select_form(name=self.loginform)
         self.br.form.find_control('password').__dict__['name'] = 'txtPassword'
@@ -339,7 +341,7 @@ class CopeacHandler(Handler):
         self.br.form[self.password_field] = self.account.password
         print "%s %s" % (self.account.user_id, self.account.password)
         return BeautifulSoup(self.br.submit(coord=[21, 4]).read())
-        
+
     def run(self):
         soup = self.getSoup()
         if not soup:
@@ -351,11 +353,11 @@ class CopeacHandler(Handler):
             td = tr.findAll('td')
             offer = self.getOffer(td[0].a.string)
             if not offer:
-                continue            
+                continue
 
             self.checkEarnings(offer)
             earnings = Earnings(
-                offer=offer, 
+                offer=offer,
                 network=self.account.network,
                 niche=offer.niche,
                 campaign=td[1].a.string,
@@ -372,15 +374,17 @@ class CopeacHandler(Handler):
 """ 
     TrackerHandler: Ads4Dough, Globalizer, TrouveMedia
 """
+
+
 class TrackerHandler(Handler):
     def __init__(self, account, domain):
         Handler.__init__(self, account)
         self.url = "https://%s/logged.php?pgid=22&smonth=%d&sday=%d&syear=%d&emonth=%d&eday=%d&eyear=%d" % \
-            (domain, self.now.month, self.now.day, self.now.year, self.now.month, self.now.day, self.now.year) 
-    
-    def run(self):        
+                   (domain, self.now.month, self.now.day, self.now.year, self.now.month, self.now.day, self.now.year)
+
+    def run(self):
         def saveEarnings(trs):
-            for tr in trs:               
+            for tr in trs:
                 td = tr.findAll('td')
                 if not td[1].nobr:
                     continue
@@ -388,21 +392,21 @@ class TrackerHandler(Handler):
                 offer = self.getOffer(name[1:name.find(')')])
                 if not offer:
                     continue
-                
-                self.checkEarnings(offer)               
+
+                self.checkEarnings(offer)
                 earnings = Earnings(
-                    offer=offer, 
+                    offer=offer,
                     network=self.account.network,
                     niche=offer.niche,
-                    campaign=name[name.find(')')+1:],
+                    campaign=name[name.find(')') + 1:],
                     payout=decimal.Decimal(str(offer.payout)),
                     clicks=int(td[3].a.string),
                     revenue=decimal.Decimal(td[7].div.string[1:]),
                     EPC=decimal.Decimal(td[6].string[1:])
                 )
                 earnings.save()
-                self.today_revenue += earnings.revenue                  
-                
+                self.today_revenue += earnings.revenue
+
         soup = self.getSoup()
         if not soup:
             return False
@@ -414,25 +418,27 @@ class TrackerHandler(Handler):
         return True
 
 
-class Ads4DoughHandler(TrackerHandler):    
+class Ads4DoughHandler(TrackerHandler):
     def __init__(self, account):
         TrackerHandler.__init__(self, account, "affiliate.a4dtracker.com")
-        self.loginform = 'login' 
+        self.loginform = 'login'
 
 
-class GlobalizerHandler(TrackerHandler):  
+class GlobalizerHandler(TrackerHandler):
     def __init__(self, account):
         TrackerHandler.__init__(self, account, "affiliate.glbtracker.com")
-  
+
 
 class TrouveMediaHandler(TrackerHandler):
     def __init__(self, account):
         TrackerHandler.__init__(self, account, "affiliate.tvmtracker.com")
-        
-        
+
+
 """
     ReportHandler: GetAds, CPAFlash, TriadMedia
 """
+
+
 class ReportHandler(Handler):
     def __init__(self, account, domain):
         Handler.__init__(self, account)
@@ -442,38 +448,38 @@ class ReportHandler(Handler):
         self.loginform = 'aspnetForm'
         self.proxies = ProxyServer.objects.order_by('exceptions')
         print self.proxies[self.chance].host
-        
-        self.br.set_proxies({"http": self.proxies[self.chance].host})  
-        
-    def run(self):        
+
+        self.br.set_proxies({"http": self.proxies[self.chance].host})
+
+    def run(self):
         soup = self.getSoup()
         if not soup:
             return False
         div = soup.find('div', {'id': 'ctl00_ContentPlaceHolder1_divReportData'})
         if not div:
-            return True                      
-         
+            return True
+
         for tr in div.findAll('table')[1].findAll('tr'):
             td = tr.findAll('td')
 
             if len(td) == 1 or not td[2].find('img', {'title': 'Daily Breakout'}):
-                continue         
-           
+                continue
+
             offer = self.getOffer(td[3].string)
             if not offer:
                 continue
-            
+
             if td[4].span:
                 span = td[4].span['onmouseover'][5:]
                 campaign = span[:span.find("'")]
             else:
                 campaign = td[4].string
-            
-            aprovedCTRblock = td[12].span if td[12].span else td[12]             
-            
-            self.checkEarnings(offer)            
+
+            aprovedCTRblock = td[12].span if td[12].span else td[12]
+
+            self.checkEarnings(offer)
             earnings = Earnings(
-                offer=offer, 
+                offer=offer,
                 network=self.account.network,
                 niche=offer.niche,
                 campaign=campaign,
@@ -490,20 +496,20 @@ class ReportHandler(Handler):
                 revenue=decimal.Decimal(td[15].string[1:])
             )
             earnings.save()
-            self.today_revenue +=  earnings.revenue
+            self.today_revenue += earnings.revenue
         return True
 
 
-class GetAdsHandler(ReportHandler):  
+class GetAdsHandler(ReportHandler):
     def __init__(self, account):
-        ReportHandler.__init__(self, account, "publisher.getads.com")    
-        
-        
+        ReportHandler.__init__(self, account, "publisher.getads.com")
+
+
 class CPAFlashHandler(ReportHandler):
     def __init__(self, account):
         ReportHandler.__init__(self, account, "affiliate.cpaflash.com")
-        
-        
+
+
 class TriadMediahandler(ReportHandler):
     def __init__(self, account):
         ReportHandler.__init__(self, account, "affiliate.triadmedia.com")
@@ -512,19 +518,21 @@ class TriadMediahandler(ReportHandler):
 """
     StatsHadler: AdAngels, ACPAffiliates, 3CPA, TheEdu, YeahCPA, Vancead, GoOffers
 """
+
+
 class StatsHandler(Handler):
     def __init__(self, account, domain):
         Handler.__init__(self, account)
         self.url = "http://%s/stats/index/offers" % domain
         self.username_field = 'data[User][email]'
         self.password_field = 'data[User][password]'
-        
+
     def run(self):
         try:
             soup = self.getSoup()
         except:
             return False
-            
+
         if not soup:
             return False
         block = soup.find('tbody', {'id': 'pagingBody'})
@@ -532,24 +540,24 @@ class StatsHandler(Handler):
             return True
         for tr in block.findAll('tr'):
             td = tr.findAll('td')
-            
+
             href = td[0].a['href']
-            offer_num = href[ href.rfind('/') + 1 : ]
-    
+            offer_num = href[href.rfind('/') + 1:]
+
             offer = self.getOffer(offer_num)
             if not offer:
                 continue
-            
+
             link = td[0].a.string
             b = link.find('(')
             clicks = int(td[2].string)
 
             self.checkEarnings(offer)
             earnings = Earnings(
-                offer=offer, 
+                offer=offer,
                 network=self.account.network,
                 niche=offer.niche,
-                campaign=link[link.find('-') + 2 : len(link) if b == -1 else b - 1 ],
+                campaign=link[link.find('-') + 2: len(link) if b == -1 else b - 1],
                 payout=td[4].string[1:],
                 clicks=clicks,
                 impressions=td[1].string,
@@ -567,22 +575,22 @@ class AdAnglerHandler(StatsHandler):
         self.password_field = 'password'
 
 
-class ACPAffiliatesHandler(StatsHandler):    
+class ACPAffiliatesHandler(StatsHandler):
     def __init__(self, account):
         StatsHandler.__init__(self, account, "publisher.affiliatecashpile.com")
         self.loginform = 'loginform'
 
-  
+
 class ThreeCPAHandler(StatsHandler):
     def __init__(self, account):
         StatsHandler.__init__(self, account, "affiliates.3cpa.com")
-        
+
 
 class YeahCPAHandler(StatsHandler):
     def __init__(self, account):
         StatsHandler.__init__(self, account, "yeahcpa.hasoffers.com")
 
-       
+
 class VanceadHandler(StatsHandler):
     def __init__(self, account):
         StatsHandler.__init__(self, account, "publishers.vancead.com")
@@ -590,7 +598,7 @@ class VanceadHandler(StatsHandler):
 
 class GoOffersHandler(StatsHandler):
     def __init__(self, account):
-        StatsHandler.__init__(self, account, "affiliate.gooffers.net")    
+        StatsHandler.__init__(self, account, "affiliate.gooffers.net")
 
 
 class EduHandler(StatsHandler):
@@ -601,25 +609,29 @@ class EduHandler(StatsHandler):
 """
     PartnerHandler: Affiliate, clickbooth
 """
+
+
 class PartnerHandler(Handler):
     def __init__(self, account, domain):
         Handler.__init__(self, account)
-        #https://publishers.clickbooth.com/partners/monthly_affiliate_stats.html?campaign_type=all_campaigns&affiliate_stats_start_month=5&affiliate_stats_start_day=9&affiliate_stats_start_year=2011&affiliate_stats_end_month=5&affiliate_stats_end_day=9&affiliate_stats_end_year=2011&breakdown=cumulative
-        self.url = "https://%s/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
-            % (domain, int(self.now.month), int(self.now.day), int(self.now.year), int(self.now.month), 
-               int(self.now.day), int(self.now.year))
+        #https://publishers.clickbooth.com/partners/monthly_affiliate_stats.html?campaign_type=all_campaigns&affiliate_stats_start_month=5&affiliate_stats_start_day=9&affiliate_stats_start_year
+        # =2011&affiliate_stats_end_month=5&affiliate_stats_end_day=9&affiliate_stats_end_year=2011&breakdown=cumulative
+        self.url = "https://%s/partners/monthly_affiliate_stats.html?program_id=0&affiliate_stats_start_month=%d&affiliate_stats_start_day=%d&affiliate_stats_start_year=%d&affiliate_stats_end_month" \
+                   "=%d&affiliate_stats_end_day=%d&affiliate_stats_end_year=%d&breakdown=cumulative" \
+                   % (domain, int(self.now.month), int(self.now.day), int(self.now.year), int(self.now.month),
+                      int(self.now.day), int(self.now.year))
         self.username_field = 'DL_AUTH_USERNAME'
-        self.password_field = 'DL_AUTH_PASSWORD'  
+        self.password_field = 'DL_AUTH_PASSWORD'
         self.inc = 1
-        
-    def run(self):       
+
+    def run(self):
         soup = self.getSoup()
         if not soup:
             return False
         table = soup.find('table', {'class': 'recordTable'})
         if not table:
             return False
-        
+
         for tr in table.findAll('tr'):
             td = tr.findAll('td')
             if not td[1].b:
@@ -627,19 +639,19 @@ class PartnerHandler(Handler):
             link = td[1].b.a
             if not link or not link.string:
                 continue
-            
+
             end = link['href'].find('&')
             if end == -1:
                 end = len(link['href'])
-            offer_num = link['href'][ link['href'].find('=') + 1 : end]
+            offer_num = link['href'][link['href'].find('=') + 1: end]
             offer = self.getOffer(offer_num)
             if not offer:
                 continue
-            
+
             block = str(td[12].b)
             self.checkEarnings(offer)
             earnings = Earnings(
-                offer=offer, 
+                offer=offer,
                 network=self.account.network,
                 niche=offer.niche,
                 campaign=link.string,
@@ -649,18 +661,18 @@ class PartnerHandler(Handler):
                 clicks=td[3].string,
                 CTR=td[5].string[:-1].replace(',', ''),
                 EPC=0 if td[9 + self.inc].string == 'N/A' else td[9 + self.inc].string[1:],
-                revenue=decimal.Decimal(block[block.find('$') + 1 : block.find('a') - 1] if self.inc else td[11].b.string[1:])
+                revenue=decimal.Decimal(block[block.find('$') + 1: block.find('a') - 1] if self.inc else td[11].b.string[1:])
                 #decimal.Decimal((block[block.find('$') + 1 : block.find('a') - 1]))
             )
             earnings.save()
             self.today_revenue += earnings.revenue
         return True
 
-  
-class AffiliateComHandler(PartnerHandler):    
+
+class AffiliateComHandler(PartnerHandler):
     def __init__(self, account):
-        PartnerHandler.__init__(self, account, 'login.tracking101.com')  
-        
+        PartnerHandler.__init__(self, account, 'login.tracking101.com')
+
 
 class ClickBoothHandler(PartnerHandler):
     def __init__(self, account):

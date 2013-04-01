@@ -3,6 +3,7 @@
 from django.contrib.contenttypes.models import ContentType
 from locking.models import LockableModel
 
+
 def gather_lockable_models():
     lockable_models = dict()
     for contenttype in ContentType.objects.all():

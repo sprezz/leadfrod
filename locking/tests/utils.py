@@ -5,6 +5,7 @@ from django.core.management import call_command
 from django.db.models import loading
 from django import test
 
+
 class TestCase(test.TestCase):
     apps = ()
 

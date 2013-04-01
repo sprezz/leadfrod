@@ -1,19 +1,19 @@
 {% extends "base.html" %}
-{% block scripts%}
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
-<script type="text/javascript"> 
-$(function(){
-	$(".unlock_action").bind('click', function(){
-		var lead_id= $(this).attr('id');
-		$("#lead_id_param").attr('value',lead_id);
-		$("#unlock_form").submit(); 
-	});
+{% block scripts %}
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+    <script type="text/javascript">
+$(function() {
+    $(".unlock_action").bind('click', function() {
+        var lead_id = $(this).attr('id');
+        $("#lead_id_param").attr('value', lead_id);
+        $("#unlock_form").submit();
+    });
 });
 </script>
 {% endblock %}
 {% block title %} List of locked leads {% endblock %}
 {% block content %}
-<form id="unlock_form" action='/release' method="post">
+    <form id="unlock_form" action='/release' method="post">
 	{% csrf_token %}
 	<input type="hidden" id="lead_id_param" name="lead_id" value=""/>
 	<table width="80%" border="1">
@@ -24,15 +24,15 @@ $(function(){
 			<th>Seconds remaining</th>
 			<th>Unlock</th>
 		</tr>
-		{% for lead in leads %}
-			<tr>
-				<td align="left">{{lead}}</td>
-				<td align="center">{{lead.locked_by}}</td>
-				<td align="center">{{lead.locked_at}}</td>
-				<td align="center">{{lead.lock_seconds_remaining}}</td>
-				<td align="center"><a href="#" class="unlock_action" id="{{lead.id}}">Unlock</a></td>
+        {% for lead in leads %}
+            <tr>
+				<td align="left">{{ lead }}</td>
+				<td align="center">{{ lead.locked_by }}</td>
+				<td align="center">{{ lead.locked_at }}</td>
+				<td align="center">{{ lead.lock_seconds_remaining }}</td>
+				<td align="center"><a href="#" class="unlock_action" id="{{ lead.id }}">Unlock</a></td>
 			</tr>
-		{% endfor %}
+        {% endfor %}
 	</table>
 </form>
 {% endblock %}

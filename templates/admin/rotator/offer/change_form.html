@@ -2,75 +2,75 @@
 
 {% block extrahead %}
 
-{{ block.super }}
+    {{ block.super }}
 
-<script type="text/javascript" src="/media/admin/js/jquery.min.js"></script>
-<script type="text/javascript">
-$(function(){
-	var options = document.getElementById('id_account').options
-	var networks = null
-	
-	$.get('/ajax/admin/account/list/', {}, function(o){
-		networks = o
-		//$('#id_network').trigger('change')
-	}, "json")
-	
-	$('#id_network').change(function(){
-		var network = $(this).val()
-		if(network in networks){
+    <script type="text/javascript" src="/media/admin/js/jquery.min.js"></script>
+    <script type="text/javascript">
+$(function() {
+    var options = document.getElementById('id_account').options
+    var networks = null
 
-			for(i=0; i< options.length; i++){
-				if(options[i].value == '')
-					continue
-				var disabled = true
-				for(j=0; j < networks[network].length; j++ ){
+    $.get('/ajax/admin/account/list/', {}, function(o) {
+        networks = o
+        //$('#id_network').trigger('change')
+    }, "json")
 
-					if(networks[network][j] == options[i].value){
-						disabled = false
-						break
-					}
-				}
+    $('#id_network').change(function() {
+        var network = $(this).val()
+        if (network in networks) {
 
-				if(disabled)
-					options[i].setAttribute('disabled', disabled)
-				else	
-					options[i].removeAttribute('disabled')					
-				
-			}
-		}else
-			for(i=0; i< options.length; i++)
-				options[i].removeAttribute('disabled')	
-		
-		$('#id_account').val('')			
-	})
-	
-	function save(){
-		$.get('/ajax/admin/offer/save/', {
-			account: $('#id_account').val(), 
-			network: $('#id_network').val(),
-			niche: $('#id_niche').val(),
-			advertiser: $('#id_advertiser').val() 
-		}, function(o){
-		
-		})
-	}
-	
-	$('#id_account').change(save)
-	$('#id_niche').change(save)
-	$('#id_advertiser').change(save)	
-	
-	if($('li.info').html() && $('li.info').html().indexOf('was changed successfully. You may add another Offer below.') != -1){
-		$.get('/ajax/admin/offer/get_saved/', {}, function(o){
-			if(o == 0)
-				return false
-			$('#id_account').val(o.account)
-			$('#id_niche').val(o.niche)
-			$('#id_advertiser').val(o.advertiser)
-			$('#id_network').val(o.network)
-		})
-	}
-	
-	save()
+            for (i = 0; i < options.length; i++) {
+                if (options[i].value == '')
+                    continue
+                var disabled = true
+                for (j = 0; j < networks[network].length; j++) {
+
+                    if (networks[network][j] == options[i].value) {
+                        disabled = false
+                        break
+                    }
+                }
+
+                if (disabled)
+                    options[i].setAttribute('disabled', disabled)
+                else
+                    options[i].removeAttribute('disabled')
+
+            }
+        } else
+            for (i = 0; i < options.length; i++)
+                options[i].removeAttribute('disabled')
+
+        $('#id_account').val('')
+    })
+
+    function save() {
+        $.get('/ajax/admin/offer/save/', {
+            account: $('#id_account').val(),
+            network: $('#id_network').val(),
+            niche: $('#id_niche').val(),
+            advertiser: $('#id_advertiser').val()
+        }, function(o) {
+
+        })
+    }
+
+    $('#id_account').change(save)
+    $('#id_niche').change(save)
+    $('#id_advertiser').change(save)
+
+    if ($('li.info').html() && $('li.info').html().indexOf('was changed successfully. You may add another Offer below.') != -1) {
+        $.get('/ajax/admin/offer/get_saved/', {}, function(o) {
+            if (o == 0)
+                return false
+            $('#id_account').val(o.account)
+            $('#id_niche').val(o.niche)
+            $('#id_advertiser').val(o.advertiser)
+            $('#id_network').val(o.network)
+        })
+    }
+
+    save()
 })
 </script>
 {% endblock %}

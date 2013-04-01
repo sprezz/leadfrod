@@ -4,21 +4,22 @@ import datetime
 import re
 import logging
 
+
 SITES_MAP = {
     'jumptap.com': {
         'username_key': 'username',
         'password_key': 'password',
-        'username': 'benb24', 
+        'username': 'benb24',
         'password': 'busby123',
         'loginurl': 'https://www.jumptap.com/cas-1.0/login?service=https%3A%2F%2Fppc.jumptap.com%2Ftapmatch31%2Fj_spring_cas_security_check',
         'login_form_selector': {'nr': 0},
-        'url': 'https://ppc.jumptap.com/tapmatch31/listCampaign.html',        
+        'url': 'https://ppc.jumptap.com/tapmatch31/listCampaign.html',
         #table id="campaigns" class="tblManageList"
     },
     'admob.com': {
         'username_key': 'email',
         'password_key': 'password',
-        'username': 'Ryanwessels21@yahoo.com', 
+        'username': 'Ryanwessels21@yahoo.com',
         'password': 'proballer25',
         'loginurl': 'http://www.admob.com/',
         'login_form_selector': {'nr': 0},
@@ -28,7 +29,7 @@ SITES_MAP = {
     'inmobi.com': {
         'username_key': 'username',
         'password_key': 'passWd',
-        'username': 'benb24@gmail.com', 
+        'username': 'benb24@gmail.com',
         'password': 'busby123',
         'loginurl': 'https://www.inmobi.com/advertiser/Login.html',
         'login_form_selector': {'name': 'loginForm'},
@@ -38,13 +39,13 @@ SITES_MAP = {
     },
     'moolah-media.com': {
         'username_key': 'mail',
-        'password_key': 'pass', 
+        'password_key': 'pass',
         'username': 'benb24@gmail.com',
-        'password': 'busby123',       
+        'password': 'busby123',
         'loginurl': 'http://moolah-media.com/login.php',
         'login_form_selector': {'name': 'form_'},
         'url': 'http://publisher.moolah-media.com/xhr/affiliate.report.php?datefromtime=%s&datetotime=%s&unix_timestamp=0&link_id=all_links&sub_id=0'
-    } 
+    }
 }
 
 
@@ -55,23 +56,23 @@ class Displayer:
         self.br.set_debug_responses(True)
         self.br.set_debug_redirects(True)
         self.br.set_handle_robots(False)
-    
+
     def getSoup(self):
-        self.br.open(self.params['loginurl']) 
+        self.br.open(self.params['loginurl'])
         self.br.select_form(**self.params['login_form_selector'])
         #self.br.form.new_control('text', self.params['username_key'], {'value': self.params['username']})
         #self.br.form.new_control('text', self.params['password_key'], {'value': self.params['password']})
         self.br[self.params['username_key']] = self.params['username']
         self.br[self.params['password_key']] = self.params['password']
         self.br.submit()
-        
+
         return BeautifulSoup(self.br.open(self.params['url']).read())
 
     def run(self):
         return self.getSoup()
-    
 
-class JumptapDisplayer(Displayer):   
+
+class JumptapDisplayer(Displayer):
     pass
 
 
@@ -80,11 +81,11 @@ class AdmobDisplayer(Displayer):
         Displayer.__init__(self, site)
         d = str(datetime.date.today().strftime("%Y-%m-%d"))
         self.params['url'] = self.params['url'] % (d, d)
-        
+
     def run(self):
         soup = self.getSoup()
-        table = soup.find('table', {'class':'altRowTable '})
-        offers  = {}
+        table = soup.find('table', {'class': 'altRowTable '})
+        offers = {}
         for tr in table.find('tbody').findAll('tr'):
             td = tr.findAll('td')
             s = str(tr)
@@ -98,12 +99,12 @@ class AdmobDisplayer(Displayer):
                     'Status': td[3].div['alt'],
                     'Budget': td[4].string
                 }
-            
+
         ids = offers.keys()
         response = self.br.open(self.params['ajax_url'] + "&ids[]=".join(ids))
-        
+
         data = eval(response.read())
-        
+
         content = """<table width='100%' border='1'><tr><th>Campaign</th><th>Created</th><th>Status</th>
             <th>Budget</th><th>Avg. CPC</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Cost</th></tr>"""
         for id in ids:
@@ -113,10 +114,10 @@ class AdmobDisplayer(Displayer):
             offers[id]['Clicks'] = data['s'][id][3]
             offers[id]['CTR'] = data['s'][id][2]
             content += """<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>
-                <td>%s</td><td>%s</td></tr>""" % (offers[id]['Campaign'], offers[id]['Created'], 
-                offers[id]['Status'], offers[id]['Budget'], offers[id]['Avg. CPC'], offers[id]['Impressions'],
-                offers[id]['Clicks'], offers[id]['CTR'], offers[id]['Cost'])
-        content += "</table>"    
+                <td>%s</td><td>%s</td></tr>""" % (offers[id]['Campaign'], offers[id]['Created'],
+                                                  offers[id]['Status'], offers[id]['Budget'], offers[id]['Avg. CPC'], offers[id]['Impressions'],
+                                                  offers[id]['Clicks'], offers[id]['CTR'], offers[id]['Cost'])
+        content += "</table>"
 
         return content
 
@@ -142,4 +143,3 @@ class MoolahDisplayer(Displayer):
         
 
       
-    

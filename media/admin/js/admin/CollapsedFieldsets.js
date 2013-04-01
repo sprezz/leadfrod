@@ -29,7 +29,7 @@ var CollapsedFieldsets = {
                 var collapse_link = document.createElement('a');
                 collapse_link.className = 'collapse-toggle';
                 collapse_link.id = 'fieldsetcollapser' + i;
-                collapse_link.onclick = new Function('CollapsedFieldsets.show('+i+'); return false;');
+                collapse_link.onclick = new Function('CollapsedFieldsets.show(' + i + '); return false;');
                 collapse_link.href = '#';
                 collapse_link.innerHTML = gettext('Show');
                 var h2 = fs.getElementsByTagName('h2')[0];
@@ -40,13 +40,15 @@ var CollapsedFieldsets = {
         }
         if (collapsed_seen) {
             // Expand all collapsed fieldsets when form is submitted.
-            addEvent(findForm(document.getElementsByTagName('fieldset')[0]), 'submit', function() { CollapsedFieldsets.uncollapse_all(); });
+            addEvent(findForm(document.getElementsByTagName('fieldset')[0]), 'submit', function() {
+                CollapsedFieldsets.uncollapse_all();
+            });
         }
     },
     fieldset_has_errors: function(fs) {
         // Returns true if any fields in the fieldset have validation errors.
         var divs = fs.getElementsByTagName('div');
-        for (var i=0; i<divs.length; i++) {
+        for (var i = 0; i < divs.length; i++) {
             if (divs[i].className.match(/\berrors\b/)) {
                 return true;
             }
@@ -59,7 +61,7 @@ var CollapsedFieldsets = {
         fs.className = fs.className.replace(CollapsedFieldsets.collapsed_re, '');
         // Toggle the "Show" link to a "Hide" link
         var collapse_link = document.getElementById('fieldsetcollapser' + fieldset_index);
-        collapse_link.onclick = new Function('CollapsedFieldsets.hide('+fieldset_index+'); return false;');
+        collapse_link.onclick = new Function('CollapsedFieldsets.hide(' + fieldset_index + '); return false;');
         collapse_link.innerHTML = gettext('Hide');
     },
     hide: function(fieldset_index) {
@@ -68,13 +70,13 @@ var CollapsedFieldsets = {
         fs.className += ' ' + CollapsedFieldsets.collapsed_class;
         // Toggle the "Hide" link to a "Show" link
         var collapse_link = document.getElementById('fieldsetcollapser' + fieldset_index);
-        collapse_link.onclick = new Function('CollapsedFieldsets.show('+fieldset_index+'); return false;');
+        collapse_link.onclick = new Function('CollapsedFieldsets.show(' + fieldset_index + '); return false;');
         collapse_link.innerHTML = gettext('Show');
     },
 
     uncollapse_all: function() {
         var fieldsets = document.getElementsByTagName('fieldset');
-        for (var i=0; i<fieldsets.length; i++) {
+        for (var i = 0; i < fieldsets.length; i++) {
             if (fieldsets[i].className.match(CollapsedFieldsets.collapsed_re)) {
                 CollapsedFieldsets.show(i);
             }

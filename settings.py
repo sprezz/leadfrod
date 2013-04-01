@@ -1,11 +1,13 @@
 # Django settings for leap project.
 import os
-SITE_ROOT= os.path.dirname(__file__)
+
+
+SITE_ROOT = os.path.dirname(__file__)
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
+# ('Your Name', 'your_email@domain.com'),
 )
 
 #TEMPLATE_STRING_IF_INVALID = "LOOKUP FAILED!!!!!"
@@ -15,11 +17,11 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'leadfrod.sqlite',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'NAME': 'leadfrod.sqlite', # Or path to database file if using sqlite3.
+        'USER': '', # Not used with sqlite3.
+        'PASSWORD': '', # Not used with sqlite3.
+        'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '', # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -67,7 +69,7 @@ SECRET_KEY = 'rp6qx2n=1%u^m_j-@2zqs)(q@j#x+fpnu0hv39yq%45ums6xri'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    #     'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -90,7 +92,7 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
-LEAD_FILE_DIR='rotator/csvfiles' 
+LEAD_FILE_DIR = 'rotator/csvfiles'
 
 # import logging
 # from sentry.client.handlers import SentryHandler
@@ -106,7 +108,7 @@ LEAD_FILE_DIR='rotator/csvfiles'
 #     logger.addHandler(logging.StreamHandler())
 
 INSTALLED_APPS = (
-#    "staticfiles",
+    #    "staticfiles",
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

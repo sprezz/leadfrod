@@ -1,17 +1,17 @@
-
 {% if result_hidden_fields %}
-<div class="hiddenfields"> {# DIV for HTML validation #}
+    <div class="hiddenfields"> {# DIV for HTML validation #}
 {% for item in result_hidden_fields %}{{ item }}{% endfor %}
 </div>
 {% endif %}
 {% if results %}
-<table cellspacing="0" id="result_list">
+    <table cellspacing="0" id="result_list">
 <thead>
 <tr>
-{% for header in result_headers %}<th{{ header.class_attrib }}>
-{% if header.sortable %}<a href="{{ header.url }}">{% endif %}
-{{ header.text|capfirst }}
-{% if header.sortable %}</a>{% endif %}</th>{% endfor %}
+{% for header in result_headers %}
+    <th{{ header.class_attrib }}>
+    {% if header.sortable %}<a href="{{ header.url }}">{% endif %}
+    {{ header.text|capfirst }}
+    {% if header.sortable %}</a>{% endif %}</th>{% endfor %}
 </tr>
 </thead>
 <tbody>
@@ -19,39 +19,39 @@
     {% for field in cl.get_summary %}
         {% if forloop.counter == 2 %}
             <th>
-        {% else %}        
+        {% else %}
             <td>
         {% endif %}
-            {% if field %}
-                {{ field|floatformat:2 }}
-            {% endif %}
-        {% if forloop.counter == 2 %}
-            </th>
-        {% else %}        
-            </td>
-        {% endif %}
+    {% if field %}
+        {{ field|floatformat:2 }}
+    {% endif %}
+    {% if forloop.counter == 2 %}
+        </th>
+    {% else %}
+        </td>
+    {% endif %}
     {% endfor %}    
     
 </tr>
 {% for result in results %}
-<tr class="{% cycle 'row1' 'row2' %}">{% for item in result %}{{ item }}{% endfor %}</tr>
+    <tr class="{% cycle 'row1' 'row2' %}">{% for item in result %}{{ item }}{% endfor %}</tr>
 {% endfor %}
 
 <tr class="row_summary">
     {% for field in cl.get_summary %}
         {% if forloop.counter == 2 %}
             <th>
-        {% else %}        
+        {% else %}
             <td>
         {% endif %}
-            {% if field %}
-                {{ field|floatformat:2 }}
-            {% endif %}
-        {% if forloop.counter == 2 %}
-            </th>
-        {% else %}        
-            </td>
-        {% endif %}
+    {% if field %}
+        {{ field|floatformat:2 }}
+    {% endif %}
+    {% if forloop.counter == 2 %}
+        </th>
+    {% else %}
+        </td>
+    {% endif %}
     {% endfor %}    
     
 </tr>

@@ -1,7 +1,7 @@
 /* 'Magic' date parsing, by Simon Willison (6th October 2003)
-   http://simon.incutio.com/archive/2003/10/06/betterDateInput
-   Adapted for 6newslawrence.com, 28th January 2004
-*/
+ http://simon.incutio.com/archive/2003/10/06/betterDateInput
+ Adapted for 6newslawrence.com, 28th January 2004
+ */
 
 /* Finds the index of the first occurence of item in the array, or -1 if not found */
 if (typeof Array.prototype.indexOf == 'undefined') {
@@ -33,10 +33,10 @@ var monthNames = gettext("January February March April May June July August Sept
 var weekdayNames = gettext("Sunday Monday Tuesday Wednesday Thursday Friday Saturday").split(" ");
 
 /* Takes a string, returns the index of the month matching that string, throws
-   an error if 0 or more than 1 matches
-*/
+ an error if 0 or more than 1 matches
+ */
 function parseMonth(month) {
-    var matches = monthNames.filter(function(item) { 
+    var matches = monthNames.filter(function(item) {
         return new RegExp("^" + month, "i").test(item);
     });
     if (matches.length == 0) {
@@ -62,21 +62,21 @@ function parseWeekday(weekday) {
 }
 
 /* Array of objects, each has 're', a regular expression and 'handler', a 
-   function for creating a date from something that matches the regular 
-   expression. Handlers may throw errors if string is unparseable. 
-*/
+ function for creating a date from something that matches the regular
+ expression. Handlers may throw errors if string is unparseable.
+ */
 var dateParsePatterns = [
     // Today
     {   re: /^tod/i,
-        handler: function() { 
+        handler: function() {
             return new Date();
-        } 
+        }
     },
     // Tomorrow
     {   re: /^tom/i,
         handler: function() {
-            var d = new Date(); 
-            d.setDate(d.getDate() + 1); 
+            var d = new Date();
+            d.setDate(d.getDate() + 1);
             return d;
         }
     },
@@ -89,7 +89,7 @@ var dateParsePatterns = [
         }
     },
     // 4th
-    {   re: /^(\d{1,2})(st|nd|rd|th)?$/i, 
+    {   re: /^(\d{1,2})(st|nd|rd|th)?$/i,
         handler: function(bits) {
             var d = new Date();
             d.setDate(parseInt(bits[1], 10));
@@ -97,7 +97,7 @@ var dateParsePatterns = [
         }
     },
     // 4th Jan
-    {   re: /^(\d{1,2})(?:st|nd|rd|th)? (\w+)$/i, 
+    {   re: /^(\d{1,2})(?:st|nd|rd|th)? (\w+)$/i,
         handler: function(bits) {
             var d = new Date();
             d.setDate(parseInt(bits[1], 10));
@@ -116,7 +116,7 @@ var dateParsePatterns = [
         }
     },
     // Jan 4th
-    {   re: /^(\w+) (\d{1,2})(?:st|nd|rd|th)?$/i, 
+    {   re: /^(\w+) (\d{1,2})(?:st|nd|rd|th)?$/i,
         handler: function(bits) {
             var d = new Date();
             d.setDate(parseInt(bits[2], 10));
@@ -192,8 +192,8 @@ function fmt00(x) {
     // fmt00: Tags leading zero onto numbers 0 - 9.
     // Particularly useful for displaying results from Date methods.
     //
-    if (Math.abs(parseInt(x)) < 10){
-        x = "0"+ Math.abs(x);
+    if (Math.abs(parseInt(x)) < 10) {
+        x = "0" + Math.abs(x);
     }
     return x;
 }
@@ -203,13 +203,15 @@ function parseDateStringISO(s) {
         var d = parseDateString(s);
         return d.getFullYear() + '-' + (fmt00(d.getMonth() + 1)) + '-' + fmt00(d.getDate())
     }
-    catch (e) { return s; }
+    catch (e) {
+        return s;
+    }
 }
 function magicDate(input) {
     var messagespan = input.id + 'Msg';
     try {
         var d = parseDateString(input.value);
-        input.value = d.getFullYear() + '-' + (fmt00(d.getMonth() + 1)) + '-' + 
+        input.value = d.getFullYear() + '-' + (fmt00(d.getMonth() + 1)) + '-' +
             fmt00(d.getDate());
         input.className = '';
         // Human readable date

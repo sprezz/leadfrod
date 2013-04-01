@@ -1,44 +1,44 @@
 {% extends "base.html" %}
-{% block scripts%}
+{% block scripts %}
 
-<script type="text/javascript"> 
-$(function(){
-	$(".delete_file").bind('click', function(){
-		var csvfile_id= $(this).attr('id').split("_")[1];
-		var token = $("input[name=csrfmiddlewaretoken]").val();
-		$.ajax({
-            type        : "POST",
-            cache   : false,
-            url     : '/delete_file',
-            data	: {'csvfile_id':csvfile_id, 'csrfmiddlewaretoken':token},
+    <script type="text/javascript">
+$(function() {
+    $(".delete_file").bind('click', function() {
+        var csvfile_id = $(this).attr('id').split("_")[1];
+        var token = $("input[name=csrfmiddlewaretoken]").val();
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: '/delete_file',
+            data: {'csvfile_id': csvfile_id, 'csrfmiddlewaretoken': token},
             success: function(data) {
-            	$.fancybox.hideActivity();
-            	if(data.code=='OK'){
-            		$("#row_"+csvfile_id).remove();
-            	}else{
-            		alert(data.code+':'+data.message);
-            	}
-            	return false;
+                $.fancybox.hideActivity();
+                if (data.code == 'OK') {
+                    $("#row_" + csvfile_id).remove();
+                } else {
+                    alert(data.code + ':' + data.message);
+                }
+                return false;
             },
-        },'json'); 
-	});
+        }, 'json');
+    });
 });
 </script>
 {% endblock %}
 {% block title %} List of CSV Files {% endblock %}
 {% block content %}
-	
-	<table width="80%" border="1">
+
+    <table width="80%" border="1">
 		<tr>
 			<th>File info</th>
 			<th>Action</th>
 		</tr>
-		{% for file in files %}
-			<tr id="row_{{file.id}}">
-				<td align="left">{{file}}</td>
-				<td align="center"><a href="#" id="link_{{file.id}}" class="delete_file">Delete</a></td>
+        {% for file in files %}
+            <tr id="row_{{ file.id }}">
+				<td align="left">{{ file }}</td>
+				<td align="center"><a href="#" id="link_{{ file.id }}" class="delete_file">Delete</a></td>
 			</tr>
-		{% endfor %}
+        {% endfor %}
 	</table>
-	{% csrf_token %}
+    {% csrf_token %}
 {% endblock %}

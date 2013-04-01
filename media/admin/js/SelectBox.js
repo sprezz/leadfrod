@@ -45,7 +45,7 @@ var SelectBox = {
         }
         var j = SelectBox.cache[id].length - 1;
         for (var i = delete_index; i < j; i++) {
-            SelectBox.cache[id][i] = SelectBox.cache[id][i+1];
+            SelectBox.cache[id][i] = SelectBox.cache[id][i + 1];
         }
         SelectBox.cache[id].length--;
     },
@@ -89,7 +89,7 @@ var SelectBox = {
         SelectBox.redisplay(to);
     },
     sort: function(id) {
-        SelectBox.cache[id].sort( function(a, b) {
+        SelectBox.cache[id].sort(function(a, b) {
             a = a.text.toLowerCase();
             b = b.text.toLowerCase();
             try {
@@ -100,7 +100,7 @@ var SelectBox = {
                 // silently fail on IE 'unknown' exception
             }
             return 0;
-        } );
+        });
     },
     select_all: function(id) {
         var box = document.getElementById(id);
