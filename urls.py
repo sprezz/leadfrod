@@ -19,8 +19,7 @@ urlpatterns = patterns('',
                        # Uncomment the admin/doc line below to enable admin documentation:
                        (r'^admin/doc/', include('django.contrib.admindocs.urls')),
                        (r'^accounts/login/$', 'django.contrib.auth.views.login'),
-                       (r'^next/?$', 'rotator.views.next_workitem'),
-                       (r'^next/?$', 'rotator.views.next_workitem'),
+                       url(r'^next/?$', 'rotator.views.next_workitem', name='next_workitem'),
                        (r'^submit/?$', 'rotator.views.submit_workitem'),
                        (r'^logout/?$', 'rotator.views.click_logout'),
                        (r'^dailycap/?$', 'rotator.views.admin_manage_dailycap'),
@@ -42,13 +41,6 @@ urlpatterns = patterns('',
                        (r'^admin/', include(admin.site.urls)),
                        (r'^ajax/admin/', include('locking.urls')),
 
-                       (r'^csv/', 'view_csvs'),
-                       (r'^account/', 'view_csvs'),
-                       (r'^offer/', 'view_csvs'),
-                       (r'^advertiser/', 'view_csvs'),
-                       (r'^worker/', 'view_csvs'),
-                       (r'^showlead', 'show_lead'),
-                       #     (r'', include('staticfiles.urls')),
 
 )
 

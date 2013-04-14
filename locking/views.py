@@ -1,8 +1,7 @@
-import simplejson
-
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.utils import simplejson
 
 from locking.decorators import user_may_change_model, is_lockable, log
 from locking import utils, LOCK_TIMEOUT, logger, models

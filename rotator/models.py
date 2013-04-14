@@ -12,13 +12,30 @@ import os
 import re
 #VERSION 2
 
+ACTIVE = 'active'
+BANNED = 'banned'
+PAUSED = 'paused'
+SUSPICIOUS = 'suspicious'
+DELETED = 'deleted'
+
 STATUS_LIST = (
-    ('active', 'active'),
-    ('banned', 'banned'),
-    ('paused', 'paused'),
-    ('suspicious', 'suspicious'),
-    ('deleted', 'deleted'),
+    (ACTIVE, ACTIVE),
+    (BANNED, BANNED),
+    (PAUSED, PAUSED),
+    (SUSPICIOUS, SUSPICIOUS),
+    (DELETED, DELETED),
 )
+
+AWAITING_APPROVAL = 'awaiting approval'
+DEPLETED = 'depleted'
+TRAFFIC_HOLDER_STATUS_LIST = (
+    (AWAITING_APPROVAL, AWAITING_APPROVAL),
+    (ACTIVE, ACTIVE),
+    (PAUSED, PAUSED),
+    (DELETED, DELETED),
+    (DEPLETED, DEPLETED),
+)
+
 
 PAYMENT_TYPE_LIST = (
     ('CHECK', 'CHECK'),
@@ -31,7 +48,6 @@ class IPSolution(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=255, null=True, blank=True)
 
-
     class Meta:
         verbose_name = 'IP Solution'
         verbose_name_plural = 'IP Solutions'
@@ -43,14 +59,12 @@ class WorkerProfile(models.Model):
     ip_solution = models.ForeignKey(IPSolution, null=True, blank=True)
     now_online = models.BooleanField(default=False, editable=False)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
-                              default='active')
+                              default=ACTIVE)
     description = models.CharField(max_length=255, null=True, blank=True)
-
 
     class Meta:
         verbose_name = 'Worker profile'
         verbose_name_plural = 'Workers profiles'
-
 
     def __unicode__(self):
         return u'%s (%s %s) @ odesk as %s' % (self.user.username,
@@ -156,11 +170,9 @@ class Capacity(models.Model):
         self.owner.capacity = self.owner.daily_cap
         self.owner.save()
 
-
     class Meta:
         verbose_name = 'Capacity'
         verbose_name_plural = 'Capacity instances'
-
 
     def __unicode__(self):
         if self.advertiser:
@@ -193,7 +205,7 @@ class WorkItem(object):
             self.offers = workOffers
 
     def get_remaining_leads(self):
-        count = Lead.unlocked.filter(csv__niche=self.lead.csv.niche, status='active', worker__isnull=True, deleted=False).count()
+        count = Lead.unlocked.filter(csv__niche=self.lead.csv.niche, status=ACTIVE, worker__isnull=True, deleted=False).count()
         return count - 1 if count > 0 else 0
 
     def get_header(self):
@@ -235,7 +247,6 @@ class WorkManager(models.Model):
             WorkManager().save()
         return WorkManager.objects.get(pk=1)
 
-
     class WorkStrategy(object):
         def __init__(self):
             self.remainingLeads = 0
@@ -243,10 +254,10 @@ class WorkManager(models.Model):
         def nextLead(self, csvFile):
             try:
                 csvLeads = Lead.unlocked.filter(csv=csvFile,
-                                                status='active',
+                                                status=ACTIVE,
                                                 worker__isnull=True,
                                                 deleted=False).order_by('?')
-                #                csvLeads = Lead.objects.filter(csv=csvFile, status='active', worker__isnull=True, deleted=False).order_by('?')
+                #                csvLeads = Lead.objects.filter(csv=csvFile, status=ACTIVE, worker__isnull=True, deleted=False).order_by('?')
                 leadsCount = csvLeads.count()
                 if leadsCount == 0:
                     logging.debug('There is no lead available for %s' % csvFile)
@@ -287,7 +298,7 @@ class WorkManager(models.Model):
             """
             leadNiche = wi.lead.getNiche()
             logging.debug('get offer per niche %s' % leadNiche)
-            offers = Offer.objects.filter(niche=leadNiche, status='active', capacity__gte=F('payout')).order_by('submits_today')
+            offers = Offer.objects.filter(niche=leadNiche, status=ACTIVE, capacity__gte=F('payout')).order_by('submits_today')
             logging.info('Found %d offers in niche %s' % (len(offers), leadNiche))
             offer_names = []
             networks = [] # for each lead only one network
@@ -331,7 +342,6 @@ class WorkManager(models.Model):
             logging.info('Found %d result offers in niche %s' % (len(wi.offers), leadNiche))
             return wi
 
-
     work_strategy = WorkStrategy()
 
     @property
@@ -342,7 +352,7 @@ class WorkManager(models.Model):
         "Set lead in work completed and adds adds stat information"
         #        lead = self.getLeadInWork(worker)
         if not workitem:
-            return;
+            return
         if not (workitem.lead.is_locked and workitem.lead.is_locked_by(workitem.worker)):
             self.releaseCurrentWorkItem(workitem)
             raise WorkInterceptedException('Lead %s was unlocked or intercepted by another worker due to inactivity' % workitem.lead)
@@ -367,7 +377,7 @@ class WorkManager(models.Model):
             workitem.lead.unlock_for(workitem.worker)
             workitem.lead.save()
         if workitem.lead.worker == workitem.worker:
-            workitem.lead.status = 'active'
+            workitem.lead.status = ACTIVE
             workitem.lead.worker = None
             for offer in workitem.lead.offers_requested.all():
                 workitem.lead.offers_requested.remove(offer)
@@ -393,8 +403,7 @@ class WorkManager(models.Model):
         try:
             user.get_profile()
         except WorkerProfile.DoesNotExist:
-            wp = WorkerProfile(user=user, status='active')
-            wp.save()
+            WorkerProfile.objects.create(user=user, status=ACTIVE)
 
     def signIn(self, worker):
         logging.debug('%s signing in ' % worker)
@@ -497,7 +506,6 @@ class WorkManager(models.Model):
         elif exceptionMessage:
             raise NoWorkException(exceptionMessage)
 
-
     def signOut(self, worker):
         logging.debug('signing out %s' % worker)
         if not worker.get_profile().now_online:
@@ -514,11 +522,9 @@ class WorkManager(models.Model):
         self.workers_online.remove(worker)
         self.save()
 
-
     class Meta:
         verbose_name = 'WorkManager'
         verbose_name_plural = 'WorkManagers'
-
 
     def __unicode__(self):
         return u'WorkManager: %s workers online' % self.workers_online.count()
@@ -526,39 +532,33 @@ class WorkManager(models.Model):
 
 class LeadSource(models.Model):
     name = models.CharField(max_length=255)
-    status = models.CharField(max_length=30, choices=STATUS_LIST, default='active')
+    status = models.CharField(max_length=30, choices=STATUS_LIST, default=ACTIVE)
     description = models.CharField(max_length=255, null=True, blank=True)
-
 
     class Meta:
         verbose_name = 'Lead Source'
         verbose_name_plural = 'Lead Sources'
 
-
     def __unicode__(self):
-        return u'%s' % (self.name)
+        return u'%s' % self.name
 
 
 class Niche(models.Model):
     name = models.CharField(max_length=30)
     min_clicks = models.FloatField(null=True, blank=True)
     max_clicks = models.FloatField(null=True, blank=True)
-    status = models.CharField(max_length=30, choices=STATUS_LIST, default='active')
+    status = models.CharField(max_length=30, choices=STATUS_LIST, default=ACTIVE)
     description = models.CharField(max_length=30, null=True, blank=True)
     priority = models.IntegerField(default=10)
 
-
     class Meta:
-        verbose_name = 'Niche'
-        verbose_name_plural = 'Niches'
         ordering = ['name']
 
-
     def is_active(self):
-        return self.status == 'active'
+        return self.status == ACTIVE
 
     def __unicode__(self):
-        return u'%s' % (self.name)
+        return u'%s' % self.name
 
 
 class CSVFile(models.Model):
@@ -576,7 +576,7 @@ class CSVFile(models.Model):
     max_offers = models.FloatField(default=1)
     csv_headers = models.TextField(null=False, blank=True)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
-                              default='active')
+                              default=ACTIVE)
     description = models.CharField(max_length=255, null=True, blank=True)
     csv_files = models.FileField(upload_to=settings.LEAD_FILE_DIR,
                                  help_text='Make sure your CSV file has Excel format\
@@ -585,11 +585,9 @@ class CSVFile(models.Model):
                                      help_text='Whether uploading file has the first\
                                          row as a header')
 
-
     class Meta:
         verbose_name = 'CSV File'
         verbose_name_plural = 'CSV Files'
-
 
     def hasLeads(self):
         "Checks if this file has leads to process. If there is an uploaded file but theere is no leads it process them"
@@ -615,12 +613,12 @@ class CSVFile(models.Model):
                     self.csv_headers = ','.join(row)
                     #                    self.save()
                     continue
-                Lead.objects.create(csv=self, status='active', lead_data=','.join(row))
+                Lead.objects.create(csv=self, status=ACTIVE, lead_data=','.join(row))
 
         return self.leads.count() > 0
 
     def is_active(self):
-        return self.status == 'active'
+        return self.status == ACTIVE
 
     def getRevenue(self):
         return self.leads.aggregate(Sum('offers_completed__payout'))['offers_completed__payout__sum']
@@ -648,11 +646,9 @@ class AdvertiserAccountCapacity(models.Model):
     account = models.ForeignKey('Account', related_name='advertiser_capacity')
     capacity = models.FloatField(default=25)
 
-
     class Meta:
         verbose_name = "Advertiser's Account Capacity"
         verbose_name_plural = "Advertiser's Account Capacity instances"
-
 
     def __unicode__(self):
         return u'%s/%s' % (self.advertiser, self.account)
@@ -665,7 +661,7 @@ class Advertiser(models.Model):
     description = models.CharField(max_length=255, null=True, blank=True)
 
     def is_active(self):
-        return self.status == 'active'
+        return self.status == ACTIVE
 
     def numberOfAccounts(self):
         return self.account_capacity.count()
@@ -684,15 +680,13 @@ class Advertiser(models.Model):
     def getAccounts(self):
         return self.account_capacity.all()
 
-
     class Meta:
         verbose_name = 'Advertiser'
         verbose_name_plural = 'Advertisers'
         ordering = ['name']
 
-
     def __unicode__(self):
-        return u'%s' % (self.name)
+        return u'%s' % self.name
 
 
 class Lead(locking.LockableModel):
@@ -718,13 +712,8 @@ class Lead(locking.LockableModel):
     #    def isLocked(self):
     #        return self.worker is not None
 
-    class Meta:
-        verbose_name = 'Lead'
-        verbose_name_plural = 'Leads'
-
-
     def is_active(self):
-        return self.status == 'active'
+        return self.status == ACTIVE
 
     def checkAdvertiser(self, anAdvertiser):
         return anAdvertiser in self.advertisers.all()
@@ -769,7 +758,7 @@ class Offer(models.Model):
     min_clicks = models.FloatField(null=True, blank=True, default=5.0)
     max_clicks = models.FloatField(null=True, blank=True, default=15.0)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
-                              default='active')
+                              default=ACTIVE)
     description = models.CharField(max_length=255, null=True, blank=True)
     submits_today = models.IntegerField(default=0)
     submits_total = models.IntegerField(default=0)
@@ -803,7 +792,7 @@ class Offer(models.Model):
         self.save()
 
     def is_active(self):
-        return self.status == 'active'
+        return self.status == ACTIVE
 
     def hasAdvertiser(self):
         "Checks if this offer already has an advertiser"
@@ -859,7 +848,6 @@ class Offer(models.Model):
             self.initCapacity()
         return self.dailycap_capacity.filter(date=today)[0]
 
-
     def checkCapacity(self):
         "Checks if offer have enough budget to be selected"
         daily_capacity = self.get_capacity_today
@@ -910,12 +898,10 @@ class Offer(models.Model):
         super(Offer, self).save(*args, **kwargs)
         self._checkOfferAdvertiserCapacity()
 
-
     class Meta:
         verbose_name = 'Offer'
         verbose_name_plural = 'Offers'
         unique_together = ("offer_num", "account")
-
 
     def __unicode__(self):
         name = self.offer_num
@@ -929,19 +915,16 @@ class Owner(models.Model):
     daily_cap = models.FloatField(default=0)
     capacity = models.FloatField(default=0)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
-                              default='active')
+                              default=ACTIVE)
     description = models.CharField(max_length=30, null=True, blank=True)
     #    order_id = models.CharField(max_length = 30)
 
-
     def is_active(self):
-        return self.status == 'active'
-
+        return self.status == ACTIVE
 
     class Meta:
         verbose_name = 'Owner'
         verbose_name_plural = 'Owners'
-
 
     def __unicode__(self):
         return u'%s capacity: %s/%s' % (self.name, self.capacity, self.daily_cap)
@@ -965,17 +948,15 @@ class Company(models.Model):
     capacity = models.FloatField(default=0)
     websites = models.CharField(max_length=100, null=True, blank=True)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
-                              default='active')
+                              default=ACTIVE)
     description = models.CharField(max_length=255, null=True, blank=True)
 
     def is_active(self):
-        return self.status == 'active'
-
+        return self.status == ACTIVE
 
     class Meta:
         verbose_name = 'Company'
         verbose_name_plural = 'Companies'
-
 
     def __unicode__(self):
         return u'%s (owned by %s) capacity: %s/%s' % (self.name_list,
@@ -1003,7 +984,7 @@ class Account(models.Model):
     daily_cap = models.FloatField(default=100)
     capacity = models.FloatField(default=100)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
-                              default='active')
+                              default=ACTIVE)
     description = models.CharField(max_length=255, null=True, blank=True)
     last_checked = models.DateTimeField(null=True, blank=True)
     today_revenue = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
@@ -1015,7 +996,7 @@ class Account(models.Model):
     owner.short_description = "Owner"
 
     def is_active(self):
-        return self.status == 'active'
+        return self.status == ACTIVE
 
     def checked(self):
         self.last_checked = datetime.datetime.now()
@@ -1025,12 +1006,10 @@ class Account(models.Model):
         self.today_revenue = revenue
         self.save()
 
-
     class Meta:
         verbose_name = 'Account'
         verbose_name_plural = 'Accounts'
         ordering = ['username', 'capacity']
-
 
     def __unicode__(self):
         return u'%s capacity: %s/%s' % (self.username, self.capacity,
@@ -1048,38 +1027,27 @@ class Network(models.Model):
     url = models.CharField(max_length=100)
     single = models.BooleanField(default=True)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
-                              default='active')
+                              default=ACTIVE)
     description = models.CharField(max_length=30, null=True, blank=True)
 
     def is_active(self):
-        return self.status == 'active'
-
+        return self.status == ACTIVE
 
     class Meta:
         verbose_name = 'Network'
         verbose_name_plural = 'Networks'
         ordering = ['name']
 
-
     def __unicode__(self):
-        return u'%s' % (self.name)
+        return u'%s' % self.name
 
 
 class LeadSourceOfferExclusion(models.Model):
     leadsource = models.ForeignKey(LeadSource)
     advertiser = models.ForeignKey(Advertiser)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
-                              default='active')
+                              default=ACTIVE)
     description = models.CharField(max_length=30, null=True)
-
-
-TRAFFIC_HOLDER_STATUS_LIST = (
-    ('awaiting approval', 'awaiting approval'),
-    ('active', 'active'),
-    ('paused', 'paused'),
-    ('deleted', 'deleted'),
-    ('depleted', 'depleted'),
-)
 
 
 class TrafficHolderOrder(models.Model):
@@ -1094,7 +1062,7 @@ class TrafficHolderOrder(models.Model):
     approval_url = models.CharField(max_length=2000, blank=True, null=True)
     status = models.CharField(max_length=30,
                               choices=TRAFFIC_HOLDER_STATUS_LIST,
-                              default='awaiting approval')
+                              default=AWAITING_APPROVAL)
     description = models.CharField(max_length=30, blank=True, null=True)
 
     def __unicode__(self):
@@ -1107,7 +1075,7 @@ class OfferQueue(models.Model):
     size = models.SmallIntegerField(default=0)
 
     def checkStatusIsActive(self):
-        return self.order.status == 'active'
+        return self.order.status == ACTIVE
 
     def getApprovalUrl(self):
         return self.order.approval_url
@@ -1173,12 +1141,10 @@ class Earnings(models.Model):
     revenue = models.DecimalField(max_digits=5, decimal_places=2)
 
     def pps(self):
-        return 0 if self.offer.submits_today == 0 else "%.2f" % (
-            self.revenue / self.offer.submits_today)
+        return 0 if self.offer.submits_today == 0 else "%.2f" % (self.revenue / self.offer.submits_today)
 
     def mpps(self):
-        return "%.2f" % ((self.revenue + self.payout) / (
-            self.offer.submits_today + 1))
+        return "%.2f" % ((self.revenue + self.payout) / (self.offer.submits_today + 1))
 
     def conv(self):
         if not self.payout or not self.clicks:

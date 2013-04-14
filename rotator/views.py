@@ -4,11 +4,11 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import render_to_response
 from django.utils import simplejson
 from django.template import RequestContext
+from django.views.decorators.http import require_http_methods
 
 from datetime import timedelta, date
 
 import logging
-import simplejson
 from models import *
 from rotator.trafficholder import TrafficHolder
 from trafficholder import UnknownOrderException
@@ -19,10 +19,11 @@ import random
 
 #@login_required
 def index(request):
-    return HttpResponseRedirect('/next')
+    return HttpResponseRedirect('/next/')
 
 
 @login_required
+@require_http_methods(['POST'])
 def submit_workitem(request):
     print 'submit_workitem'
     if request.method == 'POST':
@@ -142,6 +143,7 @@ def admin_show_locked_leads(request):
 
 
 @permission_required('rotator.change_lead')
+@require_http_methods(['POST'])
 def admin_release_lead(request):
     if request.method == 'POST':
         lead_id = int(request.POST['lead_id'])
@@ -161,35 +163,27 @@ def admin_show_csvfiles(request):
 
 @permission_required('rotator.change_lead')
 def admin_delete_csvfile(request):
-    print 'delete csv file', request.POST
     if request.method == 'POST':
+        csvfile_id = request.POST['csvfile_id']
         try:
-            csv_id = int(request.POST['csvfile_id'])
-            print 'Delete csv', csv_id
-            CSVFile.objects.only("id")
-            print 'reducing selcetion to id'
-            csv = CSVFile.objects.get(id=csv_id)
-            print 'get csv', csv
-            csv.delete()
-            print 'deleted, remove defer'
-            CSVFile.objects.defer(None)
+            CSVFile.objects.get(id=csvfile_id).delete()
             data = {'code': 'OK'}
-        except Exception, msg:
-            print 'Exception', msg
-            data = {'code': 'NOK', 'message': msg}
+        except KeyError:
+            data = {'code': 'NOK', 'message': 'csvfile_id is empty'}
+        except (CSVFile.DoesNotExist, ValueError):
+            data = {'code': 'NOK', 'message': 'CSV with id %s not found' % csvfile_id}
         return HttpResponse(simplejson.dumps(data), mimetype='application/json')
     else:
         logging.warning('GET /delete_file when POST is expected')
 
 
 @permission_required('rotator.change_lead')
+@require_http_methods(['POST'])
 def admin_delete_csvfile_raw(request):
-    print 'delete csv file', request.POST
     if request.method == 'POST':
         try:
             csv_id = int(request.POST['csvfile_id'])
             from django.db import connection, transaction
-
 
             cursor = connection.cursor()
 
@@ -230,36 +224,6 @@ def azoogleAccounts(request):
 
 def azoogleEarningsSave(request):
     return HttpResponse(str(AzoogleHandler(request.GET).run()))
-
-# Original functions
-def show_login():
-    pass
-
-
-def dashboard():
-    ''' The dashboard which gives a quick summary of important details '''
-    pass
-
-
-def show_lead():
-    ''' This shows workers a lead along with some offers '''
-    pass
-
-
-def get_offers_for_lead():
-    ''' This method pulls the right number of offers for each lead.
-    It also calls each of the filtering functions in turn
-    and returns just the filtered list of offers '''
-
-
-#Pick next Lead
-def get_lead(worker_id):
-    ''' Use the worker's id to determine which lead to get.
-    Returns a lead id and tuple list of headers and values'''
-    #Select csvs that are allowed by this worker
-    #select leads where active=true, completed=false locked=false, deleted=false from the csv ids above
-    #set lock=true
-    pass
 
 
 def manualQueueCreate(request, template='manualQueueCreate.html'):
@@ -325,53 +289,4 @@ def spyder(request, site):
         return Http404
 
     return HttpResponse(str(SITES[site](site).run()))
-
-
-def release_lead():
-    #set completed = true
-    #set lock=false
-    pass
-
-
-#FILTERS
-def filter_active_offers():
-    pass
-
-
-def filter_daily_caps():
-    pass
-
-
-def filter_advertiser_exclusion():
-    pass
-
-
-def filter_duplicate_titles():
-    pass
-
-
-def filter_distinct_advertisers():
-    pass
-
-
-#something else
-
-#Filter Order for Leads:
-#SELECT LEADS WHERE
-#LEAD=ACTIVE
-#UNLOCK = FALSE
-#COMPLETED = FALSE
-#CSV = ACTIVE
-#LEADSOURCE = ACTIVE
-#CSV.WORKER_LIST CONTAINS WORKER_ID
-
-
-
-#Filter Order for Offers:
-#REMOVE INACTIVE OFFERS [ OWNER, LLC, CSV, ACCOUNT, ADVERTISER, OFFER]
-#REMOVE CAPPED [OWNER, LLC, ACCOUNT, ADVERTISER, OFFER]
-#REMOVE LEADSOURCE-ADVERTISER EXCLUSION OFFERS
-#SHOW DISTINCT TITLES
-#SHOW DISTINCT ADVERTISERS
-#LEADMAX LIMIT
 
