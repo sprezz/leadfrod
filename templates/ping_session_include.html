@@ -1,0 +1,13 @@
+{% if user.is_authenticated %}
+<script type="text/javascript">
+    $(function(){
+        function ping(){
+            $.get('{% url accounts:ping %}');
+
+            setTimeout(ping, 1000)
+        }
+
+        ping();
+    });
+</script>
+{% endif %}

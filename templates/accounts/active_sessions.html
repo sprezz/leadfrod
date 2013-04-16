@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+
+{% block scripts %}
+    <script type="text/javascript">
+    $(function(){
+        var $table = $('#active_sessions');
+        function ping(){
+            $.getJSON('{% url accounts:active_sessions_ajax %}', function(data){
+                $table.empty();
+
+                $.each(data, function(index, session){
+{#                    console.log(session)#}
+                    $('<tr><th>' + session.user + '</th><td>' + session.duration[0] + ' minutes ' + session.duration[1] + ' seconds</td></tr>').appendTo($table)
+                });
+            });
+            setTimeout(ping, 1000);
+        }
+
+        ping();
+    })
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+    <h1>Active sessions</h1>
+<table id="active_sessions" class="table">
+
+</table>
+{% endblock %}

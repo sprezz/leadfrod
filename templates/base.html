@@ -20,6 +20,7 @@
       <script src="/media/js/html5shiv.js"></script>
     <![endif]-->
     <script type="text/javascript" src="/media/js/bootstrap.min.js"></script>
+    {% include "ping_session_include.html" %}
       {% block scripts %} {% endblock %}
   </head>
 
@@ -39,6 +40,7 @@
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reports <b class="caret"></b></a>
                     <ul class="dropdown-menu">
+                        <li><a href='{% url accounts:active_sessions %}'>Active user sessions</a></li>
                         <li><a href='#'>Offer Control</a></li>
                         <li><a href='#'>Worker Stats</a></li>
                         <li><a href='#'>ROI Report</a></li>
@@ -65,7 +67,7 @@
             </ul>
               <ul class="nav pull-right">
                   {% if user.is_authenticated %}
-                      <li><a href="#">Logout {{ user }}</a></li>
+                      <li><a href="{% url logout %}?next=/">Logout {{ user }}</a></li>
 {#                      <li class="nav-text"><span>Logged in as {{ user }}</span> </li>#}
                   {% else %}
 

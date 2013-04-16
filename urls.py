@@ -13,12 +13,12 @@ urlpatterns = patterns('',
                        # Example:
                        # (r'^leap/', include('leap.foo.urls')),
                        (r'^$', 'rotator.views.index'),
-                       (r'^(static|media)/(?P<path>.*)$', 'django.views.static.serve',
-                        {'document_root': settings.MEDIA_ROOT}),
+                       (r'^(static|media)/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 
                        # Uncomment the admin/doc line below to enable admin documentation:
                        (r'^admin/doc/', include('django.contrib.admindocs.urls')),
                        (r'^accounts/login/$', 'django.contrib.auth.views.login'),
+                       url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', name='logout'),
                        url(r'^next/?$', 'rotator.views.next_workitem', name='next_workitem'),
                        (r'^submit/?$', 'rotator.views.submit_workitem'),
                        (r'^logout/?$', 'rotator.views.click_logout'),
@@ -41,7 +41,7 @@ urlpatterns = patterns('',
                        # Uncomment the next line to enable the admin:
                        (r'^admin/', include(admin.site.urls)),
                        (r'^ajax/admin/', include('locking.urls')),
-
+                       url(r'accounts/', include('accounts.urls', namespace='accounts')),
 
 )
 
