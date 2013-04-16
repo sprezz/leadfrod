@@ -4,15 +4,20 @@
 {% block scripts %}
     <script type="text/javascript">
     $(function(){
-        var $table = $('#active_sessions');
+        var $table = $('#active_sessions'),
+            busy = false;
         function ping(){
-            $.getJSON('{% url accounts:active_sessions_ajax %}', function(data){
-                $table.empty();
+            if (!busy){
+                busy = true;
+                $.getJSON('{% url accounts:active_sessions_ajax %}', function(data){
+                    $table.empty();
 
-                $.each(data, function(index, session){
-                    $('<tr><th>' + session.user + '</th><td>' + session.duration[0] + ' minutes ' + session.duration[1] + ' seconds</td></tr>').appendTo($table)
+                    $.each(data, function(index, session){
+                        $('<tr><th>' + session.user + '</th><td>' + session.duration[0] + ' minutes ' + session.duration[1] + ' seconds</td></tr>').appendTo($table)
+                    });
+                    busy = false;
                 });
-            });
+            }
             setTimeout(ping, 1000);
         }
 
