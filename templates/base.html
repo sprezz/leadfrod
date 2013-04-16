@@ -64,7 +64,12 @@
                 </li>
             </ul>
               <ul class="nav pull-right">
-                  <li><a href="#">Logout</a></li>
+                  {% if user.is_authenticated %}
+                      <li><a href="#">Logout {{ user }}</a></li>
+{#                      <li class="nav-text"><span>Logged in as {{ user }}</span> </li>#}
+                  {% else %}
+
+                  {% endif %}
               </ul>
           </div><!--/.nav-collapse -->
         </div>
