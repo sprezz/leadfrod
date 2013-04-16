@@ -7,11 +7,44 @@
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
 <script type="text/javascript" src="/media/ext/fancybox/jquery.fancybox-1.3.4.pack.js"></script>
     {% block scripts %} {% endblock %}
+    <link href="/media/css/styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
+<div id='cssmenu'>
+    <ul>
+        <li><a href='#'><span>Dashboard</span></a></li>
+        <li class='has-sub'><a href='#'><span>Reports</span></a>
+            <ul>
+                <li><a href='#'><span>Offer Control</span></a></li>
+                <li><a href='#'><span>Worker Stats</span></a></li>
+                <li class='last'><a href='#'><span>ROI Report</span></a></li>
+                <li class='last'><a href='#'><span>Daily Cap</span></a></li>
+            </ul>
+        </li>
+        <li class='has-sub'><a href='#'><span>Traffic</span></a>
+            <ul>
+                <li><a href='#'><span>View Queue</span></a></li>
+                <li class='last'><a href='#'><span>Add Emergency Clicks</span></a></li>
+            </ul>
+        </li>
+        <li><a href=''><span>Alerts</span></a></li>
+        <li class='has-sub'><a href='#'><span>Config</span></a>
+            <ul>
+                <li><a href='#'><span>Postback, Pixel, API</span></a></li>
+                <li><a href='#'><span>Manual Subids</span></a></li>
+                <li><a href='#'><span>Network APIs and Spyders</span></a></li>
+                <li><a href='#'><span>Referer domains</span></a></li>
+                <li><a href='#'><span>System</span></a></li>
+
+            </ul>
+        </li>
+        <li class='logout'><a href='/logout'><span>Logout</span></a></li>
+    </ul>
+</div>
 <h1>{% block title %} {% endblock %}</h1>
-<p><a href="/logout">Logout</a></p>
+
 {% block content %}
 {% endblock %}
 </body>
 </html>
+

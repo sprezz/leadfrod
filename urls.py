@@ -31,6 +31,7 @@ urlpatterns = patterns('',
                        (r'^revenue/month/$', 'rotator.views.month_revenue'),
                        (r'^manualqueue/create/$', 'rotator.views.manualQueueCreate'),
                        (r'^manualqueue/go/$', 'rotator.views.manualQueueGo'),
+                       (r'^showqueue/$', 'rotator.views.showQueue'),
                        (r'^azoogle/accounts/$', 'rotator.views.azoogleAccounts'),
                        (r'^azoogle/earnings/save/$', 'rotator.views.azoogleEarningsSave'),
 

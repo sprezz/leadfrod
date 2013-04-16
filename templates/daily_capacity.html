@@ -42,7 +42,8 @@
 				</td>
 				<td align="right">{{ cap.account.capacity }}/{{ cap.account.daily_cap }}</td>
 				<td align="right">{{ cap.company.capacity }}/{{ cap.company.daily_cap }}</td>
-				<td align="right">{{ cap.owner.capacity }}/{{ cap.owner.daily_cap }}</td>
+                <td align="right">{{ cap.owner.capacity }}/{{ cap.owner.daily_cap }}</td>
+                <td align="right"><a href="/dailycap/{{ cap.offer_id }}">Reset</a></td>
 			</tr>
             {% endfor %}
 	</table>

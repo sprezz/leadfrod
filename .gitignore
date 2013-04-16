@@ -11,3 +11,5 @@ dump.sql
 .pydevproject
 .idea
 .venv
+*.sqlite
+linuxcommands.txt

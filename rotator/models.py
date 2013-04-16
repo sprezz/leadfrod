@@ -1186,6 +1186,9 @@ class ManualQueue(models.Model):
             self.size -= 1
             self.save()
 
+    def __unicode__(self):
+        return "[%s] %s" % (self.size, self.url)
+
 
 class ProxyServer(models.Model):
     host = models.CharField(max_length=300)

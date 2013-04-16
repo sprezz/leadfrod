@@ -54,7 +54,9 @@ def randomMessage():
         message = "Click on the thank you page"
     else:
         message = "do NOT click thank you page"
-
+    #Skipping for trouve
+    #Use skultp and add comments directly to niche, network, offer, advertiser, etc
+    return ''
     return message
 
 
@@ -122,10 +124,12 @@ def click_logout(request):
 
 
 @permission_required('rotator.change_offer')
-def admin_manage_dailycap(request):
+def admin_manage_dailycap(request, offerid=None):
     if request.method == 'POST':
         for offer in Offer.objects.all():
             offer.restoreDailyCapCapacity()
+    elif offerid: #Requested method was GET
+        Offer.objects.get(id=offerid).restoreDailyCapCapacity()
 
     for offer in Offer.objects.all():
         offer.checkCapacity()
@@ -228,6 +232,7 @@ def azoogleEarningsSave(request):
 
 def manualQueueCreate(request, template='manualQueueCreate.html'):
     message = ''
+    urls = ''
     if request.method == 'POST' and 'urls' in request.POST:
         urls = request.POST['urls'].split()
         if urls:
@@ -239,9 +244,12 @@ def manualQueueCreate(request, template='manualQueueCreate.html'):
                 else:
                     ManualQueue(url=url).save()
             message = "URLs were saved successfully"
+    #urls = ''.join(ManualQueue.objects.all())
+    #Force all objects to __unicode__ format with str()
 
-    return render_to_response(template, {'message': message},
-                              context_instance=RequestContext(request))
+    return render_to_response(template, {'message': message, 'urls':urls},
+                                  context_instance=RequestContext(request))
+
 
 
 def manualQueueGo(request):
@@ -250,6 +258,12 @@ def manualQueueGo(request):
         mq[0].decreaseSize()
         return HttpResponseRedirect(mq[0].url)
     return HttpResponse('No url with size > 0')
+
+def showQueue(request):
+    queue = [str(o) for o in OfferQueue.objects.all()]
+    manual_queue = [str(o) for o in ManualQueue.objects.all()]
+    return render_to_response('showqueue.html',{'queue':queue, 'manual_queue':manual_queue},
+        context_instance=RequestContext(request))
 
 
 def month_revenue(request, template="month_revenue.html"):

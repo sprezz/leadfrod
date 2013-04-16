@@ -6,6 +6,9 @@ import random
 from rotator.models import OfferQueue, Owner, TrafficHolderOrder
 
 
+referer_hiding_url = 'http://href.li/'
+
+
 class ResponseHandler(sax.handler.ContentHandler):
     def __init__(self):
         self.mapping = {}
@@ -51,7 +54,7 @@ class TrafficHolder(object):
         print send_data
         for attempt in range(0, 10):
             try:
-                response = urllib2.urlopen('http://referer.us/%s?%s' % (self.url, send_data)).read()
+                response = urllib2.urlopen('%s?%s' % (referer_hiding_url+self.url, send_data)).read()
                 if response:
                     logging.error(response)
                 break
@@ -119,8 +122,8 @@ class TrafficHolder(object):
         offerQueue_q = OfferQueue.objects.filter(order=order, size__gt=0)
         if offerQueue_q.exists():
             offerQueue = offerQueue_q.order_by('?')[0]
-            logging.debug('Redirect to http://referer.us/%s' % offerQueue.offer.url)
-            return 'http://referer.us/%s' % offerQueue.popUrl()
+            logging.debug('Redirect to %s' % (referer_hiding_url+offerQueue.offer.url))
+            return '%s' % referer_hiding_url+offerQueue.popUrl()
         else:
             logging.debug('Queue %s is empty. Stopping traffic holder!' % owner_name)
             self.stop(order.order_id)

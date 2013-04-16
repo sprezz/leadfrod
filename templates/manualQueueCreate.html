@@ -3,9 +3,16 @@
 {% block title %} Manual Offer {% endblock %}
 
 {% block content %}
+    <a href="{% url rotator.views.showQueue %}">View Queue Here</a><br/>
+    <h2>Do Not Refresh this page! View the queue by clicking the link above</h2>
     {{ message }}
+    {% for url in urls %}
+        <br/>{{ url }}
+    {% endfor %}
     <form method="POST">
 	<textarea name="urls" style="height:400px; width:800px;"></textarea><br/>
 	<input type="submit"/>
 </form>
+    <br/>
+
 {% endblock %}
