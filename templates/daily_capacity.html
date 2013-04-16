@@ -11,19 +11,28 @@
         <h2>{{ capacity.0.date }}</h2>
         <table width="90%" border="1">
 		<tr>
-			<th>Niche</th>
-			<th>Offer Num</th>
-			<th>Offer Cap</th>
+
+            <th>Niche</th>
+            <th>Owner</th>
+            <th>Offer</th>
+            <th>Account</th>
+			<th>Offer ID</th>
+            <th>Offer Capacity</th>
 			<th>Advertiser Cap</th>
 			<th>Account Cap</th>
 			<th>Company Cap</th>
-			<th>Owner Cap</th>
+            <th>Owner Cap</th>
 		</tr>
             {% for cap in capacity %}
                 <tr>
-				<td>{{ cap.offer.niche }}</td>
+                    <td>{{ cap.offer.niche }}</td>
+                    <td>{{ cap.owner.name }}</td>
+                    <td>{{ cap.offer.name }}</td>
+                    <td>{{ cap.account.name }}</td>
+
+
 				<td align="center">{{ cap.offer.offer_num }}</td>
-				<td align="right">{{ cap.offer.capacity }}/{{ cap.offer.daily_cap }}</td>
+				<td align="right">{{ cap.offer.capacity }}/{{ cap.offer.daily_cap }} <a href="/dailycap/{{ cap.offer_id }}">Reset</a></td>
 				<td align="right">
 					{% if cap.advertiser %}
                         {% if cap.advertiser.getAccounts.count > 1 %}
@@ -43,7 +52,6 @@
 				<td align="right">{{ cap.account.capacity }}/{{ cap.account.daily_cap }}</td>
 				<td align="right">{{ cap.company.capacity }}/{{ cap.company.daily_cap }}</td>
                 <td align="right">{{ cap.owner.capacity }}/{{ cap.owner.daily_cap }}</td>
-                <td align="right"><a href="/dailycap/{{ cap.offer_id }}">Reset</a></td>
 			</tr>
             {% endfor %}
 	</table>
