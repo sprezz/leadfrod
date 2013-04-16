@@ -10,7 +10,6 @@
                 $table.empty();
 
                 $.each(data, function(index, session){
-{#                    console.log(session)#}
                     $('<tr><th>' + session.user + '</th><td>' + session.duration[0] + ' minutes ' + session.duration[1] + ' seconds</td></tr>').appendTo($table)
                 });
             });
@@ -26,7 +25,15 @@
 
 {% block content %}
     <h1>Active sessions</h1>
-<table id="active_sessions" class="table">
+<table class="table">
+<thead>
+<tr>
+    <th>Username</th>
+    <th>Duration</th>
+</tr>
+</thead>
+<tbody id="active_sessions">
 
+</tbody>
 </table>
 {% endblock %}
