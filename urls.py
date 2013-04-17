@@ -13,17 +13,16 @@ urlpatterns = patterns('',
                        # Example:
                        # (r'^leap/', include('leap.foo.urls')),
                        (r'^$', 'rotator.views.index'),
-                       (r'^(static|media)/(?P<path>.*)$', 'django.views.static.serve',
-                        {'document_root': settings.MEDIA_ROOT}),
+                       (r'^(static|media)/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 
                        # Uncomment the admin/doc line below to enable admin documentation:
                        (r'^admin/doc/', include('django.contrib.admindocs.urls')),
                        (r'^accounts/login/$', 'django.contrib.auth.views.login'),
+                       url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', name='logout'),
                        url(r'^next/?$', 'rotator.views.next_workitem', name='next_workitem'),
                        (r'^submit/?$', 'rotator.views.submit_workitem'),
                        (r'^logout/?$', 'rotator.views.click_logout'),
-                       (r'^dailycap/$', 'rotator.views.admin_manage_dailycap'),
-                       (r'^dailycap/(?P<offerid>.*)/$', 'rotator.views.admin_manage_dailycap'),
+                       (r'^dailycap/?$', 'rotator.views.admin_manage_dailycap'),
                        (r'^release/?$', 'rotator.views.admin_release_lead'),
                        (r'^locked_leads/?$', 'rotator.views.admin_show_locked_leads'),
                        (r'^delete_file$', 'rotator.views.admin_delete_csvfile_raw'),
@@ -38,11 +37,14 @@ urlpatterns = patterns('',
 
                        (r'^spyder/(?P<site>.+)?$', 'rotator.views.spyder'),
 
+                       #API views
+                       (r'^dailysummary/$', 'rotator.apis.show_daily_summary'),
+
                        url(r'^offer/(?P<offer_id>\d+)/changestatus/', 'rotator.views.offer_changestatus', name="changeOfferStatus"),
                        # Uncomment the next line to enable the admin:
                        (r'^admin/', include(admin.site.urls)),
                        (r'^ajax/admin/', include('locking.urls')),
-
+                       url(r'accounts/', include('accounts.urls', namespace='accounts')),
 
 )
 

@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'locking',
     'rotator',
+    'accounts',
     # 'indexer',
     # 'paging',
     # 'sentry',

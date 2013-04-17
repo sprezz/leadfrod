@@ -54,7 +54,7 @@ class TrafficHolder(object):
         print send_data
         for attempt in range(0, 10):
             try:
-                response = urllib2.urlopen('%s?%s' % (referer_hiding_url+self.url, send_data)).read()
+                response = urllib2.urlopen('%s?%s' % (self.url, send_data)).read()
                 if response:
                     logging.error(response)
                 break
