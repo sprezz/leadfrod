@@ -83,7 +83,7 @@ class TrafficHolder(object):
             random_clicks = random.randint(offer.min_clicks, offer.max_clicks)
             logging.debug('queue size %d' % random_clicks)
             order = offer.account.company.owner.orders.all()[0]
-            self.set_user(order.username, order.password)
+            #self.set_user(order.username, order.password)
             offer_q = OfferQueue.objects.filter(offer=offer, order=order)
 
             if not offer_q.exists():
