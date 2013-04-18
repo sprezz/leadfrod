@@ -1,3 +1,7 @@
+from datetime import date, timedelta
+import logging
+import random
+
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -6,15 +10,19 @@ from django.utils import simplejson
 from django.template import RequestContext
 from django.views.decorators.http import require_http_methods
 
-from datetime import timedelta, date
-
-import logging
-from models import *
-from rotator.trafficholder import TrafficHolder
-from trafficholder import UnknownOrderException
+from rotator.displayers import InmobiDisplayer, MoolahDisplayer, AdmobDisplayer, JumptapDisplayer
+from rotator.models import WorkInterceptedException, NoWorkException, WorkerProfileDoesNotExistException
+from rotator.models.account import Account
+from rotator.models.capacity import Capacity
+from rotator.models.csv_file import CSVFile
+from rotator.models.earnings import Earnings
+from rotator.models.lead import Lead
+from rotator.models.manual_queue import ManualQueue
+from rotator.models.offer import Offer
+from rotator.models.offer_queue import OfferQueue
+from rotator.models.work_manager import WorkManager
+from rotator.trafficholder import TrafficHolder, UnknownOrderException
 from spyderhandler import AzoogleHandler
-from displayers import *
-import random
 
 
 #@login_required
@@ -57,7 +65,6 @@ def randomMessage():
     #Skipping for trouve
     #Use skultp and add comments directly to niche, network, offer, advertiser, etc
     return ''
-    return message
 
 
 @login_required
@@ -135,7 +142,7 @@ def admin_manage_dailycap(request, offerid=None):
         offer.checkCapacity()
 
     return render_to_response("daily_capacity.html",
-                              {'capacity': Capacity.objects.filter(date=datetime.date.today()).all()},
+                              {'capacity': Capacity.objects.filter(date=date.today()).all()},
                               context_instance=RequestContext(request))
 
 

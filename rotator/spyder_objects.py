@@ -7,7 +7,10 @@ import re
 
 from BeautifulSoup import BeautifulSoup
 from datetime import datetime
-from rotator.models import Earnings, Account, Offer, UnknownOffer
+from rotator.models.account import Account
+from rotator.models.earnings import Earnings
+from rotator.models.offer import Offer
+from rotator.models.unknown_offer import UnknownOffer
 
 
 """
@@ -428,8 +431,8 @@ class ClickBoothSpyder(BaseDataSpyder):
 
 
 class CopeacSpyder(BaseDataSpyder):
-    """ Custom Copeac network parser object """
-    """ ANKNOWN PROBLEM WITH LOGIN FORM SUBMIT This Spyder isn't ready yet and 
+    """ Custom Copeac network parser object
+        UNKNOWN PROBLEM WITH LOGIN FORM SUBMIT This Spyder isn't ready yet and
         it currently don't using """
 
     def login(self, account):

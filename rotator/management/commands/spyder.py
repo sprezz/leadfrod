@@ -1,9 +1,10 @@
-from django.core.management.base import BaseCommand, CommandError
-from rotator.models import Account
-from rotator.spyderhandler import *
-
 import datetime
 import time
+
+from django.core.management.base import BaseCommand, CommandError
+
+from rotator.models.account import Account
+from rotator.spyderhandler import *
 
 
 class Command(BaseCommand):

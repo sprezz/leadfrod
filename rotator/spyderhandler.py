@@ -1,11 +1,15 @@
 import mechanize
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
-from rotator.models import Earnings, Offer, UnknownOffer, Account, ProxyServer
 import urllib2
 import urllib
 from cookielib import CookieJar
 import decimal
 import datetime
+from rotator.models.account import Account
+from rotator.models.earnings import Earnings
+from rotator.models.offer import Offer
+from rotator.models.proxy_server import ProxyServer
+from rotator.models.unknown_offer import UnknownOffer
 
 
 """

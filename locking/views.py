@@ -5,7 +5,7 @@ from django.utils import simplejson
 
 from locking.decorators import user_may_change_model, is_lockable, log
 from locking import utils, LOCK_TIMEOUT, logger, models
-from rotator.models import Account, Network
+from rotator.models.network import Network
 
 
 """

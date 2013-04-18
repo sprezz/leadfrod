@@ -1,9 +1,8 @@
-""" """
 from django.core.management.base import BaseCommand
 from django.utils.importlib import import_module
 
-from rotator.models import Network
 from rotator import spyder_objects
+from rotator.models.network import Network
 from rotator.spyder_objects import NETWORKS_MAP
 
 

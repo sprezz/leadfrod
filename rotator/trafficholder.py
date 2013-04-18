@@ -3,7 +3,8 @@ from xml import sax
 from xml.sax import parseString
 import logging
 import random
-from rotator.models import OfferQueue, Owner, TrafficHolderOrder
+from rotator.models.offer_queue import OfferQueue
+from rotator.models.trafficholder_order import TrafficHolderOrder
 
 
 referer_hiding_url = 'http://href.li/'
@@ -74,8 +75,8 @@ class TrafficHolder(object):
     def editOrderId(self, order, total, hour):
         # DO NOT USE changing hour
         return
-        cmd = {'do': 'edit', 'order': order, 'total': total, 'hour': hour}
-        self._send(cmd)
+        # cmd = {'do': 'edit', 'order': order, 'total': total, 'hour': hour}
+        # self._send(cmd)
 
     def processOffers(self, offers):
         for offer in offers:
