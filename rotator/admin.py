@@ -6,6 +6,7 @@ from django.contrib.admin.views.main import ChangeList
 from django import forms
 
 
+
 class NicheAdmin(admin.ModelAdmin):
     model = Niche
     list_display = ('name', 'status', 'min_clicks', 'max_clicks', 'priority', )
@@ -13,7 +14,7 @@ class NicheAdmin(admin.ModelAdmin):
 
 class AdvertiserAccountCapacityInline(admin.TabularInline):
     model = AdvertiserAccountCapacity
-
+    extra = 0
 
 class AdvertiserAdmin(admin.ModelAdmin):
     list_display = ('name', 'daily_cap', 'status', 'numberOfAccounts' )
@@ -26,11 +27,15 @@ class AdvertiserAdmin(admin.ModelAdmin):
     inlines = [AdvertiserAccountCapacityInline]
 
 
+class OfferInline(admin.TabularInline):
+    model = Offer
+    extra = 0
 class AccountAdmin(admin.ModelAdmin):
     model = Account
     list_display = ('owner', 'network', 'username', 'last_checked', 'revenue', 'today_revenue',)
     list_display_links = ('owner', )
     list_filter = ('network',)
+    inlines = [OfferInline]
 
     def revenue(self, account):
         return Earnings.objects.filter(offer__account=account).extra(
@@ -369,10 +374,15 @@ class ProxyServerAdmin(admin.ModelAdmin):
     list_display = ('host', 'exceptions')
 
 
+class AccountInline(admin.StackedInline):
+    model = Account
+    extra = 0
+
 class NetworkAdmin(admin.ModelAdmin):
     model = Network
     list_display = ('name', 'single', 'url', 'status')
     actions = ['activate_single', 'set_single_false', ]
+    inlines = [AccountInline]
 
     def activate_single(self, request, queryset):
         queryset.update(single=True)
@@ -385,6 +395,12 @@ class NetworkAdmin(admin.ModelAdmin):
     set_single_false.short_description = "Set single False"
 
 
+class AccountInlineTabular(admin.TabularInline):
+    model = Account
+    extra = 0
+class CompanyAdmin(admin.ModelAdmin):
+    inlines = [AccountInlineTabular]
+
 admin.site.register(ProxyServer, ProxyServerAdmin)
 admin.site.register(ManualQueue, ManualQueueAdmin)
 admin.site.register(AccountAPI, AccountAPIAdmin)
@@ -393,7 +409,7 @@ admin.site.register(LeadSource)
 admin.site.register(CSVFile, CSVFileAdmin)
 admin.site.register(WorkManager)
 admin.site.register(Owner)
-admin.site.register(Company)
+admin.site.register(Company, CompanyAdmin)
 admin.site.register(Network, NetworkAdmin)
 admin.site.register(AdvertiserAccountCapacity)
 admin.site.register(Advertiser, AdvertiserAdmin)

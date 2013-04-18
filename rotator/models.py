@@ -1012,7 +1012,7 @@ class Account(models.Model):
         ordering = ['username', 'capacity']
 
     def __unicode__(self):
-        return u'%s capacity: %s/%s' % (self.username, self.capacity,
+        return u'%s,%s,%s[%s/%s]' % (self.company, self.network, self.username, self.capacity,
                                         self.daily_cap)
 
 
