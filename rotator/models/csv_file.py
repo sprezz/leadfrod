@@ -19,9 +19,7 @@ class CSVFile(models.Model):
     cost = models.FloatField(default=0)
     #   revenue = models.FloatField(default = 0) to be calculated
     #   percent_completed = models.FloatField(default = 0) to be calculated
-    workers = models.ManyToManyField('auth.User', null=True, blank=True,
-                                     symmetrical=True,
-                                     related_name='assignments')
+    workers = models.ManyToManyField('auth.User', null=True, blank=True)
     max_offers = models.FloatField(default=1)
     csv_headers = models.TextField(null=False, blank=True)
     status = models.CharField(max_length=30, choices=STATUS_LIST,
