@@ -5,7 +5,7 @@ from rotator.models import STATUS_LIST, ACTIVE
 
 
 class WorkerProfile(models.Model):
-    user = models.ForeignKey(User, unique=True)
+    user = models.ForeignKey('auth.User', unique=True)
     odesk_id = models.CharField(max_length=30, null=True, blank=True)
     ip_solution = models.ForeignKey('rotator.IPSolution', null=True, blank=True)
     now_online = models.BooleanField(default=False, editable=False)
