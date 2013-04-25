@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load urlencode %}
 {% block title %} {{ user.username }}'s backlog {% endblock %}
 {% block scripts %}
     <style>
@@ -50,7 +51,7 @@ $(function() {
             <h3>Offer {{ offer.offer_num }}</h3>
     <table class="table">
         <tr><th>Name</th><td>{{ offer.name }}</td></tr>
-		<tr><th>Url</th><td><a target="_blank" href="http://href.li/{{ offer.url }}">http://href.li/{{ offer.url }}</a></td></tr>
+		<tr><th>Url</th><td><a target="_blank" href="http://cpagodfather.com/autoinsurance/pagea.php?url={{ offer.url|quote }}">{{ offer.url }}</a></td></tr>
 		<tr><th>Network</th><td>{{ offer.network.name }}</td></tr>
 		<tr><th>Account</th><td>{{ offer.account.username }}</td></tr>
 		<tr><th>Description</th><td>{{ offer.description }}</td></tr>
