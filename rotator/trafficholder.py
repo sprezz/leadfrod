@@ -7,7 +7,7 @@ from rotator.models.offer_queue import OfferQueue
 from rotator.models.trafficholder_order import TrafficHolderOrder
 
 
-referer_hiding_url = 'http://href.li/'
+referer_hiding_url = ''
 
 
 class ResponseHandler(sax.handler.ContentHandler):
