@@ -44,3 +44,6 @@ class Earnings(models.Model):
     def __unicode__(self):
         return '%s / %s / %s / %s' % (self.offer.name, self.offer.offer_num,
                                       self.offer.account.username, self.offer.network.name)
+
+    class Meta:
+        app_label = 'rotator'
