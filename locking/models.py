@@ -119,7 +119,6 @@ class LockableModel(models.Model):
             self._locked_at = datetime.today()
             self._locked_by = user
             self._hard_lock = self.__init_hard_lock = hard_lock
-            date = self.locked_at.strftime("%H:%M:%S")
             # an administrative toggle, to make it easier for devs to extend `django-locking`
             # and react to locking and unlocking
             self._state.locking = True
@@ -180,7 +179,7 @@ class LockableModel(models.Model):
         """
         return user == self.locked_by
 
-    def save(self, *vargs, **kwargs):
+    def save(self, *args, **kwargs):
         if self.lock_type == 'hard' and not self.__init_hard_lock:
             raise ObjectLockedError("""There is currently a hard lock in place. You may not save.
             If you're requesting this save in order to unlock this object for the user who
@@ -188,5 +187,5 @@ class LockableModel(models.Model):
             the argument.""")
         self.__init_hard_lock = False
 
-        super(LockableModel, self).save(*vargs, **kwargs)
+        super(LockableModel, self).save(*args, **kwargs)
         self._state.locking = False

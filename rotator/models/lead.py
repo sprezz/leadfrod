@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
-from django.contrib.auth.models import User
 from django.db import models
+
 from locking import models as locking
 from rotator.models import STATUS_LIST, ACTIVE
 
@@ -12,7 +12,7 @@ class Lead(locking.LockableModel):
 
     started_on = models.DateTimeField(null=True, blank=True)
     ended_on = models.DateTimeField(null=True, blank=True)
-    deleted = models.BooleanField(default=False) # Should be accessible after?
+    deleted = models.BooleanField(default=False)  # Should be accessible after?
     offers_requested = models.ManyToManyField('rotator.Offer', related_name='proposed_leads', null=True, blank=True)
     offers_completed = models.ManyToManyField('rotator.Offer', related_name='completed_leads', null=True, blank=True)
 
@@ -33,10 +33,10 @@ class Lead(locking.LockableModel):
         return self.csv.niche
 
     def __unicode__(self):
-        str = u'%s %s' % (self.csv, self.status)
+        _str = u'%s %s' % (self.csv, self.status)
         if self.worker:
-            str += u' in work %s' % self.worker
-        return str
+            _str += u' in work %s' % self.worker
+        return _str
 
     class Meta:
         app_label = 'rotator'

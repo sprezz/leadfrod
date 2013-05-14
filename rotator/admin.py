@@ -3,6 +3,7 @@ from django.contrib.admin.views.main import ChangeList
 from django import forms
 
 from locking.admin import LockableAdmin
+from rotator.models import ACTIVE
 from rotator.models.account import Account
 from rotator.models.account_api import AccountAPI
 from rotator.models.advertiser import Advertiser
@@ -77,14 +78,16 @@ class OfferAdmin(admin.ModelAdmin):
     class Media:
         js = ['/media/admin/js/offer.js', ]
 
+    raw_id_fields = ['advertiser', 'network', 'account', 'niche']
+
     list_display = ('name', 'offer_num', 'network', 'account', 'owner_name',
                     'capacity', 'daily_cap', 'advertiser', 'status',
-                    'capacity_error', 'submits_today')
+                    'capacity_error', 'submits_today', 'submits_total')
     list_display_links = ('name', )
     search_fields = ['name', 'network__name', 'network__description',
                      'account__username', 'account__company__owner__name',
                      'advertiser__name', 'advertiser__description']
-    list_filter = ('status', 'niche', 'network', 'account',  )
+    list_filter = ('status', 'niche', 'network', 'account', )
 
     actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
                'add_clicks_capacity', 'substract_clicks_capacity',
@@ -165,6 +168,18 @@ class OfferAdmin(admin.ModelAdmin):
 
 class LeadAdmin(LockableAdmin):
     model = Lead
+    filter_horizontal = ['offers_requested', 'offers_completed', 'advertisers']
+    raw_id_fields = ['csv', 'worker']
+    list_filter = ['worker', 'status', 'csv', '_locked_at']
+    list_display = ['csv', 'worker', 'status', 'started_on', 'ended_on', 'deleted', '_locked_at', '_locked_by', '_hard_lock', 'is_locked']
+    actions = ('unlock', 'activate_unlock_and_clean_worker')
+
+    def unlock(self, request, queryset):
+        queryset.update(_locked_at=None, _locked_by=None)
+
+    def activate_unlock_and_clean_worker(self, request, queryset):
+        queryset.update(status=ACTIVE, worker=None, _locked_at=None, _locked_by=None)
+    activate_unlock_and_clean_worker.short_description = 'Activate, unlock and clean worker'
 
 
 class OfferQueueAdmin(admin.ModelAdmin):
@@ -366,7 +381,7 @@ class CSVFileAdminForm(forms.ModelForm):
 class CSVFileAdmin(admin.ModelAdmin):
     model = CSVFile
     form = CSVFileAdminForm
-    list_display = ('date_time', 'filename', 'niche', 'status', 'uploaded_by', 'filesize', 'active_leads', 'completed_leads', 'leads', )
+    list_display = ('date_time', 'filename', 'niche', 'status', 'uploaded_by', 'filesize', 'max_offers', 'active_leads', 'completed_leads', 'leads', )
     fieldsets = [
         (None, {'fields': [
             'lead_source', 'niche', 'date_time', 'uploaded_by', 'filename', 'cost', 'max_offers', 'csv_headers',

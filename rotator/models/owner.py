@@ -20,4 +20,4 @@ class Owner(models.Model):
         app_label = 'rotator'
 
     def __unicode__(self):
-        return u'%s capacity: %s/%s' % (self.name, self.capacity, self.daily_cap)
+        return u'%s cap: %s/%s' % (self.name, self.capacity, self.daily_cap)

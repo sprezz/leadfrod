@@ -53,5 +53,4 @@ class Account(models.Model):
         app_label = 'rotator'
 
     def __unicode__(self):
-        return u'%s,%s,%s[%s/%s]' % (self.company, self.network, self.username, self.capacity,
-                                        self.daily_cap)
+        return u'%s,%s,%s[%s/%s]' % (self.company, self.network, self.username, self.capacity, self.daily_cap)

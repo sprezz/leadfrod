@@ -39,7 +39,7 @@ class CSVFile(models.Model):
         app_label = 'rotator'
 
     def hasLeads(self):
-        "Checks if this file has leads to process. If there is an uploaded file but theere is no leads it process them"
+        """Checks if this file has leads to process. If there is an uploaded file but there is no leads it process them"""
         if (self.csv_files is None or self.csv_files.name is None) and self.leads.count() == 0:
             return False
         if (self.csv_files is None or self.csv_files.name is None) and self.leads.count() > 0:

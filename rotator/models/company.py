@@ -33,6 +33,4 @@ class Company(models.Model):
         app_label = 'rotator'
 
     def __unicode__(self):
-        return u'%s (owned by %s) capacity: %s/%s' % (self.name_list,
-                                                      self.owner, self.capacity,
-                                                      self.daily_cap)
+        return u'%s (owned by %s) cap: %s/%s' % (self.name_list, self.owner, self.capacity, self.daily_cap)

@@ -54,22 +54,9 @@ def submit_workitem(request):
             return HttpResponseRedirect('/next')
 
 
-def randomMessage():
-    x = random.random()
-    if x <= 0.04:
-        message = "Fill out the lead on the thank you page"
-    elif x <= 0.24:
-        message = "Click on the thank you page"
-    else:
-        message = "do NOT click thank you page"
-    #Skipping for trouve
-    #Use skultp and add comments directly to niche, network, offer, advertiser, etc
-    return ''
-
-
 @login_required
 def next_workitem(request):
-    "Responds with lead and appropriate offers"
+    """Responds with lead and appropriate offers"""
     wm = WorkManager.instance()
     print 'wm instance', wm
     wm.checkOrCreateUserProfile(request.user)
@@ -98,7 +85,7 @@ def next_workitem(request):
 
             return render_to_response('worker/showlead.html',
                                       {
-                                          'randomMessage': randomMessage(),
+                                          'randomMessage': '',
                                           'user': request.user, 'wi': wi,
                                           'message': msg,
                                           'remaining_leads': wi.get_remaining_leads()
@@ -135,7 +122,7 @@ def admin_manage_dailycap(request, offerid=None):
     if request.method == 'POST':
         for offer in Offer.objects.all():
             offer.restoreDailyCapCapacity()
-    elif offerid: #Requested method was GET
+    elif offerid:  # Requested method was GET
         Offer.objects.get(id=offerid).restoreDailyCapCapacity()
 
     for offer in Offer.objects.all():
