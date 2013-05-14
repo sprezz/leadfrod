@@ -1,12 +1,11 @@
 from datetime import date, timedelta
 import logging
-import random
+from json import dumps
 
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import render_to_response
-from django.utils import simplejson
 from django.template import RequestContext
 from django.views.decorators.http import require_http_methods
 
@@ -170,7 +169,7 @@ def admin_delete_csvfile(request):
             data = {'code': 'NOK', 'message': 'csvfile_id is empty'}
         except (CSVFile.DoesNotExist, ValueError):
             data = {'code': 'NOK', 'message': 'CSV with id %s not found' % csvfile_id}
-        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+        return HttpResponse(dumps(data), mimetype='application/json')
     else:
         logging.warning('GET /delete_file when POST is expected')
 
@@ -194,7 +193,7 @@ def admin_delete_csvfile_raw(request):
         except Exception, msg:
             print 'Exception', msg
             data = {'code': 'NOK', 'message': msg}
-        return HttpResponse(simplejson.dumps(data), mimetype='application/json')
+        return HttpResponse(dumps(data), mimetype='application/json')
     else:
         logging.warning('GET /delete_file when POST is expected')
 
@@ -271,7 +270,7 @@ def month_revenue(request, template="month_revenue.html"):
         totals.append(float(total) if total else 0)
         days.append(d.strftime("%b'%d") if len(days) % 2 == 0 else " ")
 
-    return render_to_response(template, {'datax': simplejson.dumps(totals), 'datay': simplejson.dumps(days)},
+    return render_to_response(template, {'datax': dumps(totals), 'datay': dumps(days)},
                               context_instance=RequestContext(request))
 
 

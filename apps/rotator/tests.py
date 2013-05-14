@@ -1,8 +1,5 @@
 from datetime import datetime, timedelta
 
-from django.utils import simplejson
-from django.core.urlresolvers import reverse
-from django.test.client import Client
 from django.contrib.auth.models import User
 from rotator.models import NoWorkException
 from rotator.models.account import Account

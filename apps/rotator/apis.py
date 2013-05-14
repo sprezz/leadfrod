@@ -1,16 +1,7 @@
-from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.auth import logout
-from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.shortcuts import render_to_response
-from django.utils import simplejson
-from django.template import RequestContext
-from django.views.decorators.http import require_http_methods
-
-
+from django.http import HttpResponse
 import urllib
-
-
 import datetime
+
 start = datetime.datetime.today().strftime('%m-%d-%y')
 end = (datetime.datetime.today() + datetime.timedelta(days=1)).strftime('%m-%d-%y')
 

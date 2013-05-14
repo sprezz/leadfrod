@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.http import HttpResponse
-from django.utils.simplejson import dumps
+from json import dumps
 
 from accounts.models import UserSession
 

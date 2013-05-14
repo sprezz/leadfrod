@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
-from django.utils import simplejson
+from json import dumps
 
 from locking.decorators import user_may_change_model, is_lockable, log
 from locking import utils, LOCK_TIMEOUT, logger, models
@@ -31,7 +31,7 @@ def get_saved_offer(request):
     if 'account' not in request.session or 'network' not in request.session \
         or 'advertiser' not in request.session or 'niche' not in request.session:
         return HttpResponse('0')
-    return HttpResponse(simplejson.dumps({
+    return HttpResponse(dumps({
         'account': request.session['account'],
         'network': request.session['network'],
         'niche': request.session['niche'],
@@ -47,7 +47,7 @@ def account_list(request):
         for account in network.accounts.all():
             data[network.id].append(account.id)
 
-    return HttpResponse(simplejson.dumps(data), mimetype="application/json")
+    return HttpResponse(dumps(data), mimetype="application/json")
 
 
 @log
@@ -93,7 +93,7 @@ def unlock(request, app, model, id):
 def is_locked(request, app, model, id):
     obj = utils.gather_lockable_models()[app][model].objects.get(pk=id)
 
-    response = simplejson.dumps({
+    response = dumps({
         "is_active": obj.is_locked,
         "for_user": getattr(obj.locked_by, 'username', None),
         "applies": obj.lock_applies_to(request.user),
@@ -103,7 +103,7 @@ def is_locked(request, app, model, id):
 
 @log
 def js_variables(request):
-    response = "var locking = " + simplejson.dumps({
+    response = "var locking = " + dumps({
         'base_url': "/".join(request.path.split('/')[:-1]),
         'timeout': LOCK_TIMEOUT,
     })

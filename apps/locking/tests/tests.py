@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from django.utils import simplejson
+from json import loads
 from django.core.urlresolvers import reverse
 from django.test.client import Client
 from django.contrib.auth.models import User
@@ -248,7 +248,7 @@ class BrowserTestCase(TestCase):
         self.story.lock_for(self.alt_user)
         self.story.save()
         res = self.c.get(self.urls['is_locked'])
-        res = simplejson.loads(res.content)
+        res = loads(res.content)
         self.assertTrue(res['applies'])
         self.assertTrue(res['is_active'])
 
@@ -256,7 +256,7 @@ class BrowserTestCase(TestCase):
         self.story.lock_for(self.user)
         self.story.save()
         res = self.c.get(self.urls['is_locked'])
-        res = simplejson.loads(res.content)
+        res = loads(res.content)
         self.assertFalse(res['applies'])
         self.assertTrue(res['is_active'])
 

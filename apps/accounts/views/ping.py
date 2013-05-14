@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from django.http import HttpResponse, HttpResponseForbidden
-from django.utils.simplejson import dumps
+from json import dumps
 from accounts.models import UserSession
 
 
