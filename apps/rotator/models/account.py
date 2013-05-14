@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import datetime
 from django.db import models
+from django.utils.timezone import now
 from rotator.models import PAYMENT_TYPE_LIST, STATUS_LIST, ACTIVE
 
 
@@ -39,7 +40,7 @@ class Account(models.Model):
         return self.status == ACTIVE
 
     def checked(self):
-        self.last_checked = datetime.datetime.now()
+        self.last_checked = now()
         self.save()
 
     def setRevenue(self, revenue):

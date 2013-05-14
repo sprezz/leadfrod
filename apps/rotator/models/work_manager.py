@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
-import datetime
 import logging
 from django.db import models
 from django.db.models import F
+from django.utils.timezone import now
 import re
 from rotator.models import ACTIVE, WorkInterceptedException, WorkerNotOnlineException, NoWorkException
 
@@ -254,33 +254,33 @@ class WorkManager(models.Model):
         def __nextWorkItem(lead, nextLead):
             exceptionMessage = None
             if not lead.is_locked:
-                logging.info('%s - locking the lead' % datetime.datetime.now())
+                logging.info('{} - locking the lead'.format(now()))
                 lead.lock_for(worker)
                 lead.worker = worker
                 lead.save()
             else:
-                exceptionMessage = "Locked by %s at %s" % (lead.locked_by, lead.locked_at)
-                logging.info("%s - %s" % (datetime.datetime.now(), exceptionMessage))
+                exceptionMessage = "Locked by {} at {}".format(lead.locked_by, lead.locked_at)
+                logging.info("{} - {}".format(now(), exceptionMessage))
                 return exceptionMessage
 
             wi = WorkItem(lead)
             wi.worker = worker
             wi.nextLead = nextLead
             wi = self.work_strategy.getOffersForLead(wi)
-            logging.info('%s - found %s offers' % (datetime.datetime.now(), len(wi.offers)))
+            logging.info('{} - found {} offers'.format(now(), len(wi.offers)))
 
             if len(wi.offers) == 0:
-                logging.info('%s - unlock lead' % (datetime.datetime.now()))
+                logging.info('{} - unlock lead'.format(now()))
                 lead.unlock_for(worker)
                 lead.worker = None
                 lead.save()
                 exceptionMessage = "There are no offers with enough \
                     capacity left for the leads in niche %s and no offer \
                     after advertiser checking" % (lead.getNiche())
-                logging.info("%s - %s" % (datetime.datetime.now(), exceptionMessage))
+                logging.info("{} - {}".format(now(), exceptionMessage))
                 return exceptionMessage
 
-            logging.info('%s - before result:: %s' % (datetime.datetime.now(), str(wi.__dict__)))
+            logging.info('{} - before result:: {}'.format(now(), str(wi.__dict__)))
             return wi
 
         if not worker.get_profile().now_online:
@@ -297,15 +297,15 @@ class WorkManager(models.Model):
         for csv_file in csv_files:
             if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file):
                 exceptionMessage = "wrong cheking CSV File %s" % csv_file
-                logging.info('%s - %s' % (datetime.datetime.now(), exceptionMessage))
+                logging.info('{} - {}'.format(now(), exceptionMessage))
                 continue
 
             if lead:
                 nextLead = self.work_strategy.nextLead(csv_file)
             else:
-                logging.info('%s - %s get csv' % (datetime.datetime.now(), csv_file))
+                logging.info('{} - {} get csv'.format(now(), csv_file))
                 lead, nextLead = self.work_strategy.nextLead(csv_file)
-                logging.info('%s - Lead instance %s' % (datetime.datetime.now(), lead))
+                logging.info('{} - Lead instance {}'.format(now(), lead))
 
             if lead and nextLead:
                 wi = __nextWorkItem(lead, nextLead)
@@ -314,8 +314,8 @@ class WorkManager(models.Model):
                 else:
                     return wi
 
-        logging.info('%s - after loop :: %s' % (datetime.datetime.now(), exceptionMessage))
-        logging.info('%s - after loop lead:: %s' % (datetime.datetime.now(), lead))
+        logging.info('{} - after loop :: {}'.format(now(), exceptionMessage))
+        logging.info('{} - after loop lead:: {}'.format(now(), lead))
         if lead:
             wi = __nextWorkItem(lead, nextLead)
             if type(wi) == str:

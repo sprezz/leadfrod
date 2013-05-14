@@ -2,13 +2,15 @@
 import datetime
 
 from django.db import models
+from django.utils.timezone import now
 
 
 SESSION_EXPIRE_IN = 60
 
+
 class UserSessionManager(models.Manager):
     def active_sessions(self):
-        active_datetime = datetime.datetime.now() - datetime.timedelta(seconds=SESSION_EXPIRE_IN)
+        active_datetime = now() - datetime.timedelta(seconds=SESSION_EXPIRE_IN)
         return self.filter(datetime_last_activity__gte=active_datetime)
 
     def update_active_session(self, user):
@@ -35,10 +37,10 @@ class UserSession(models.Model):
 
     @property
     def active(self):
-        return self.datetime_last_activity > (datetime.datetime.now() - datetime.timedelta(seconds=SESSION_EXPIRE_IN))
+        return self.datetime_last_activity > (now() - datetime.timedelta(seconds=SESSION_EXPIRE_IN))
 
     def save(self, *args, **kwargs):
         if self.id is None:
-            self.datetime_login = datetime.datetime.now()
-        self.datetime_last_activity = datetime.datetime.now()
+            self.datetime_login = now()
+        self.datetime_last_activity = now()
         super(UserSession, self).save(*args, **kwargs)

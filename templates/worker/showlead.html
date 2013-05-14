@@ -59,7 +59,7 @@ $(function() {
 		<tr><th>Size</th><td><span {% if offer.size > 100 %}class="red_span"{% endif %}>{{ offer.size }}</span></td></tr>
 	</table>
     <div>
-		<form method="post" class="form_changestaus" action="{% url changeOfferStatus offer.id %}">
+		<form method="post" class="form_changestaus" action="{% url "changeOfferStatus" offer.id %}">
             <label class="radio">
                 Active: <input type="radio" value="active" {% if offer.status != 'suspicious' %}checked="checked"{% endif %} name="status"/>
             </label>

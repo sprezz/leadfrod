@@ -9,7 +9,7 @@
         function ping(){
             if (!busy){
                 busy = true;
-                $.getJSON('{% url accounts:active_sessions_ajax %}', function(data){
+                $.getJSON('{% url "accounts:active_sessions_ajax" %}', function(data){
                     $table.empty();
 
                     $.each(data, function(index, session){

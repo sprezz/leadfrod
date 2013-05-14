@@ -2,6 +2,7 @@
 import datetime
 
 from django.db import models
+from django.utils.timezone import now
 
 from rotator.models import STATUS_LIST, ACTIVE
 
@@ -25,7 +26,7 @@ class Offer(models.Model):
     offer_num = models.CharField(max_length=10, null=True, blank=True)
     daily_cap = models.FloatField(default=10)
     capacity = models.FloatField(default=10)
-    url = models.URLField(max_length=2000, verify_exists=False)
+    url = models.URLField(max_length=2000)
     payout = models.FloatField()
     min_clicks = models.FloatField(null=True, blank=True, default=5.0)
     max_clicks = models.FloatField(null=True, blank=True, default=15.0)
@@ -122,14 +123,14 @@ class Offer(models.Model):
 
     @property
     def get_capacity_today(self):
-        "Gets capacity object for today. If one does not exists, creates it"
+        """Gets capacity object for today. If one does not exists, creates it"""
         today = datetime.date.today()
         if not self.dailycap_capacity.filter(date=today).exists():
             self.initCapacity()
         return self.dailycap_capacity.filter(date=today)[0]
 
     def checkCapacity(self):
-        "Checks if offer have enough budget to be selected"
+        """Checks if offer have enough budget to be selected"""
         daily_capacity = self.get_capacity_today
         if not daily_capacity.checkOfferCapacity(self.payout):
         #            print 'run out of offer capacity', daily_capacity.offer
@@ -151,7 +152,7 @@ class Offer(models.Model):
         return True
 
     def reduceCapacityOnShow(self):
-        "Reduces capacity capacity = capacity - self.payout"
+        """Reduces capacity capacity = capacity - self.payout"""
         daily_capacity = self.get_capacity_today
         daily_capacity.updateOfferCapacity(self.payout)
         if self.hasAdvertiser():
@@ -162,9 +163,8 @@ class Offer(models.Model):
         daily_capacity.save()
 
     def restoreDailyCapCapacity(self):
-        "Reset capacity to dailycap value"
-        now = datetime.datetime.now()
-        print "%s: Reset capacity for offer num = %s" % (now, self.offer_num)
+        """Reset capacity to dailycap value"""
+        print "{}: Reset capacity for offer num = {}".format(now(), self.offer_num)
         daily_capacity = self.get_capacity_today
         daily_capacity.restoreOfferDailyCapCapacity()
         if self.hasAdvertiser():
@@ -188,4 +188,4 @@ class Offer(models.Model):
         name = self.offer_num
         if self.name:
             name = '%s %s' % (self.name, self.offer_num)
-        return u'Offer %s at %s payout: %s capacity: %s/%s' % (name, self.url, self.payout, self.capacity, self.daily_cap)
+        return u'Offer {} at {} payout: {} capacity: {}/{}'.format(name, self.url, self.payout, self.capacity, self.daily_cap)

@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from django.conf.urls.defaults import url, patterns
+from django.conf.urls import url, patterns
 from accounts.views.active_sessions import active_sessions
 from accounts.views.active_sessions_ajax import active_sessions_ajax
 from accounts.views.ping import ping

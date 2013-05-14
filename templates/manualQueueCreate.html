@@ -3,7 +3,7 @@
 {% block title %} Manual Offer {% endblock %}
 
 {% block content %}
-    <a href="{% url rotator.views.showQueue %}">View Queue Here</a><br/>
+    <a href="{% url "rotator.views.showQueue" %}">View Queue Here</a><br/>
     <h2>Do Not Refresh this page! View the queue by clicking the link above</h2>
     {{ message }}
     {% for url in urls %}

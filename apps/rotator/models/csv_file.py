@@ -4,9 +4,10 @@ import datetime
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Sum
+from django.utils.timezone import now
 import os
 from rotator.models import STATUS_LIST, ACTIVE
-import settings
+from django.conf import settings
 
 
 class CSVFile(models.Model):
@@ -14,7 +15,7 @@ class CSVFile(models.Model):
     niche = models.ForeignKey('rotator.Niche')
     filename = models.CharField(max_length=255, null=True, blank=True, unique=True)
     filesize = models.IntegerField(default=0)
-    date_time = models.DateTimeField(default=datetime.datetime.now())
+    date_time = models.DateTimeField(default=now)
     uploaded_by = models.CharField(max_length=30)
     cost = models.FloatField(default=0)
     #   revenue = models.FloatField(default = 0) to be calculated

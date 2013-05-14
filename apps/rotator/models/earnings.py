@@ -1,13 +1,14 @@
 # -*- coding:utf-8 -*-
 import datetime
 from django.db import models
+from django.utils.timezone import now
 
 
 class Earnings(models.Model):
     offer = models.ForeignKey('rotator.Offer')
     network = models.ForeignKey('rotator.Network')
     niche = models.ForeignKey('rotator.Niche')
-    date = models.DateTimeField(default=datetime.datetime.now())
+    date = models.DateTimeField(default=now)
     campaign = models.CharField(max_length=255)
     status = models.CharField(max_length=255, null=True)
     payout = models.DecimalField(max_digits=5, decimal_places=2)
