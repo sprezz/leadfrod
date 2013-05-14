@@ -3,7 +3,7 @@
 {% block extrahead %}
 
     {{ block.super }}
-    <script type="text/javascript" src="/media/admin/js/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-latest.min.js"></script>
     <script type="text/javascript">
 $(function() {
     if (document.location.href.substr(-4) == 'add/') {

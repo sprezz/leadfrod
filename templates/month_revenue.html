@@ -3,8 +3,8 @@
 {% block title %} Month revenue {% endblock %}
 
 {% block scripts %}
-    <script type="text/javascript" src="/media/ext/highcharts.js"></script>
-    <script type="text/javascript" src="/media/ext/modules/exporting.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}ext/highcharts.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}ext/modules/exporting.js"></script>
     <script type="text/javascript">
 	var datay = {{ datay|safe }};
     var datax = {{ datax|safe }};

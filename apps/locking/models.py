@@ -5,6 +5,7 @@ from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.contrib.auth import models as auth
+from django.utils.timezone import now
 
 from locking import LOCK_TIMEOUT, logger
 import managers
@@ -74,7 +75,7 @@ class LockableModel(models.Model):
         Works by calculating if the last lock (self.locked_at) has timed out or not.
         """
         if isinstance(self.locked_at, datetime):
-            if (datetime.today() - self.locked_at).seconds < LOCK_TIMEOUT:
+            if (now() - self.locked_at).seconds < LOCK_TIMEOUT:
                 return True
             else:
                 return False

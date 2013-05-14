@@ -10,14 +10,14 @@
 }
 
 </style>
-    <script type="text/javascript" src="/media/ext/jquery.form.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}ext/jquery.form.js"></script>
     <script>
 $(function() {
     $(".form_changestaus").submit(function() {
-        var self = $(this)
+        var self = $(this);
         self.ajaxSubmit(function(o) {
             if (o == '1'){
-                self.parent().html('Status was changed successfully!')
+                self.parent().html('Status was changed successfully!');
             }
         });
         return false;

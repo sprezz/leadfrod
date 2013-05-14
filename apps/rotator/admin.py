@@ -172,14 +172,14 @@ class LeadAdmin(LockableAdmin):
     raw_id_fields = ['csv', 'worker']
     list_filter = ['worker', 'status', 'csv', '_locked_at']
     list_display = ['csv', 'worker', 'status', 'started_on', 'ended_on', 'deleted', '_locked_at', '_locked_by', '_hard_lock', 'is_locked']
-    actions = ('unlock', 'activate_unlock_and_clean_worker')
-
-    def unlock(self, request, queryset):
-        queryset.update(_locked_at=None, _locked_by=None)
-
-    def activate_unlock_and_clean_worker(self, request, queryset):
-        queryset.update(status=ACTIVE, worker=None, _locked_at=None, _locked_by=None)
-    activate_unlock_and_clean_worker.short_description = 'Activate, unlock and clean worker'
+    # actions = ('unlock', 'activate_unlock_and_clean_worker')
+    #
+    # def unlock(self, request, queryset):
+    #     queryset.update(_locked_at=None, _locked_by=None)
+    #
+    # def activate_unlock_and_clean_worker(self, request, queryset):
+    #     queryset.update(status=ACTIVE, worker=None, _locked_at=None, _locked_by=None)
+    # activate_unlock_and_clean_worker.short_description = 'Activate, unlock and clean worker'
 
 
 class OfferQueueAdmin(admin.ModelAdmin):
@@ -292,12 +292,10 @@ class EarningsAdmin(admin.ModelAdmin):
 
     substract_clicks_capacity.short_description = "Substract 5 clicks from capacity"
 
-
     class Media:
         css = {
             "all": ("css/admin_earnings.css",),
         }
-
 
     def submits_today(self, earning):
         return earning.offer.submits_today
@@ -414,6 +412,7 @@ class AccountInline(admin.StackedInline):
     model = Account
     extra = 0
 
+
 class NetworkAdmin(admin.ModelAdmin):
     model = Network
     list_display = ('name', 'single', 'url', 'status')
@@ -434,8 +433,11 @@ class NetworkAdmin(admin.ModelAdmin):
 class AccountInlineTabular(admin.TabularInline):
     model = Account
     extra = 0
+
+
 class CompanyAdmin(admin.ModelAdmin):
     inlines = [AccountInlineTabular]
+
 
 admin.site.register(ProxyServer, ProxyServerAdmin)
 admin.site.register(ManualQueue, ManualQueueAdmin)
