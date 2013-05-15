@@ -1,21 +1,22 @@
 # -*- coding:utf-8 -*-
 import datetime
+import logging
 
 from django.db import models
-from django.utils.timezone import now
 
 from rotator.models import STATUS_LIST, ACTIVE
 
 
+logger = logging.getLogger(__name__)
+
+
 class OfferManager(models.Manager):
     def clear_submits_today(self):
-        print "clear submits today"
+        logger.info("Clearing submits today")
         self.filter(submits_today__gte=0).update(submits_today=0)
 
 
 class Offer(models.Model):
-    objects = OfferManager()
-
     name = models.CharField(max_length=255, null=True, blank=True)
     advertiser = models.ForeignKey('rotator.Advertiser', related_name='offers', null=True, blank=True)
     network = models.ForeignKey('rotator.Network', related_name='offers')
@@ -36,6 +37,8 @@ class Offer(models.Model):
     submits_today = models.IntegerField(default=0)
     submits_total = models.IntegerField(default=0)
 
+    objects = OfferManager()
+
     def conv(self):
         from rotator.models.earnings import Earnings
         today = datetime.date.today()
@@ -50,8 +53,8 @@ class Offer(models.Model):
         return queues[0].size if queues else 0
 
     def asd(self):
-        print self.description
-        print self.id, self.offer_num
+        logger.info(self.description)
+        logger.info(self.id, self.offer_num)
         return self.description
 
     def reduce_capacity(self):
@@ -164,7 +167,7 @@ class Offer(models.Model):
 
     def restoreDailyCapCapacity(self):
         """Reset capacity to dailycap value"""
-        print "{}: Reset capacity for offer num = {}".format(now(), self.offer_num)
+        logger.info("Reset capacity for offer num = {}".format(self.offer_num))
         daily_capacity = self.get_capacity_today
         daily_capacity.restoreOfferDailyCapCapacity()
         if self.hasAdvertiser():

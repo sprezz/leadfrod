@@ -4,6 +4,7 @@ BANNED = 'banned'
 PAUSED = 'paused'
 SUSPICIOUS = 'suspicious'
 DELETED = 'deleted'
+NOT_CONVERTING = 'not converting'
 
 STATUS_LIST = (
     (ACTIVE, ACTIVE),
@@ -11,6 +12,7 @@ STATUS_LIST = (
     (PAUSED, PAUSED),
     (SUSPICIOUS, SUSPICIOUS),
     (DELETED, DELETED),
+    (NOT_CONVERTING, NOT_CONVERTING),
 )
 
 AWAITING_APPROVAL = 'awaiting approval'
