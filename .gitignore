@@ -13,3 +13,5 @@ dump.sql
 .venv
 *.sqlite
 linuxcommands.txt
+static/
+media/
