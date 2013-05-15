@@ -4,9 +4,8 @@ from json import dumps
 
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout
-from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.http import HttpResponse, Http404
+from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 
 from rotator.displayers import InmobiDisplayer, MoolahDisplayer, AdmobDisplayer, JumptapDisplayer
@@ -26,7 +25,7 @@ from spyderhandler import AzoogleHandler
 
 #@login_required
 def index(request):
-    return HttpResponseRedirect('/next/')
+    return redirect('/next/')
 
 
 @login_required
@@ -43,14 +42,14 @@ def submit_workitem(request):
                 wm.completeCurrentWorkItem(wi)
             except WorkInterceptedException, msg:
                 logging.warning(msg)
-            return HttpResponseRedirect('/next')
+            return redirect('/next')
         else:
             print 'Cancel job!'
             logging.info('User %s has canceled work item %s' % (request.user, wi))
             request.session['msg'] = 'Work item %s was canceled by %s' % (wi, request.user)
             wm.releaseCurrentWorkItem(wi)
 
-            return HttpResponseRedirect('/next')
+            return redirect('/next')
 
 
 @login_required
@@ -82,15 +81,15 @@ def next_workitem(request):
                 msg = request.session['msg']
                 del request.session['msg']
 
-            return render_to_response('worker/showlead.html',
+            return render(request, 'worker/showlead.html',
                                       {
                                           'randomMessage': '',
                                           'user': request.user, 'wi': wi,
                                           'message': msg,
                                           'remaining_leads': wi.get_remaining_leads()
-                                      }, context_instance=RequestContext(request))
+                                      })
         except NoWorkException as exception:
-            return render_to_response('worker/worker_goodbye.html',
+            return render(request, 'worker/worker_goodbye.html',
                                       {'user': request.user,
                                        'message': str(exception)
                                       })
@@ -113,7 +112,7 @@ def click_logout(request):
     except Exception, msg:
         logging.error(msg)
     logout(request)
-    return HttpResponseRedirect('/')
+    return redirect('/')
 
 
 @permission_required('rotator.change_offer')
@@ -127,16 +126,14 @@ def admin_manage_dailycap(request, offerid=None):
     for offer in Offer.objects.all():
         offer.checkCapacity()
 
-    return render_to_response("daily_capacity.html",
-                              {'capacity': Capacity.objects.filter(date=date.today()).all()},
-                              context_instance=RequestContext(request))
+    return render(request, "daily_capacity.html",
+                              {'capacity': Capacity.objects.filter(date=date.today()).all()})
 
 
 @permission_required('rotator.change_lead')
 def admin_show_locked_leads(request):
-    return render_to_response("locked_leads.html",
-                              {'leads': Lead.locked.all().order_by('-_locked_at')},
-                              context_instance=RequestContext(request))
+    return render(request, "locked_leads.html",
+                              {'leads': Lead.locked.all().order_by('-_locked_at')})
 
 
 @permission_required('rotator.change_lead')
@@ -146,16 +143,15 @@ def admin_release_lead(request):
         lead_id = int(request.POST['lead_id'])
         wm = WorkManager.instance()
         wm.unlockLead(lead_id, request.user)
-        return HttpResponseRedirect('/locked_leads')
+        return redirect('/locked_leads')
     else:
         logging.warning('GET /release_lead when POST is expected')
 
 
 @permission_required('rotator.change_lead')
 def admin_show_csvfiles(request):
-    return render_to_response("csvfiles.html",
-                              {'files': CSVFile.objects.all()},
-                              context_instance=RequestContext(request))
+    return render(request, "csvfiles.html",
+                              {'files': CSVFile.objects.all()})
 
 
 @permission_required('rotator.change_lead')
@@ -203,10 +199,10 @@ def trafficholder_callback(request, owner):
         try:
             url = TrafficHolder().popOfferQueueUrl(owner)
             if url:
-                return HttpResponseRedirect(url)
+                return redirect(url)
             else:
                 logging.debug('Owner [%s] queue size is zero but url requested' % owner)
-                return render_to_response('empty_queue.html')
+                return render(request, 'empty_queue.html')
         except UnknownOrderException:
             raise Http404
 
@@ -240,23 +236,21 @@ def manualQueueCreate(request, template='manualQueueCreate.html'):
     #urls = ''.join(ManualQueue.objects.all())
     #Force all objects to __unicode__ format with str()
 
-    return render_to_response(template, {'message': message, 'urls':urls},
-                                  context_instance=RequestContext(request))
-
+    return render(request, template, {'message': message, 'urls':urls})
 
 
 def manualQueueGo(request):
     mq = ManualQueue.objects.filter(size__gt=0).order_by('createdDate')
     if mq:
         mq[0].decreaseSize()
-        return HttpResponseRedirect(mq[0].url)
+        return redirect(mq[0].url)
     return HttpResponse('No url with size > 0')
+
 
 def showQueue(request):
     queue = [str(o) for o in OfferQueue.objects.all()]
     manual_queue = [str(o) for o in ManualQueue.objects.all()]
-    return render_to_response('showqueue.html',{'queue':queue, 'manual_queue':manual_queue},
-        context_instance=RequestContext(request))
+    return render(request, 'showqueue.html', {'queue': queue, 'manual_queue': manual_queue})
 
 
 def month_revenue(request, template="month_revenue.html"):
@@ -270,8 +264,7 @@ def month_revenue(request, template="month_revenue.html"):
         totals.append(float(total) if total else 0)
         days.append(d.strftime("%b'%d") if len(days) % 2 == 0 else " ")
 
-    return render_to_response(template, {'datax': dumps(totals), 'datay': dumps(days)},
-                              context_instance=RequestContext(request))
+    return render(request, template, {'datax': dumps(totals), 'datay': dumps(days)})
 
 
 def offer_changestatus(request, offer_id):

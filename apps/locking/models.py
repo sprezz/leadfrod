@@ -27,10 +27,8 @@ class LockableModel(models.Model):
         super(LockableModel, self).__init__(*vargs, **kwargs)
         self._state.locking = False
 
-
     class Meta:
         abstract = True
-
 
     _locked_at = models.DateTimeField(db_column='locked_at',
                                       null=True,

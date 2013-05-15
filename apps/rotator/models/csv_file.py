@@ -3,9 +3,10 @@ import csv
 import datetime
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.utils.timezone import now
 import os
+from locking.managers import point_of_timeout
 from rotator.models import STATUS_LIST, ACTIVE
 from django.conf import settings
 
@@ -18,8 +19,6 @@ class CSVFile(models.Model):
     date_time = models.DateTimeField(default=now)
     uploaded_by = models.CharField(max_length=30)
     cost = models.FloatField(default=0)
-    #   revenue = models.FloatField(default = 0) to be calculated
-    #   percent_completed = models.FloatField(default = 0) to be calculated
     workers = models.ManyToManyField(User, null=True, blank=True,
                                      related_name='assignments')
     max_offers = models.FloatField(default=1)
@@ -39,54 +38,56 @@ class CSVFile(models.Model):
         verbose_name_plural = 'CSV Files'
         app_label = 'rotator'
 
-    def hasLeads(self):
-        """Checks if this file has leads to process. If there is an uploaded file but there is no leads it process them"""
-        if (self.csv_files is None or self.csv_files.name is None) and self.leads.count() == 0:
-            return False
-        if (self.csv_files is None or self.csv_files.name is None) and self.leads.count() > 0:
-            return True
-        if (self.csv_files is not None and self.csv_files.name is not None) and self.leads.count() > 0:
-            return True
+    @property
+    def leads_count(self):
+        return self.leads.count()
 
-        self.filename = self.csv_files.name
-        #        self.save()
+    def create_leads_from_file(self):
+        """If there is an uploaded file but there is no leads it process them"""
+        if not self.has_leads() and (self.csv_files and self.csv_files.name):
 
-        name = self.csv_files.name
-        csv_full_path = os.path.join(settings.MEDIA_ROOT, name)
-        with open(csv_full_path, 'rb') as csvFile:
-        #        rows = csv.reader(csvFile, delimiter=';', quotechar='"')
-            rows = csv.reader(csvFile)
-            for idx, row in enumerate(rows):
-                if not row[0]:
-                    continue
-                if idx == 0 and self.has_header:
-                    self.csv_headers = ','.join(row)
-                    #                    self.save()
-                    continue
-                from rotator.models.lead import Lead
-                Lead.objects.create(csv=self, status=ACTIVE, lead_data=','.join(row))
+            csv_full_path = os.path.join(settings.MEDIA_ROOT, self.csv_files.name)
+            with open(csv_full_path, 'rb') as csvFile:
+                rows = csv.reader(csvFile)
+                for idx, row in enumerate(rows):
+                    if not row[0]:
+                        continue
+                    if idx == 0 and self.has_header:
+                        self.csv_headers = ','.join(row)
+                        continue
+                    from rotator.models.lead import Lead
+                    Lead.objects.create(csv=self, status=ACTIVE, lead_data=','.join(row))
 
-        return self.leads.count() > 0
+    def has_leads(self):
+        return self.leads_count > 0
+
+    def locked_leads(self):
+        timeout = point_of_timeout()
+        return self.leads.filter(_locked_at__gt=timeout, _locked_at__isnull=False)
+
+    def unlocked_leads(self):
+        timeout = point_of_timeout()
+        return self.leads.filter(Q(_locked_at__lte=timeout) | Q(_locked_at__isnull=True))
 
     def is_active(self):
         return self.status == ACTIVE
 
-    def getRevenue(self):
+    def get_revenue(self):  # todo: unused
         return self.leads.aggregate(Sum('offers_completed__payout'))['offers_completed__payout__sum']
 
-    def getPercentOfCompleted(self):
-        if self.leads.count() == 0:
+    def getPercentOfCompleted(self):  # todo: unused
+        if self.leads_count == 0:
             return 0
         return self.leads.offers_completed.count() / self.leads.count() * 100
 
     def save(self, *args, **kwargs):
+        if self.csv_files:
+            self.filename = self.csv_files.name
+
         super(CSVFile, self).save(*args, **kwargs)
-        self.hasLeads()
+        self.create_leads_from_file()
         super(CSVFile, self).save(*args, **kwargs)
 
     def __unicode__(self):
         name = self.filename or self.csv_files.name
-        #        nleads = 0
-        #        if self.hasLeads():
-        nleads = self.leads.count()
-        return u'%s is %s uploaded by %s contains %s leads' % (name, self.status, self.uploaded_by, nleads)
+        return u'{} is {} uploaded by {} contains {} leads'.format(name, self.status, self.uploaded_by, self.leads_count)

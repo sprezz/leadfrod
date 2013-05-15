@@ -166,20 +166,19 @@ class OfferAdmin(admin.ModelAdmin):
     set_submits_today.short_description = "Set submits_today to 1"
 
 
-class LeadAdmin(LockableAdmin):
-    model = Lead
+class LeadAdmin(admin.ModelAdmin):
     filter_horizontal = ['offers_requested', 'offers_completed', 'advertisers']
     raw_id_fields = ['csv', 'worker']
     list_filter = ['worker', 'status', 'csv', '_locked_at']
     list_display = ['csv', 'worker', 'status', 'started_on', 'ended_on', 'deleted', '_locked_at', '_locked_by', '_hard_lock', 'is_locked']
-    # actions = ('unlock', 'activate_unlock_and_clean_worker')
-    #
-    # def unlock(self, request, queryset):
-    #     queryset.update(_locked_at=None, _locked_by=None)
-    #
-    # def activate_unlock_and_clean_worker(self, request, queryset):
-    #     queryset.update(status=ACTIVE, worker=None, _locked_at=None, _locked_by=None)
-    # activate_unlock_and_clean_worker.short_description = 'Activate, unlock and clean worker'
+    actions = ('unlock', 'activate_unlock_and_clean_worker')
+
+    def unlock(self, request, queryset):
+        queryset.update(_locked_at=None, _locked_by=None)
+
+    def activate_unlock_and_clean_worker(self, request, queryset):
+        queryset.update(status=ACTIVE, worker=None, _locked_at=None, _locked_by=None)
+    activate_unlock_and_clean_worker.short_description = 'Activate, unlock and clean worker'
 
 
 class OfferQueueAdmin(admin.ModelAdmin):
@@ -364,7 +363,7 @@ class CSVFileAdminForm(forms.ModelForm):
 
     def clean(self):
         data = self.cleaned_data
-        if 'csv_files' in data and 'filesize' in data and not data['filesize']: # only for creating
+        if 'csv_files' in data and 'filesize' in data and not data['filesize']:  # only for creating
             str = ''
             for chunk in data['csv_files'].chunks():
                 str += chunk
@@ -392,7 +391,7 @@ class CSVFileAdmin(admin.ModelAdmin):
         return csv.leads.count()
 
     def active_leads(self, csv):
-        return csv.leads.unlocked.filter(csv=csv, status='active', worker__isnull=True, deleted=False).count()
+        return csv.unlocked_leads().filter(status='active', worker__isnull=True, deleted=False).count()
 
     def completed_leads(self, csv):
         return csv.leads.filter(status='completed').count()

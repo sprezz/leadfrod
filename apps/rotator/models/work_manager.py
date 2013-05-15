@@ -244,7 +244,7 @@ class WorkManager(models.Model):
 
     def _checkCsvFileAndSaveIfLeadsCreated(self, csv_file):
         nleads = csv_file.leads.count()
-        if not csv_file.hasLeads():
+        if not csv_file.has_leads():
             return False
         if nleads != csv_file.leads.count():
             csv_file.save()
