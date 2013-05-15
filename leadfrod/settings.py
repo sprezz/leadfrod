@@ -148,11 +148,24 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(pathname)s %(name)s %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'DEBUG',
+            'formatter': 'verbose'
         }
     },
     'loggers': {
@@ -161,6 +174,12 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'rotator': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG'
+        }
+
     }
 }
 

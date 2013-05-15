@@ -4,7 +4,10 @@ from django.db import models
 from django.db.models import F
 from django.utils.timezone import now
 import re
-from rotator.models import ACTIVE, WorkInterceptedException, WorkerNotOnlineException, NoWorkException
+from rotator.models import ACTIVE, WorkInterceptedException, NoWorkException
+
+
+logger = logging.getLogger('rotator.models.work_manager')
 
 
 class WorkItem(object):
@@ -39,7 +42,7 @@ class WorkItem(object):
             try:
                 fields.append((self.format(f), self.format(data[idx])))
             except:
-                logging.warning("data with key %d is not exit:" % idx)
+                logger.warning("data with key %d is not exit:" % idx)
         return fields
 
     def addOffer(self, anOffer):
@@ -76,10 +79,10 @@ class WorkManager(models.Model):
                 #                csvLeads = Lead.objects.filter(csv=csvFile, status=ACTIVE, worker__isnull=True, deleted=False).order_by('?')
                 leadsCount = csvLeads.count()
                 if leadsCount == 0:
-                    logging.debug('There is no lead available for %s' % csvFile)
+                    logger.debug('There is no lead available for %s' % csvFile)
                     return None, None
                     #csvLeads = sorted(csvLeads, key=lambda lead: lead.csv.niche.priority)
-                logging.debug('Got lead %s' % csvLeads[0])
+                logger.debug('Got lead %s' % csvLeads[0])
                 return csvLeads[0], csvLeads[1] if leadsCount > 1 else None
             except Lead.DoesNotExist:
                 return None, None
@@ -115,9 +118,9 @@ class WorkManager(models.Model):
             from rotator.models.network import Network
 
             leadNiche = wi.lead.getNiche()
-            logging.debug('get offer per niche %s' % leadNiche)
+            logger.debug('get offer per niche %s' % leadNiche)
             offers = Offer.objects.filter(niche=leadNiche, status=ACTIVE, capacity__gte=F('payout')).order_by('submits_today')
-            logging.info('Found %d offers in niche %s' % (len(offers), leadNiche))
+            logger.info('Found %d offers in niche %s' % (len(offers), leadNiche))
             offer_names = []
             networks = [] # for each lead only one network
             inetworks = Network.objects.filter(single=False)
@@ -131,24 +134,24 @@ class WorkManager(models.Model):
 
                 i += 1
                 check_capacity = offer.checkCapacity()
-                #logging.info('offer checking capacity=%d in offer %d: %s' % (int(check_capacity), i, offer.offer_num))
+                #logger.info('offer checking capacity=%d in offer %d: %s' % (int(check_capacity), i, offer.offer_num))
                 if not check_capacity:
                     continue
 
-                #logging.info('offer has capacity: %d: %s ' % (i,  offer.offer_num))
-                logging.debug('offer has capacity: %s ' % offer)
+                #logger.info('offer has capacity: %d: %s ' % (i,  offer.offer_num))
+                logger.debug('offer has capacity: %s ' % offer)
                 hasAdvertiser = offer.hasAdvertiser()
-                #logging.info('offer %d: %s has advertiser = %s' % (i, offer.offer_num, hasAdvertiser))
+                #logger.info('offer %d: %s has advertiser = %s' % (i, offer.offer_num, hasAdvertiser))
                 if hasAdvertiser:
                     if wi.lead.checkAdvertiser(offer.advertiser):
                         print wi.lead, 'already was given to ', offer.advertiser, '. Skipping...'
-                        #logging.info('Skipping offer %d: %s because %s was given for lead %s' % (i, offer.offer_num, offer.advertiser, wi.lead.id))
-                        logging.debug('%s already was given to %s. Skipping...' % (wi.lead, offer.advertiser))
+                        #logger.info('Skipping offer %d: %s because %s was given for lead %s' % (i, offer.offer_num, offer.advertiser, wi.lead.id))
+                        logger.debug('%s already was given to %s. Skipping...' % (wi.lead, offer.advertiser))
                         continue
                     wi.lead.advertisers.add(offer.advertiser)
                     wi.lead.save()
 
-                #logging.info('Adding offer %d: %s to resutlt' % (i, offer.offer_num))
+                #logger.info('Adding offer %d: %s to resutlt' % (i, offer.offer_num))
                 wi.addOffer(offer)
                 offer.increase_submits()
                 offer.reduce_capacity()
@@ -157,26 +160,23 @@ class WorkManager(models.Model):
 
                 if len(wi.offers) == wi.lead.csv.max_offers:
                     break
-            logging.info('Found %d result offers in niche %s' % (len(wi.offers), leadNiche))
+            logger.info('Found %d result offers in niche %s' % (len(wi.offers), leadNiche))
             return wi
 
     work_strategy = WorkStrategy()
-
-    @property
-    def getNumberOfOnlineWorkers(self):
-        return self.workers_online.count()
 
     def completeCurrentWorkItem(self, workitem):
         """Set lead in work completed and adds adds stat information"""
         #        lead = self.getLeadInWork(worker)
         if not workitem:
             return
-        if not (workitem.lead.is_locked and workitem.lead.is_locked_by(workitem.worker)):
-            self.releaseCurrentWorkItem(workitem)
-            raise WorkInterceptedException('Lead %s was unlocked or intercepted by another worker due to inactivity' % workitem.lead)
         if workitem.lead.is_locked and workitem.lead.is_locked_by(workitem.worker):
             workitem.lead.unlock_for(workitem.worker)
             workitem.lead.save()
+        else:
+            self.releaseCurrentWorkItem(workitem)
+            raise WorkInterceptedException('Lead %s was unlocked or intercepted by another worker due to inactivity' % workitem.lead)
+
         workitem.lead.status = 'completed'
         for offer in workitem.lead.offers_requested.all():
             workitem.lead.offers_completed.add(offer)
@@ -201,7 +201,7 @@ class WorkManager(models.Model):
                 workitem.lead.offers_requested.remove(offer)
             workitem.lead.save()
         else:
-            logging.debug('Lead %s was unlocked due to inactivity or administrator request' % workitem.lead)
+            logger.debug('Lead %s was unlocked due to inactivity or administrator request' % workitem.lead)
 
     def unlockLead(self, lead_id, user):
         """Unlock lead and releases associated with it offers"""
@@ -214,30 +214,14 @@ class WorkManager(models.Model):
                 for offer in lead.offers_requested.all():
                     lead.offers_requested.remove(offer)
                 lead.save()
-                logging.info('Lead %s was unlocked by %s' % (lead, user))
+                logger.info('Lead %s was unlocked by %s' % (lead, user))
         except Lead.DoesNotExist:
-            logging.debug('Lead %s requested for release but does not exist')
-
-    def checkOrCreateUserProfile(self, user):
-        from rotator.models.worker_profile import WorkerProfile
-        try:
-            user.get_profile()
-        except WorkerProfile.DoesNotExist:
-            WorkerProfile.objects.create(user=user, status=ACTIVE)
-
-    def signIn(self, worker):
-        logging.debug('%s signing in ' % worker)
-        wp = worker.get_profile()
-        wp.now_online = True
-        wp.save()
-        self.workers_online.add(worker)
-        self.save()
+            logger.debug('Lead %s requested for release but does not exist')
 
     def validateWorkItem(self, workitem):
-        logging.debug('validate %s' % workitem)
-        from rotator.models.lead import Lead
+        logger.debug('validate %s' % workitem)
         try:
-            lead = Lead.objects.get(pk=workitem.lead.id)
+            lead = workitem.lead
             return lead.is_locked and lead.is_locked_by(workitem.worker)
         except:
             return False
@@ -252,60 +236,55 @@ class WorkManager(models.Model):
 
     def nextWorkItem(self, worker):
         def __nextWorkItem(lead, nextLead):
-            exceptionMessage = None
             if not lead.is_locked:
-                logging.info('{} - locking the lead'.format(now()))
+                logger.info('locking the lead')
                 lead.lock_for(worker)
                 lead.worker = worker
                 lead.save()
             else:
                 exceptionMessage = "Locked by {} at {}".format(lead.locked_by, lead.locked_at)
-                logging.info("{} - {}".format(now(), exceptionMessage))
+                logger.warning(exceptionMessage)
                 return exceptionMessage
 
             wi = WorkItem(lead)
             wi.worker = worker
             wi.nextLead = nextLead
             wi = self.work_strategy.getOffersForLead(wi)
-            logging.info('{} - found {} offers'.format(now(), len(wi.offers)))
+            logger.info('found {} offers'.format(len(wi.offers)))
 
             if len(wi.offers) == 0:
-                logging.info('{} - unlock lead'.format(now()))
+                logger.info('unlock lead')
                 lead.unlock_for(worker)
                 lead.worker = None
                 lead.save()
-                exceptionMessage = "There are no offers with enough \
-                    capacity left for the leads in niche %s and no offer \
-                    after advertiser checking" % (lead.getNiche())
-                logging.info("{} - {}".format(now(), exceptionMessage))
+                exceptionMessage = "There are no offers with enough capacity left for the leads in niche {} and no offer after advertiser checking".format(lead.getNiche())
+                logger.info(exceptionMessage)
                 return exceptionMessage
 
-            logging.info('{} - before result:: {}'.format(now(), str(wi.__dict__)))
+            logger.info('before result:: {}'.format(str(wi.__dict__)))
             return wi
 
-        if not worker.get_profile().now_online:
-            raise WorkerNotOnlineException()
-        logging.debug('%s is online' % worker)
+        logger.debug('%s is online' % worker)
         lead = None
         nextLead = None
         exceptionMessage = False
 
         from rotator.models.csv_file import CSVFile
         csv_files = CSVFile.objects.filter(workers=worker).order_by('niche__priority')
-        logging.info('Founded %d csv files' % len(csv_files))
+        logger.info('Found %d csv files' % len(csv_files))
 
         for csv_file in csv_files:
             if not self._checkCsvFileAndSaveIfLeadsCreated(csv_file):
                 exceptionMessage = "wrong cheking CSV File %s" % csv_file
-                logging.info('{} - {}'.format(now(), exceptionMessage))
+                logger.warning(exceptionMessage)
                 continue
 
             if lead:
                 nextLead = self.work_strategy.nextLead(csv_file)
             else:
-                logging.info('{} - {} get csv'.format(now(), csv_file))
+                logger.info('{} get csv'.format(csv_file))
                 lead, nextLead = self.work_strategy.nextLead(csv_file)
-                logging.info('{} - Lead instance {}'.format(now(), lead))
+                logger.info('Lead instance {}'.format(lead))
 
             if lead and nextLead:
                 wi = __nextWorkItem(lead, nextLead)
@@ -314,8 +293,8 @@ class WorkManager(models.Model):
                 else:
                     return wi
 
-        logging.info('{} - after loop :: {}'.format(now(), exceptionMessage))
-        logging.info('{} - after loop lead:: {}'.format(now(), lead))
+        logger.info('after loop :: {}'.format(exceptionMessage))
+        logger.info('after loop lead:: {}'.format(lead))
         if lead:
             wi = __nextWorkItem(lead, nextLead)
             if type(wi) == str:
@@ -329,9 +308,7 @@ class WorkManager(models.Model):
             raise NoWorkException(exceptionMessage)
 
     def signOut(self, worker):
-        logging.debug('signing out %s' % worker)
-        if not worker.get_profile().now_online:
-            raise WorkerNotOnlineException()
+        logger.debug('signing out %s' % worker)
         from rotator.models.lead import Lead
         qset = Lead.locked.filter(worker=worker)
         if qset.exists():
@@ -339,10 +316,6 @@ class WorkManager(models.Model):
                 lead.unlock_for(worker)
                 lead.save()
 
-        wp = worker.get_profile()
-        wp.now_online = False
-        wp.save()
-        self.workers_online.remove(worker)
         self.save()
 
     class Meta:

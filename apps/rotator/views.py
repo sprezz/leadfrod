@@ -57,12 +57,14 @@ def submit_workitem(request):
 @login_required
 def next_workitem(request):
     """Responds with lead and appropriate offers"""
+    logger = logging.getLogger('rotator.views.next_workitem')
+    
     wm = WorkManager.instance()
-    print 'wm instance', wm
+    logger.info('wm instance %s' % wm)
     wi = None
     for attempt in range(1, 3):
         try:
-            print 'Getting work item'
+            logger.info('Getting work item')
             if 'workitem' not in request.session:
                 wi = wm.nextWorkItem(request.user)
                 request.session['workitem'] = wi
@@ -72,7 +74,7 @@ def next_workitem(request):
                     wi = wm.nextWorkItem(request.user)
                     request.session['workitem'] = wi
                     request.session['msg'] = 'Your previous work item was cancelled by administrator. Start with next.'
-            logging.info('User %s: Found offers in views: %d' % (request.user, len(wi.offers)))
+            logger.info('User %s: Found offers in views: %d' % (request.user, len(wi.offers)))
             if not settings.DEBUG:
                 TrafficHolder().processOffers(wi.offers)
             msg = None
@@ -93,10 +95,10 @@ def next_workitem(request):
                                        'message': str(exception)
                                       })
         except WorkInterceptedException:
-            logging.warning('User %s got intercepted work exception' % request.user)
+            logger.warning('User %s got intercepted work exception' % request.user)
             continue
         except WorkerProfileDoesNotExistException:
-            logging.error('User %s got unrecoverable error in getting next work item' % request.user)
+            logger.error('User %s got unrecoverable error in getting next work item' % request.user)
             raise Http404
 
 
