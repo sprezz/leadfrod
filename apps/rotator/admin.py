@@ -378,6 +378,7 @@ class CSVFileAdminForm(forms.ModelForm):
 class CSVFileAdmin(admin.ModelAdmin):
     model = CSVFile
     form = CSVFileAdminForm
+    filter_horizontal = ['workers']
     list_display = ('date_time', 'filename', 'niche', 'status', 'uploaded_by', 'filesize', 'max_offers', 'active_leads', 'completed_leads', 'leads', )
     fieldsets = [
         (None, {'fields': [
@@ -388,13 +389,21 @@ class CSVFileAdmin(admin.ModelAdmin):
     ]
 
     def leads(self, csv):
-        return csv.leads.count()
+        leads_count = csv.leads.count()
+        if leads_count:
+            return u'<a href="/admin/rotator/lead/?csv__id__exact={}" target="_blank">{}</a>'.format(csv.id, leads_count)
+        return 0
+    leads.allow_tags = True
 
     def active_leads(self, csv):
         return csv.unlocked_leads().filter(status='active', worker__isnull=True, deleted=False).count()
 
     def completed_leads(self, csv):
-        return csv.leads.filter(status='completed').count()
+        completed_leads_count = csv.leads.filter(status='completed').count()
+        if completed_leads_count:
+            return u'<a href="/admin/rotator/lead/?csv__id__exact={}&status=completed" target="_blank">{}</a>'.format(csv.id, completed_leads_count)
+        return 0
+    completed_leads.allow_tags = True
 
 
 class ManualQueueAdmin(admin.ModelAdmin):
