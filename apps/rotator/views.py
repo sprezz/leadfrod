@@ -5,6 +5,7 @@ from django.conf import settings
 
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout
+from django.db.models import Sum
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
@@ -246,9 +247,17 @@ def manualQueueGo(request):
 
 
 def showQueue(request):
-    queue = [str(o) for o in OfferQueue.objects.filter(size__gt=0)]
-    manual_queue = [str(o) for o in ManualQueue.objects.filter(size__gt=0)]
-    return render(request, 'showqueue.html', {'queue': queue, 'manual_queue': manual_queue})
+    offer_queue_clicks = OfferQueue.objects.filter(size__gt=0)
+    queue = [str(o) for o in offer_queue_clicks]
+    offer_queue_clicks_count = offer_queue_clicks.aggregate(s=Sum('size'))['s']
+
+    manual_queue_clicks = ManualQueue.objects.filter(size__gt=0)
+    manual_queue = [str(o) for o in manual_queue_clicks]
+    manual_queue_clicks_count = offer_queue_clicks.aggregate(s=Sum('size'))['s']
+    return render(request, 'showqueue.html', {'queue': queue,
+                                              'manual_queue': manual_queue,
+                                              'offer_queue_clicks_count': offer_queue_clicks_count,
+                                              'manual_queue_clicks_count': manual_queue_clicks_count})
 
 
 def month_revenue(request, template="month_revenue.html"):
