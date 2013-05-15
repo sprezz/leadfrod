@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 import logging
 from json import dumps
+from django.conf import settings
 
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import logout
@@ -57,10 +58,6 @@ def next_workitem(request):
     """Responds with lead and appropriate offers"""
     wm = WorkManager.instance()
     print 'wm instance', wm
-    wm.checkOrCreateUserProfile(request.user)
-    if not request.user.get_profile().now_online:
-        print 'setting ', request.user, ' online'
-        wm.signIn(request.user)
     wi = None
     for attempt in range(1, 3):
         try:
@@ -75,7 +72,8 @@ def next_workitem(request):
                     request.session['workitem'] = wi
                     request.session['msg'] = 'Your previous work item was cancelled by administrator. Start with next.'
             logging.info('User %s: Found offers in views: %d' % (request.user, len(wi.offers)))
-            TrafficHolder().processOffers(wi.offers)
+            if not settings.DEBUG:
+                TrafficHolder().processOffers(wi.offers)
             msg = None
             if 'msg' in request.session:
                 msg = request.session['msg']
@@ -248,8 +246,8 @@ def manualQueueGo(request):
 
 
 def showQueue(request):
-    queue = [str(o) for o in OfferQueue.objects.all()]
-    manual_queue = [str(o) for o in ManualQueue.objects.all()]
+    queue = [str(o) for o in OfferQueue.objects.filter(size__gt=0)]
+    manual_queue = [str(o) for o in ManualQueue.objects.filter(size__gt=0)]
     return render(request, 'showqueue.html', {'queue': queue, 'manual_queue': manual_queue})
 
 
