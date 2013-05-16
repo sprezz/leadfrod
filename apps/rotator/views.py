@@ -25,6 +25,9 @@ from rotator.trafficholder import TrafficHolder, UnknownOrderException
 from spyderhandler import AzoogleHandler
 
 
+logger = logging.getLogger(__name__)
+
+
 #@login_required
 def index(request):
     return redirect('/next/')
@@ -33,21 +36,21 @@ def index(request):
 @login_required
 @require_http_methods(['POST'])
 def submit_workitem(request):
-    print 'submit_workitem'
+    logger.info('submit_workitem')
     if request.method == 'POST':
         wm = WorkManager.instance()
-        print request.POST['user_action']
+        logger.info(request.POST['user_action'])
         wi = request.session['workitem']
         del request.session['workitem']
         if request.POST['user_action'] == 'Next':
             try:
                 wm.completeCurrentWorkItem(wi)
             except WorkInterceptedException, msg:
-                logging.warning(msg)
+                logger.warning(msg)
             return redirect('/next')
         else:
-            print 'Cancel job!'
-            logging.info('User %s has canceled work item %s' % (request.user, wi))
+            logger.info('Cancel job!')
+            logger.info('User %s has canceled work item %s' % (request.user, wi))
             request.session['msg'] = 'Work item %s was canceled by %s' % (wi, request.user)
             wm.releaseCurrentWorkItem(wi)
 
@@ -57,8 +60,6 @@ def submit_workitem(request):
 @login_required
 def next_workitem(request):
     """Responds with lead and appropriate offers"""
-    logger = logging.getLogger('rotator.views.next_workitem')
-    
     wm = WorkManager.instance()
     logger.info('wm instance %s' % wm)
     wi = None
@@ -111,7 +112,7 @@ def click_logout(request):
     try:
         wm.signOut(request.user)
     except Exception, msg:
-        logging.error(msg)
+        logger.error(msg)
     logout(request)
     return redirect('/')
 
@@ -146,7 +147,7 @@ def admin_release_lead(request):
         wm.unlockLead(lead_id, request.user)
         return redirect('/locked_leads')
     else:
-        logging.warning('GET /release_lead when POST is expected')
+        logger.warning('GET /release_lead when POST is expected')
 
 
 @permission_required('rotator.change_lead')
@@ -168,7 +169,7 @@ def admin_delete_csvfile(request):
             data = {'code': 'NOK', 'message': 'CSV with id %s not found' % csvfile_id}
         return HttpResponse(dumps(data), mimetype='application/json')
     else:
-        logging.warning('GET /delete_file when POST is expected')
+        logger.warning('GET /delete_file when POST is expected')
 
 
 @permission_required('rotator.change_lead')
@@ -188,11 +189,11 @@ def admin_delete_csvfile_raw(request):
             transaction.commit_unless_managed()
             data = {'code': 'OK'}
         except Exception, msg:
-            print 'Exception', msg
+            logger.error('Exception', msg)
             data = {'code': 'NOK', 'message': msg}
         return HttpResponse(dumps(data), mimetype='application/json')
     else:
-        logging.warning('GET /delete_file when POST is expected')
+        logger.warning('GET /delete_file when POST is expected')
 
 
 def trafficholder_callback(request, owner):
@@ -202,7 +203,7 @@ def trafficholder_callback(request, owner):
             if url:
                 return redirect(url)
             else:
-                logging.debug('Owner [%s] queue size is zero but url requested' % owner)
+                logger.debug('Owner [%s] queue size is zero but url requested' % owner)
                 return render(request, 'empty_queue.html')
         except UnknownOrderException:
             raise Http404

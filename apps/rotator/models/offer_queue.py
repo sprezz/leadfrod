@@ -4,6 +4,9 @@ from django.db import models
 from rotator.models import ACTIVE
 
 
+logger = logging.getLogger(__name__)
+
+
 class OfferQueue(models.Model):
     offer = models.ForeignKey('rotator.Offer', related_name='queues')
     order = models.ForeignKey('rotator.TrafficHolderOrder', related_name='queues')
@@ -18,7 +21,7 @@ class OfferQueue(models.Model):
     def popUrl(self):
         "Gets offer url from queue and decrease the queue length"
         if self.size == 0:
-            logging.warning("Attempt to get url from empty queue %s/%s" % (
+            logger.warning("Attempt to get url from empty queue %s/%s" % (
                 self.order.owner.name, self.order.order_id))
             return None
         self.size -= 1

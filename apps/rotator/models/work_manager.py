@@ -7,7 +7,7 @@ import re
 from rotator.models import ACTIVE, WorkInterceptedException, NoWorkException
 
 
-logger = logging.getLogger('rotator.models.work_manager')
+logger = logging.getLogger(__name__)
 
 
 class WorkItem(object):
@@ -122,7 +122,7 @@ class WorkManager(models.Model):
             offers = Offer.objects.filter(niche=leadNiche, status=ACTIVE, capacity__gte=F('payout')).order_by('submits_today')
             logger.info('Found %d offers in niche %s' % (len(offers), leadNiche))
             offer_names = []
-            networks = [] # for each lead only one network
+            networks = []  # for each lead only one network
             inetworks = Network.objects.filter(single=False)
             i = 0
             for offer in offers:
@@ -134,24 +134,22 @@ class WorkManager(models.Model):
 
                 i += 1
                 check_capacity = offer.checkCapacity()
-                #logger.info('offer checking capacity=%d in offer %d: %s' % (int(check_capacity), i, offer.offer_num))
+                logger.info('offer checking capacity=%d in offer %d: %s' % (int(check_capacity), i, offer.offer_num))
                 if not check_capacity:
                     continue
 
-                #logger.info('offer has capacity: %d: %s ' % (i,  offer.offer_num))
+                logger.info('offer has capacity: %d: %s ' % (i,  offer.offer_num))
                 logger.debug('offer has capacity: %s ' % offer)
                 hasAdvertiser = offer.hasAdvertiser()
-                #logger.info('offer %d: %s has advertiser = %s' % (i, offer.offer_num, hasAdvertiser))
+                logger.info('offer %d: %s has advertiser = %s' % (i, offer.offer_num, hasAdvertiser))
                 if hasAdvertiser:
                     if wi.lead.checkAdvertiser(offer.advertiser):
-                        print wi.lead, 'already was given to ', offer.advertiser, '. Skipping...'
-                        #logger.info('Skipping offer %d: %s because %s was given for lead %s' % (i, offer.offer_num, offer.advertiser, wi.lead.id))
-                        logger.debug('%s already was given to %s. Skipping...' % (wi.lead, offer.advertiser))
+                        logger.info('{} already was given to {}. Skipping...'.format(wi.lead, offer.advertiser))
                         continue
                     wi.lead.advertisers.add(offer.advertiser)
                     wi.lead.save()
 
-                #logger.info('Adding offer %d: %s to resutlt' % (i, offer.offer_num))
+                logger.info('Adding offer %d: %s to resutlt' % (i, offer.offer_num))
                 wi.addOffer(offer)
                 offer.increase_submits()
                 offer.reduce_capacity()
@@ -186,12 +184,12 @@ class WorkManager(models.Model):
 
     def releaseCurrentWorkItem(self, workitem):
         """Release lead and deassociate lead and offers"""
-        print 'Releasing lead', workitem.lead
+        logger.info('Releasing lead {}'.format(workitem.lead))
         if not workitem.lead:
-            print 'There are no leads in work for ', workitem.worker
+            logger.info('There are no leads in work for {}'.format(workitem.worker))
             return
         if workitem.lead.is_locked and workitem.lead.is_locked_by(workitem.worker):
-            print 'Unlock for', workitem.worker
+            logger.info('Unlock for {}'.format(workitem.worker))
             workitem.lead.unlock_for(workitem.worker)
             workitem.lead.save()
         if workitem.lead.worker == workitem.worker:
@@ -320,6 +318,3 @@ class WorkManager(models.Model):
 
     class Meta:
         app_label = 'rotator'
-
-    # def __unicode__(self):
-    #     return u'WorkManager: %s workers online' % self.getNumberOfOnlineWorkers
