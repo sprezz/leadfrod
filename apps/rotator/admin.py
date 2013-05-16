@@ -73,25 +73,16 @@ class AccountAdmin(admin.ModelAdmin):
 
 
 class OfferAdmin(admin.ModelAdmin):
-    model = Offer
-
-    class Media:
-        js = ['/media/admin/js/offer.js', ]
+    save_as = True
 
     raw_id_fields = ['advertiser', 'network', 'account', 'niche']
 
-    list_display = ('name', 'offer_num', 'network', 'account', 'owner_name',
-                    'capacity', 'daily_cap', 'advertiser', 'status',
-                    'capacity_error', 'submits_today', 'submits_total')
+    list_display = ('name', 'offer_num', 'network', 'account', 'owner_name', 'capacity', 'daily_cap', 'advertiser', 'status', 'capacity_error', 'submits_today', 'submits_total')
     list_display_links = ('name', )
-    search_fields = ['name', 'network__name', 'network__description',
-                     'account__username', 'account__company__owner__name',
-                     'advertiser__name', 'advertiser__description']
+    search_fields = ['name', 'network__name', 'network__description', 'account__username', 'account__company__owner__name', 'advertiser__name', 'advertiser__description']
     list_filter = ('status', 'niche', 'network', 'account', )
 
-    actions = ['add_clicks_dailycap', 'substract_clicks_dailycap',
-               'add_clicks_capacity', 'substract_clicks_capacity',
-               'activate', 'paused', 'set_submits_today', ]
+    actions = ['add_clicks_dailycap', 'substract_clicks_dailycap', 'add_clicks_capacity', 'substract_clicks_capacity', 'activate', 'paused', 'set_submits_today', ]
 
     def capacity_error(self, offer):
         """

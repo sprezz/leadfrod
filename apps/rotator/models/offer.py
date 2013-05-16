@@ -31,8 +31,7 @@ class Offer(models.Model):
     payout = models.FloatField()
     min_clicks = models.FloatField(null=True, blank=True, default=5.0)
     max_clicks = models.FloatField(null=True, blank=True, default=15.0)
-    status = models.CharField(max_length=30, choices=STATUS_LIST,
-                              default=ACTIVE)
+    status = models.CharField(max_length=30, choices=STATUS_LIST, default=ACTIVE)
     description = models.CharField(max_length=255, null=True, blank=True)
     submits_today = models.IntegerField(default=0)
     submits_total = models.IntegerField(default=0)
