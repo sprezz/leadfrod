@@ -33,3 +33,5 @@ def show_daily_summary(request):
     encoded_post_data = urllib.urlencode(post_data)
     data = urllib.urlopen(url, encoded_post_data).read()
     return HttpResponse(data)
+
+

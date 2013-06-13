@@ -29,7 +29,7 @@ def submit_workitem(request):
     if request.method == 'POST':
         wm = WorkManager.instance()
         print request.POST['user_action']
-        wi = request.session['workitem']
+        wi = request.session['+workitem']
         del request.session['workitem']
         if request.POST['user_action'] == 'Next':
             try:
