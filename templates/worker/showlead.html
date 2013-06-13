@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load urlencode %}
 {% block title %} {{ user.username }}'s backlog {% endblock %}
 {% block scripts %}
     <style>
@@ -9,14 +10,14 @@
 }
 
 </style>
-    <script type="text/javascript" src="/media/ext/jquery.form.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}ext/jquery.form.js"></script>
     <script>
 $(function() {
     $(".form_changestaus").submit(function() {
-        var self = $(this)
+        var self = $(this);
         self.ajaxSubmit(function(o) {
             if (o == '1'){
-                self.parent().html('Status was changed successfully!')
+                self.parent().html('Status was changed successfully!');
             }
         });
         return false;
@@ -50,7 +51,7 @@ $(function() {
             <h3>Offer {{ offer.offer_num }}</h3>
     <table class="table">
         <tr><th>Name</th><td>{{ offer.name }}</td></tr>
-		<tr><th>Url</th><td><a target="_blank" href="http://href.li/{{ offer.url }}">http://href.li/{{ offer.url }}</a></td></tr>
+		<tr><th>Url</th><td><a target="_blank" href="http://cpagodfather.com/autoinsurance/pagea.php?url={{ offer.url|quote }}">{{ offer.url }}</a></td></tr>
 		<tr><th>Network</th><td>{{ offer.network.name }}</td></tr>
 		<tr><th>Account</th><td>{{ offer.account.username }}</td></tr>
 		<tr><th>Description</th><td>{{ offer.description }}</td></tr>
@@ -58,7 +59,7 @@ $(function() {
 		<tr><th>Size</th><td><span {% if offer.size > 100 %}class="red_span"{% endif %}>{{ offer.size }}</span></td></tr>
 	</table>
     <div>
-		<form method="post" class="form_changestaus" action="{% url changeOfferStatus offer.id %}">
+		<form method="post" class="form_changestaus" action="{% url "changeOfferStatus" offer.id %}">
             <label class="radio">
                 Active: <input type="radio" value="active" {% if offer.status != 'suspicious' %}checked="checked"{% endif %} name="status"/>
             </label>

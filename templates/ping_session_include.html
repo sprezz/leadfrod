@@ -2,7 +2,7 @@
 <script type="text/javascript">
     $(function(){
         function ping(){
-            $.get('{% url accounts:ping %}');
+            $.get('{% url "accounts:ping" %}');
 
             setTimeout(ping, 1000)
         }

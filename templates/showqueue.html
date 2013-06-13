@@ -7,21 +7,20 @@
 <body>
 
 
-{% if queue or manual_queue%}
-Junk Traffic Queue<br/><br/>
-    {% for url in queue %}
-        <br/>{{ url }}
-    {% endfor %}
+    {% if queue %}
+    <p>Junk Traffic Queue ({{ offer_queue_clicks_count }})</p>
+        {% for url in queue %}
+            <br>{{ url }}
+        {% endfor %}
+    {% endif %}
 
+    {% if manual_queue %}
+        <p>Manual/Emergency Queue ({{ manual_queue_clicks_count }})</p>
+        {% for url in manual_queue %}
+            <br>{{ url }}
+        {% endfor %}
+    {% endif %}
 
-<br/><br/>
-Manual/Emergency Queue<br/>
-{% for url in manual_queue %}
-    <br/>{{ url }}
-{% endfor %}
-<br/>
-{% endif %}
-
-<a href="{% url rotator.views.manualQueueCreate %}">Add links to emergency queue?</a>
+<p><a href="{% url "rotator.views.manualQueueCreate" %}">Add links to emergency queue?</a></p>
 </body>
 </html>
