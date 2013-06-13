@@ -6,7 +6,7 @@ from rotator.models.offer_queue import OfferQueue
 from rotator.models.trafficholder_order import TrafficHolderOrder
 
 
-referer_hiding_url = ''
+referer_hiding_url = 'http://cpagodfather.com/autoinsurance/pagea.php?url='
 logger = logging.getLogger(__name__)
 
 
