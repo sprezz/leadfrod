@@ -37,7 +37,7 @@ def deploy():
         with cd(settings['sources_folder']):
             sudo('git pull', user='django')
             sudo('%(interpreter)s manage.py syncdb --noinput' % settings, user='django')
-            # sudo('%(interpreter)s manage.py migrate --noinput' % settings, user='django')
+            sudo('%(interpreter)s manage.py migrate --noinput' % settings, user='django')
             sudo('%(interpreter)s manage.py collectstatic --noinput' % settings, user='django')
 
             # sudo('%(supervisorctl)s restart %(instance)s' % settings)
