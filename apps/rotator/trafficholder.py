@@ -6,7 +6,6 @@ from rotator.models.offer_queue import OfferQueue
 from rotator.models.trafficholder_order import TrafficHolderOrder
 
 
-referer_hiding_url = 'http://cpagodfather.com/autoinsurance/pagea.php?url='
 logger = logging.getLogger(__name__)
 
 
@@ -123,8 +122,9 @@ class TrafficHolder(object):
         offerQueue_q = OfferQueue.objects.filter(order=order, size__gt=0)
         if offerQueue_q.exists():
             offerQueue = offerQueue_q.order_by('?')[0]
-            logger.debug('Redirect to %s' % (referer_hiding_url+offerQueue.offer.url))
-            return '%s' % referer_hiding_url+offerQueue.popUrl()
+            url = "%s?url=%s" % (offerQueue.offer.niche.url, offerQueue.offer.url)
+            logger.debug('Redirect to %s' % url)
+            return url
         else:
             logger.debug('Queue %s is empty. Stopping traffic holder!' % owner_name)
             self.stop(order.order_id)

@@ -10,7 +10,8 @@ class Niche(models.Model):
     status = models.CharField(max_length=30, choices=STATUS_LIST, default=ACTIVE)
     description = models.CharField(max_length=30, null=True, blank=True)
     priority = models.IntegerField(default=10)
-
+    url = models.URLField(default="http://cpagodfather.com/autoinsurance/pagea.php")
+    
     class Meta:
         ordering = ['name']
         app_label = 'rotator'
