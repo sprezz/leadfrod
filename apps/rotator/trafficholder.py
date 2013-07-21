@@ -57,9 +57,6 @@ class TrafficHolder(object):
                 response = urllib2.urlopen('%s?%s' % (self.url, send_data)).read()
                 if response:
                     logger.error(response)
-                break
-            #                handler = ResponseHandler()
-            #                parseString ( response_xml, handler )
             except urllib2.URLError, msg:
                 logger.error('Error %s, attempt %d of 10' % (msg, attempt))
 
