@@ -119,7 +119,7 @@ class TrafficHolder(object):
         offerQueue_q = OfferQueue.objects.filter(order=order, size__gt=0)
         if offerQueue_q.exists():
             offerQueue = offerQueue_q.order_by('?')[0]
-            url = "%s?url=%s" % (offerQueue.offer.niche.url, offerQueue.offer.url)
+            url = "%s?url=%s" % (offerQueue.offer.niche.url, offerQueue.popUrl())
             logger.debug('Redirect to %s' % url)
             return url
         else:
